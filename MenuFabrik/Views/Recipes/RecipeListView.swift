@@ -45,7 +45,13 @@ struct RecipeListView: View {
             }
             .navigationTitle("Mes Recettes")
             .toolbar {
-                ToolbarItem(placement: .primaryAction) {
+                ToolbarItemGroup(placement: .primaryAction) {
+                    Button(action: {
+                        DataSeeder.seed(context: modelContext)
+                    }) {
+                        Label("Recharger Data", systemImage: "arrow.triangle.2.circlepath")
+                    }
+                    
                     Button(action: { showingAddSheet = true }) {
                         Label("Ajouter", systemImage: "plus")
                     }
