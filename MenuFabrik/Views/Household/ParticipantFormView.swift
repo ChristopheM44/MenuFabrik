@@ -20,6 +20,19 @@ struct ParticipantFormView: View {
                 }
                 
                 AllergenInputView(allergens: $viewModel.allergies)
+                
+                if viewModel.editingParticipant != nil {
+                    Section {
+                        Button("Supprimer le membre", role: .destructive) {
+                            if let participant = viewModel.editingParticipant {
+                                modelContext.delete(participant)
+                                try? modelContext.save()
+                                dismiss()
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                }
             }
             .navigationTitle(viewModel.editingParticipant == nil ? "Nouveau Membre" : "Modifier le Membre")
             .navigationBarItems(

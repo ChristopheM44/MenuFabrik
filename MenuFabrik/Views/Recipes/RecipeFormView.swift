@@ -39,6 +39,19 @@ struct RecipeFormView: View {
                     TextEditor(text: $viewModel.instructions)
                         .frame(minHeight: 100)
                 }
+                
+                if viewModel.editingRecipe != nil {
+                    Section {
+                        Button("Supprimer la recette", role: .destructive) {
+                            if let recipe = viewModel.editingRecipe {
+                                modelContext.delete(recipe)
+                                try? modelContext.save()
+                                dismiss()
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                }
             }
             .navigationTitle(viewModel.editingRecipe == nil ? "Nouvelle Recette" : "Modifier la Recette")
             .navigationBarItems(

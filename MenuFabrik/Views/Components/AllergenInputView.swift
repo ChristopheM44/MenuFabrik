@@ -7,7 +7,19 @@ struct AllergenInputView: View {
     var body: some View {
         Section(header: Text("Allergènes")) {
             ForEach(allergens, id: \.self) { allergen in
-                Text(allergen)
+                HStack {
+                    Text(allergen)
+                    Spacer()
+                    Button {
+                        if let index = allergens.firstIndex(of: allergen) {
+                            allergens.remove(at: index)
+                        }
+                    } label: {
+                        Image(systemName: "trash")
+                            .foregroundColor(.red)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
             .onDelete { indices in
                 allergens.remove(atOffsets: indices)
