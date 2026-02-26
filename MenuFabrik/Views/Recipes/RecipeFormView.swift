@@ -5,28 +5,24 @@ struct RecipeFormView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
-    var recipe: Recipe?
+    @State private var viewModel: RecipeFormViewModel
     
-    @State private var name: String = ""
-    @State private var prepTime: Int = 30
-    @State private var mealType: MealType = .both
-    @State private var category: RecipeCategory = .other
-    @State private var instructions: String = ""
-    @State private var rating: Int = 0
-    @State private var allergens: [String] = []
+    init(recipe: Recipe? = nil) {
+        _viewModel = State(initialValue: RecipeFormViewModel(recipe: recipe))
+    }
     
     var body: some View {
         NavigationStack {
             Form {
                 Section(header: Text("Informations générales")) {
-                    TextField("Nom de la recette", text: $name)
-                    Stepper("Temps de préparation: \(prepTime) min", value: $prepTime, in: 5...180, step: 5)
-                    Picker("Type de Repas", selection: $mealType) {
+                    TextField("Nom de la recette", text: $viewModel.name)
+                    Stepper("Temps de préparation: \(viewModel.prepTime) min", value: $viewModel.prepTime, in: 5...180, step: 5)
+                    Picker("Type de Repas", selection: $viewModel.mealType) {
                         ForEach(MealType.allCases, id: \.self) { type in
                             Text(type.rawValue).tag(type)
                         }
                     }
-                    Picker("Catégorie", selection: $category) {
+                    Picker("Catégorie", selection: $viewModel.category) {
                         ForEach(RecipeCategory.allCases, id: \.self) { cat in
                             Text(cat.rawValue).tag(cat)
                         }
@@ -34,48 +30,25 @@ struct RecipeFormView: View {
                 }
                 
                 Section(header: Text("Notation")) {
-                    StarRatingView(rating: $rating)
+                    StarRatingView(rating: $viewModel.rating)
                 }
                 
-                AllergenInputView(allergens: $allergens)
+                AllergenInputView(allergens: $viewModel.allergens)
                 
                 Section(header: Text("Instructions")) {
-                    TextEditor(text: $instructions)
+                    TextEditor(text: $viewModel.instructions)
                         .frame(minHeight: 100)
                 }
             }
-            .navigationTitle(recipe == nil ? "Nouvelle Recette" : "Modifier la Recette")
+            .navigationTitle(viewModel.editingRecipe == nil ? "Nouvelle Recette" : "Modifier la Recette")
             .navigationBarItems(
                 leading: Button("Annuler") { dismiss() },
-                trailing: Button("Enregistrer") { save() }.disabled(name.isEmpty)
-            )
-            .onAppear {
-                if let recipe = recipe {
-                    name = recipe.name
-                    prepTime = recipe.prepTime
-                    mealType = recipe.mealType
-                    category = recipe.category
-                    instructions = recipe.instructions
-                    allergens = recipe.allergens
-                    rating = recipe.rating
+                trailing: Button("Enregistrer") {
+                    viewModel.save(context: modelContext)
+                    dismiss()
                 }
-            }
+                .disabled(viewModel.isSaveDisabled)
+            )
         }
-    }
-    
-    private func save() {
-        if let recipe = recipe {
-            recipe.name = name
-            recipe.prepTime = prepTime
-            recipe.mealType = mealType
-            recipe.category = category
-            recipe.instructions = instructions
-            recipe.allergens = allergens
-            recipe.rating = rating
-        } else {
-            let newRecipe = Recipe(name: name, prepTime: prepTime, mealType: mealType, category: category, allergens: allergens, instructions: instructions, rating: rating)
-            modelContext.insert(newRecipe)
-        }
-        dismiss()
     }
 }

@@ -5,46 +5,31 @@ struct ParticipantFormView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
-    var participant: Participant?
+    @State private var viewModel: ParticipantFormViewModel
     
-    @State private var name: String = ""
-    @State private var isActive: Bool = true
-    @State private var allergies: [String] = []
+    init(participant: Participant? = nil) {
+        _viewModel = State(initialValue: ParticipantFormViewModel(participant: participant))
+    }
     
     var body: some View {
         NavigationStack {
             Form {
                 Section(header: Text("Informations")) {
-                    TextField("Prénom", text: $name)
-                    Toggle("Actif pour les menus", isOn: $isActive)
+                    TextField("Prénom", text: $viewModel.name)
+                    Toggle("Actif pour les menus", isOn: $viewModel.isActive)
                 }
                 
-                AllergenInputView(allergens: $allergies)
+                AllergenInputView(allergens: $viewModel.allergies)
             }
-            .navigationTitle(participant == nil ? "Nouveau Membre" : "Modifier le Membre")
+            .navigationTitle(viewModel.editingParticipant == nil ? "Nouveau Membre" : "Modifier le Membre")
             .navigationBarItems(
                 leading: Button("Annuler") { dismiss() },
-                trailing: Button("Enregistrer") { save() }.disabled(name.isEmpty)
-            )
-            .onAppear {
-                if let participant = participant {
-                    name = participant.name
-                    isActive = participant.isActive
-                    allergies = participant.allergies
+                trailing: Button("Enregistrer") {
+                    viewModel.save(context: modelContext)
+                    dismiss()
                 }
-            }
+                .disabled(viewModel.isSaveDisabled)
+            )
         }
-    }
-    
-    private func save() {
-        if let participant = participant {
-            participant.name = name
-            participant.isActive = isActive
-            participant.allergies = allergies
-        } else {
-            let newParticipant = Participant(name: name, isActive: isActive, allergies: allergies)
-            modelContext.insert(newParticipant)
-        }
-        dismiss()
     }
 }
