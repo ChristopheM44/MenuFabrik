@@ -27,18 +27,21 @@ final class Recipe {
     var category: RecipeCategory
     var allergens: [String]
     var instructions: String
+    var rating: Int // De 0 à 5 étoiles
     
     init(name: String, 
          prepTime: Int, 
          mealType: MealType = .both, 
          category: RecipeCategory = .other, 
          allergens: [String] = [], 
-         instructions: String = "") {
+         instructions: String = "",
+         rating: Int = 0) {
         self.name = name
         self.prepTime = prepTime
         self.mealType = mealType
         self.category = category
         self.allergens = allergens
         self.instructions = instructions
+        self.rating = rating
     }
 }
