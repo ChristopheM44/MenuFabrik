@@ -9,7 +9,6 @@ struct ParticipantFormView: View {
     
     @State private var name: String = ""
     @State private var isActive: Bool = true
-    @State private var newAllergy: String = ""
     @State private var allergies: [String] = []
     
     var body: some View {
@@ -20,26 +19,7 @@ struct ParticipantFormView: View {
                     Toggle("Actif pour les menus", isOn: $isActive)
                 }
                 
-                Section(header: Text("Allergies et Régimes")) {
-                    ForEach(allergies, id: \.self) { allergy in
-                        Text(allergy)
-                    }
-                    .onDelete { indices in
-                        allergies.remove(atOffsets: indices)
-                    }
-                    
-                    HStack {
-                        TextField("Nouvelle allergie (ex: Gluten)", text: $newAllergy)
-                        Button("Ajouter") {
-                            let trimmed = newAllergy.trimmingCharacters(in: .whitespaces)
-                            if !trimmed.isEmpty && !allergens.contains(trimmed) {
-                                allergies.append(trimmed)
-                                newAllergy = ""
-                            }
-                        }
-                        .disabled(newAllergy.isEmpty)
-                    }
-                }
+                AllergenInputView(allergens: $allergies)
             }
             .navigationTitle(participant == nil ? "Nouveau Membre" : "Modifier le Membre")
             .navigationBarItems(
@@ -54,10 +34,6 @@ struct ParticipantFormView: View {
                 }
             }
         }
-    }
-    
-    private var allergens: [String] {
-        return allergies
     }
     
     private func save() {

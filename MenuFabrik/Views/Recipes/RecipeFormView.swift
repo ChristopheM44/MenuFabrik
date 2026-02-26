@@ -13,7 +13,6 @@ struct RecipeFormView: View {
     @State private var category: RecipeCategory = .other
     @State private var instructions: String = ""
     @State private var rating: Int = 0
-    @State private var newAllergen: String = ""
     @State private var allergens: [String] = []
     
     var body: some View {
@@ -35,37 +34,10 @@ struct RecipeFormView: View {
                 }
                 
                 Section(header: Text("Notation")) {
-                    Stepper(value: $rating, in: 0...5) {
-                        HStack {
-                            Text("Note: ")
-                            ForEach(0..<5) { index in
-                                Image(systemName: index < rating ? "star.fill" : "star")
-                                    .foregroundColor(.yellow)
-                            }
-                        }
-                    }
+                    StarRatingView(rating: $rating)
                 }
                 
-                Section(header: Text("Allergènes")) {
-                    ForEach(allergens, id: \.self) { allergen in
-                        Text(allergen)
-                    }
-                    .onDelete { indices in
-                        allergens.remove(atOffsets: indices)
-                    }
-                    
-                    HStack {
-                        TextField("Nouvel allergène", text: $newAllergen)
-                        Button("Ajouter") {
-                            let trimmed = newAllergen.trimmingCharacters(in: .whitespaces)
-                            if !trimmed.isEmpty && !allergens.contains(trimmed) {
-                                allergens.append(trimmed)
-                                newAllergen = ""
-                            }
-                        }
-                        .disabled(newAllergen.isEmpty)
-                    }
-                }
+                AllergenInputView(allergens: $allergens)
                 
                 Section(header: Text("Instructions")) {
                     TextEditor(text: $instructions)
