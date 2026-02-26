@@ -27,6 +27,9 @@ struct MenuGeneratorEngine {
         var previousCategory: RecipeCategory? = nil
         
         for meal in sortedMeals {
+            // Ignorer la génération pour les repas non planifiés
+            guard meal.status == .planned else { continue }
+            
             let expectedType: MealType = (meal.type == .lunch) ? .lunch : .dinner
             var candidates = safeRecipes.filter { $0.mealType == .both || $0.mealType == expectedType }
             
@@ -60,6 +63,8 @@ struct MenuGeneratorEngine {
     
     /// Trouve une recette alternative pour un seul repas, en évitant les recettes déjà présentes dans l'historique de la semaine.
     static func generateAlternative(for meal: Meal, availableRecipes: [Recipe], participants: [Participant], history: [Meal]) {
+        guard meal.status == .planned else { return }
+        
         let currentRecipe = meal.recipe
         let excludedAllergens = Set(participants.flatMap { $0.allergies.map { $0.lowercased() } })
         
