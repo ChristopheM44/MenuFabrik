@@ -16,6 +16,9 @@ struct SettingsView: View {
                     NavigationLink(destination: AllergenListView()) {
                         Label("Gérer les Allergènes", systemImage: "list.dash")
                     }
+                    NavigationLink(destination: SideDishListView()) {
+                        Label("Gérer les Accompagnements", systemImage: "takeoutbag.and.cup.and.straw")
+                    }
                 }
                 
                 Section(header: Text("Sauvegarde")) {
@@ -31,6 +34,16 @@ struct SettingsView: View {
                     
                     Button(action: { showFileImporter = true }) {
                         Label("Importer des données", systemImage: "square.and.arrow.down")
+                    }
+                }
+                
+                Section(header: Text("Zone Dangereuse")) {
+                    Button(role: .destructive) {
+                        DataSeeder.seed(context: modelContext)
+                        messageText = "Les données ont été réinitialisées avec succès (accompagnements, allergènes et recettes de base)."
+                        showMessage = true
+                    } label: {
+                        Label("Réinitialiser les données (DataSeeder)", systemImage: "arrow.triangle.2.circlepath")
                     }
                 }
             }

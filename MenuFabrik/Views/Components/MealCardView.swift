@@ -34,11 +34,11 @@ struct MealCardView: View {
                             .font(.headline)
                             .lineLimit(2)
                         
-                        if let sideDish = viewModel.meal.selectedSideDish {
-                            Text("avec \(sideDish)")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .italic()
+                        if let side = viewModel.meal.selectedSideDish?.name {
+                    Text("+ \(side)")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .italic()
                         }
                     }
                     
@@ -81,7 +81,7 @@ struct MealCardView: View {
                 .frame(maxWidth: .infinity)
             }
         }
-        .frame(maxHeight: .infinity)
+        .frame(height: 200)
         .padding()
         .background(Color.secondary.opacity(0.1))
         .draggable(MealTransfer(id: viewModel.meal.id))

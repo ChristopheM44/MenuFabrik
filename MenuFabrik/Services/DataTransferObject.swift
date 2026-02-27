@@ -4,6 +4,10 @@ struct AllergenDTO: Codable {
     let name: String
 }
 
+struct SideDishDTO: Codable {
+    let name: String
+}
+
 struct RecipeDTO: Codable {
     let name: String
     let prepTime: Int
@@ -24,6 +28,7 @@ struct ParticipantDTO: Codable {
 struct AppDataExport: Codable {
     let version: Int
     let allergens: [AllergenDTO]
+    let sideDishes: [SideDishDTO]
     let recipes: [RecipeDTO]
     let participants: [ParticipantDTO]
 }

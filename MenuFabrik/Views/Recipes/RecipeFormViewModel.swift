@@ -13,7 +13,7 @@ class RecipeFormViewModel {
     
     // Nouveaux champs Phase 5
     var requiresFreeTime: Bool = false
-    var suggestedSides: [String] = []
+    var suggestedSides: [SideDish] = []
     
     // Le modèle d'origine si on est en édition
     var editingRecipe: Recipe?

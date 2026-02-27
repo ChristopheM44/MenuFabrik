@@ -11,12 +11,14 @@ class DataExportService {
     
     func exportData() throws -> Data {
         let allergens = (try? context.fetch(FetchDescriptor<Allergen>())) ?? []
+        let sideDishes = (try? context.fetch(FetchDescriptor<SideDish>())) ?? []
         let recipes = (try? context.fetch(FetchDescriptor<Recipe>())) ?? []
         let participants = (try? context.fetch(FetchDescriptor<Participant>())) ?? []
         
         let exportData = AppDataExport(
             version: 1,
             allergens: allergens.map { AllergenDTO(name: $0.name) },
+            sideDishes: sideDishes.map { SideDishDTO(name: $0.name) },
             recipes: recipes.map { recipe in
                 RecipeDTO(
                     name: recipe.name,
@@ -25,7 +27,7 @@ class DataExportService {
                     category: recipe.category.rawValue,
                     allergens: recipe.allergens.map { $0.name },
                     requiresFreeTime: recipe.requiresFreeTime,
-                    suggestedSides: recipe.suggestedSides,
+                    suggestedSides: recipe.suggestedSides.map { $0.name },
                     rating: recipe.rating
                 )
             },
@@ -61,6 +63,9 @@ class DataExportService {
         let oldParticipants = (try? context.fetch(FetchDescriptor<Participant>())) ?? []
         for p in oldParticipants { context.delete(p) }
         
+        let oldSides = (try? context.fetch(FetchDescriptor<SideDish>())) ?? []
+        for s in oldSides { context.delete(s) }
+        
         let oldMeals = (try? context.fetch(FetchDescriptor<Meal>())) ?? []
         for m in oldMeals { context.delete(m) }
         
@@ -75,6 +80,22 @@ class DataExportService {
             allergenMap[a.name] = a
         }
         
+        var sideMap: [String: SideDish] = [:]
+        for sDTO in imported.sideDishes {
+            let s = SideDish(name: sDTO.name)
+            context.insert(s)
+            sideMap[s.name] = s
+        }
+        
+        let allUniqueRecipeSides = Set(imported.recipes.flatMap { $0.suggestedSides })
+        for sName in allUniqueRecipeSides {
+            if sideMap[sName] == nil {
+                let s = SideDish(name: sName)
+                context.insert(s)
+                sideMap[sName] = s
+            }
+        }
+        
         for rDTO in imported.recipes {
             let r = Recipe(
                 name: rDTO.name,
@@ -83,7 +104,7 @@ class DataExportService {
                 category: RecipeCategory(rawValue: rDTO.category) ?? .other,
                 allergens: rDTO.allergens.compactMap { allergenMap[$0] },
                 requiresFreeTime: rDTO.requiresFreeTime,
-                suggestedSides: rDTO.suggestedSides
+                suggestedSides: rDTO.suggestedSides.compactMap { sideMap[$0] }
             )
             r.rating = rDTO.rating
             context.insert(r)

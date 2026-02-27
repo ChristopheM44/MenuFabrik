@@ -88,13 +88,13 @@ struct MenuGeneratorEngine {
             // Amélioration: Tirage au sort de l'accompagnement (en évitant l'accompagnement précédent)
             var sides = chosenRecipe.suggestedSides
             if let prevSide = previousSideDish, sides.count > 1 {
-                sides.removeAll { $0.lowercased() == prevSide.lowercased() }
+                sides.removeAll { $0.name.lowercased() == prevSide.lowercased() }
             }
             meal.selectedSideDish = sides.randomElement()
             
             usedRecipeIDs.insert(chosenRecipe.id)
             previousCategory = chosenRecipe.category
-            previousSideDish = meal.selectedSideDish
+            previousSideDish = meal.selectedSideDish?.name
         }
     }
     

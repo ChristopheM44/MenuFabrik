@@ -31,7 +31,7 @@ final class Recipe {
     
     // Nouveaux champs pour l'intelligence
     var requiresFreeTime: Bool
-    var suggestedSides: [String]
+    @Relationship var suggestedSides: [SideDish]
     
     init(name: String, 
          prepTime: Int, 
@@ -41,7 +41,7 @@ final class Recipe {
          instructions: String = "",
          rating: Int = 0,
          requiresFreeTime: Bool = false,
-         suggestedSides: [String] = []) {
+         suggestedSides: [SideDish] = []) {
         self.name = name
         self.prepTime = prepTime
         self.mealType = mealType
