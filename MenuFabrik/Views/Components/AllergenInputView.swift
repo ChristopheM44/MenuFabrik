@@ -28,22 +28,23 @@ struct AllergenInputView: View {
                 allergens.remove(atOffsets: indices)
             }
             
-            HStack {
-                TextField("Nouvel allergène (ex: Gluten)", text: $newAllergen)
-                Button("Ajouter") {
-                    let trimmed = newAllergen.trimmingCharacters(in: .whitespaces)
-                    if !trimmed.isEmpty && !allergens.contains(where: { $0.name.lowercased() == trimmed.lowercased() }) {
-                        if let existing = availableAllergens.first(where: { $0.name.lowercased() == trimmed.lowercased() }) {
-                            allergens.append(existing)
-                        } else {
-                            let newA = Allergen(name: trimmed)
-                            modelContext.insert(newA)
-                            allergens.append(newA)
+            if !availableAllergens.isEmpty {
+                Menu {
+                    ForEach(availableAllergens.filter { a in !allergens.contains(a) }) { allergen in
+                        Button(allergen.name) {
+                            allergens.append(allergen)
                         }
-                        newAllergen = ""
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                        Text("Ajouter un allergène...")
                     }
                 }
-                .disabled(newAllergen.trimmingCharacters(in: .whitespaces).isEmpty)
+            } else {
+                Text("Aucun allergène défini. Allez dans Réglages.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
         }
     }

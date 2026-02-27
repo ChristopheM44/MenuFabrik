@@ -81,6 +81,7 @@ struct MealCardView: View {
                 .frame(maxWidth: .infinity)
             }
         }
+        .frame(maxHeight: .infinity)
         .padding()
         .background(Color.secondary.opacity(0.1))
         .draggable(MealTransfer(id: viewModel.meal.id))
@@ -129,6 +130,8 @@ struct MealCardView: View {
         case .restaurant: return "fork.knife"
         case .absent: return "airplane"
         case .work: return "briefcase"
+        case .leftovers: return "takeoutbag.and.cup.and.straw"
+        case .shopping: return "cart"
         case .skipped: return "xmark.circle"
         case .planned: return "calendar"
         }
@@ -139,6 +142,8 @@ struct MealCardView: View {
         case .restaurant: return .orange
         case .absent: return .purple
         case .work: return .blue
+        case .leftovers: return .brown
+        case .shopping: return .teal
         case .skipped: return .gray
         case .planned: return .primary
         }

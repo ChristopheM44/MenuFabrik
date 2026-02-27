@@ -11,6 +11,8 @@ enum MealStatus: String, Codable, CaseIterable {
     case restaurant = "Restaurant"
     case absent = "Absent"
     case work = "Travail"
+    case leftovers = "Restes"
+    case shopping = "Courses"
     case skipped = "Sauté"
 }
 
