@@ -20,15 +20,15 @@ class MealCardViewModel {
         // Intervertir les recettes, statuts et accompagnements
         let tempRecipe = meal.recipe
         let tempStatus = meal.status
-        let tempSideDish = meal.selectedSideDish
+        let tempSideDishes = meal.selectedSideDishes
         
         meal.recipe = droppedMeal.recipe
         meal.status = droppedMeal.status
-        meal.selectedSideDish = droppedMeal.selectedSideDish
+        meal.selectedSideDishes = droppedMeal.selectedSideDishes
         
         droppedMeal.recipe = tempRecipe
         droppedMeal.status = tempStatus
-        droppedMeal.selectedSideDish = tempSideDish
+        droppedMeal.selectedSideDishes = tempSideDishes
         
         try? context.save()
         return true
@@ -38,7 +38,7 @@ class MealCardViewModel {
         meal.status = newStatus
         if newStatus != .planned {
             meal.recipe = nil
-            meal.selectedSideDish = nil
+            meal.selectedSideDishes = []
         } else if meal.recipe == nil {
             regenerateMeal(context: context)
         }

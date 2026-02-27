@@ -28,7 +28,9 @@ struct SideDishListView: View {
                 } else {
                     List {
                         ForEach(sideDishes) { side in
-                            Text(side.name)
+                            @Bindable var editableSide = side
+                            TextField("Nom de l'accompagnement", text: $editableSide.name)
+                                .onSubmit { try? modelContext.save() }
                         }
                         .onDelete(perform: deleteSideDishes)
                     }

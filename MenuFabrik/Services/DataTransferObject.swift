@@ -17,6 +17,7 @@ struct RecipeDTO: Codable {
     let requiresFreeTime: Bool
     let suggestedSides: [String]
     let rating: Int
+    let instructions: String?
 }
 
 struct ParticipantDTO: Codable {
@@ -25,10 +26,24 @@ struct ParticipantDTO: Codable {
     let allergies: [String]
 }
 
+struct MealDTO: Codable {
+    let date: Date
+    let type: String
+    let status: String
+    let recipeName: String?
+    let selectedSideDishes: [String]
+}
+
+struct WeeklyMenuDTO: Codable {
+    let startDate: Date
+    let meals: [MealDTO]
+}
+
 struct AppDataExport: Codable {
     let version: Int
     let allergens: [AllergenDTO]
     let sideDishes: [SideDishDTO]
     let recipes: [RecipeDTO]
     let participants: [ParticipantDTO]
+    let menus: [WeeklyMenuDTO]
 }

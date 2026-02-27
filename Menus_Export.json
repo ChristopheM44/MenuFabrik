@@ -1,0 +1,815 @@
+{
+  "version": 1,
+  "allergens": [
+    {
+      "name": "Crustacés"
+    },
+    {
+      "name": "Fruits à coque"
+    },
+    {
+      "name": "Gluten"
+    },
+    {
+      "name": "Lactose"
+    },
+    {
+      "name": "Moutarde"
+    },
+    {
+      "name": "Oeuf"
+    },
+    {
+      "name": "Poisson"
+    },
+    {
+      "name": "Soja"
+    }
+  ],
+  "sideDishes": [
+    {
+      "name": "Crudités"
+    },
+    {
+      "name": "Nouilles sautées aux légumes"
+    },
+    {
+      "name": "Pommes rissolées"
+    },
+    {
+      "name": "bacon"
+    },
+    {
+      "name": "bechamel"
+    },
+    {
+      "name": "burrata"
+    },
+    {
+      "name": "carottes"
+    },
+    {
+      "name": "carottes courgette"
+    },
+    {
+      "name": "carottes vichy"
+    },
+    {
+      "name": "carrottes rapées"
+    },
+    {
+      "name": "champignons"
+    },
+    {
+      "name": "charcut"
+    },
+    {
+      "name": "chevre chaud"
+    },
+    {
+      "name": "concombre"
+    },
+    {
+      "name": "creme champignons"
+    },
+    {
+      "name": "eminces jambon"
+    },
+    {
+      "name": "epinards"
+    },
+    {
+      "name": "frites"
+    },
+    {
+      "name": "fromage"
+    },
+    {
+      "name": "fromage fouetté"
+    },
+    {
+      "name": "gnocchis"
+    },
+    {
+      "name": "haricots verts"
+    },
+    {
+      "name": "jambon"
+    },
+    {
+      "name": "olives"
+    },
+    {
+      "name": "pain"
+    },
+    {
+      "name": "pates"
+    },
+    {
+      "name": "pdt rissolees"
+    },
+    {
+      "name": "petits pois"
+    },
+    {
+      "name": "poireaux"
+    },
+    {
+      "name": "pommes de terres"
+    },
+    {
+      "name": "pommes noisettes"
+    },
+    {
+      "name": "poêlée légumes"
+    },
+    {
+      "name": "puree legumes"
+    },
+    {
+      "name": "ratatouille"
+    },
+    {
+      "name": "riz"
+    },
+    {
+      "name": "riz cantonais"
+    },
+    {
+      "name": "rosti"
+    },
+    {
+      "name": "salade"
+    },
+    {
+      "name": "semoule"
+    },
+    {
+      "name": "tian aubergine"
+    }
+  ],
+  "recipes": [
+    {
+      "name": "Poulet rôti du dimanche",
+      "prepTime": 60,
+      "mealType": "Midi",
+      "category": "Viande",
+      "allergens": [],
+      "requiresFreeTime": true,
+      "suggestedSides": [
+        "pommes de terres",
+        "haricots verts"
+      ],
+      "rating": 5,
+      "instructions": "1. Préchauffer le four à 200°C.\n2. Assaisonner le poulet et masser avec de l'huile et des herbes.\n3. Cuire 1h en arrosant régulièrement."
+    },
+    {
+      "name": "Pavé de saumon au four",
+      "prepTime": 20,
+      "mealType": "Midi et Soir",
+      "category": "Poisson",
+      "allergens": [
+        "Poisson"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "riz",
+        "poêlée légumes"
+      ],
+      "rating": 4,
+      "instructions": "1. Déposer les pavés dans un plat allant au four.\n2. Arroser d'un filet d'huile d'olive et de citron.\n3. Enfourner 15 minutes à 180°C."
+    },
+    {
+      "name": "Risotto aux champignons",
+      "prepTime": 35,
+      "mealType": "Soir",
+      "category": "Végétarien",
+      "allergens": [
+        "Lactose"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "champignons",
+        "fromage"
+      ],
+      "rating": 4,
+      "instructions": "1. Faire revenir un oignon émincé.\n2. Ajouter le riz à risotto et déglacer au vin blanc.\n3. Ajouter le bouillon louche par louche.\n4. Incorporer les champignons poêlés et le parmesan."
+    },
+    {
+      "name": "Escalope de dinde à la crème",
+      "prepTime": 15,
+      "mealType": "Midi et Soir",
+      "category": "Viande",
+      "allergens": [
+        "Lactose"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "pates",
+        "creme champignons"
+      ],
+      "rating": 4,
+      "instructions": "1. Saisir les escalopes de dinde à la poêle.\n2. Ajouter la crème fraîche en fin de cuisson.\n3. Saler, poivrer et servir chaud."
+    },
+    {
+      "name": "Omelette nature",
+      "prepTime": 10,
+      "mealType": "Soir",
+      "category": "Végétarien",
+      "allergens": [
+        "Oeuf"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "salade",
+        "pain"
+      ],
+      "rating": 3,
+      "instructions": "1. Battre les oeufs dans un bol avec sel et poivre.\n2. Faire fondre une noisette de beurre dans une poêle.\n3. Verser les oeufs et cuire quelques minutes."
+    },
+    {
+      "name": "Steak haché du boucher",
+      "prepTime": 10,
+      "mealType": "Midi et Soir",
+      "category": "Viande",
+      "allergens": [],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "frites",
+        "salade"
+      ],
+      "rating": 4,
+      "instructions": "1. Faire chauffer une poêle à feu vif.\n2. Cuire les steaks selon la cuisson désirée (bleu, saignant, à point).\n3. Assaisonner en fin de cuisson."
+    },
+    {
+      "name": "Quiche sans pâte",
+      "prepTime": 50,
+      "mealType": "Midi et Soir",
+      "category": "Autre",
+      "allergens": [
+        "Oeuf",
+        "Lactose"
+      ],
+      "requiresFreeTime": true,
+      "suggestedSides": [
+        "salade",
+        "carrottes rapées"
+      ],
+      "rating": 4,
+      "instructions": "1. Mélanger oeufs, crème, lait et un peu de farine.\n2. Ajouter les garnitures de votre choix.\n3. Cuire au four 40 minutes à 180°C."
+    },
+    {
+      "name": "Dos de cabillaud vapeur",
+      "prepTime": 20,
+      "mealType": "Soir",
+      "category": "Poisson",
+      "allergens": [
+        "Poisson"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "puree legumes",
+        "epinards"
+      ],
+      "rating": 5,
+      "instructions": "1. Placer les dos de cabillaud dans le panier vapeur.\n2. Ajouter quelques herbes aromatiques.\n3. Cuire à la vapeur pendant 15 minutes."
+    },
+    {
+      "name": "Saucisses de Toulouse grillées",
+      "prepTime": 25,
+      "mealType": "Midi",
+      "category": "Viande",
+      "allergens": [],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "pdt rissolees",
+        "bechamel"
+      ],
+      "rating": 3,
+      "instructions": "1. Piquer les saucisses à la fourchette.\n2. Les faire dorer à la poêle ou au barbecue.\n3. Cuire à coeur pendant une vingtaine de minutes."
+    },
+    {
+      "name": "Galettes bretonnes complètes",
+      "prepTime": 15,
+      "mealType": "Soir",
+      "category": "Autre",
+      "allergens": [
+        "Oeuf",
+        "Lactose",
+        "Gluten"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "jambon",
+        "fromage",
+        "salade"
+      ],
+      "rating": 5,
+      "instructions": "1. Chauffer une crêpière avec un peu de beurre.\n2. Poser une galette de blé noir.\n3. Garnir et replier les bords."
+    },
+    {
+      "name": "Tarte fine à la tomate",
+      "prepTime": 45,
+      "mealType": "Midi et Soir",
+      "category": "Végétarien",
+      "allergens": [
+        "Gluten",
+        "Lactose"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "salade",
+        "olives"
+      ],
+      "rating": 4,
+      "instructions": "1. Étaler une pâte feuilletée sur une plaque.\n2. Tartiner de moutarde et disposer des rondelles de tomates.\n3. Cuire 30 minutes à 200°C."
+    },
+    {
+      "name": "Filet mignon rôti",
+      "prepTime": 40,
+      "mealType": "Midi",
+      "category": "Viande",
+      "allergens": [
+        "Moutarde"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "pommes noisettes",
+        "haricots verts"
+      ],
+      "rating": 5,
+      "instructions": "1. Badigeonner le filet mignon de moutarde.\n2. Le saisir à la poêle pour le faire dorer.\n3. Terminer la cuisson au four pendant 25 minutes."
+    },
+    {
+      "name": "Pâtes au pesto",
+      "prepTime": 15,
+      "mealType": "Midi et Soir",
+      "category": "Pâtes",
+      "allergens": [
+        "Gluten",
+        "Lactose",
+        "Fruits à coque"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "pates",
+        "burrata",
+        "jambon"
+      ],
+      "rating": 4,
+      "instructions": "1. Faire bouillir de l'eau salée et cuire les pâtes.\n2. Égoutter en gardant un peu d'eau de cuisson.\n3. Mélanger avec le pesto hors du feu."
+    },
+    {
+      "name": "Poisson pané maison",
+      "prepTime": 25,
+      "mealType": "Midi",
+      "category": "Poisson",
+      "allergens": [
+        "Poisson",
+        "Gluten",
+        "Oeuf"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "riz",
+        "petits pois"
+      ],
+      "rating": 4,
+      "instructions": "1. Couper le poisson blanc en gros morceaux.\n2. Tremper dans la farine, l'oeuf battu puis la chapelure.\n3. Dorer à la poêle dans un fond d'huile."
+    },
+    {
+      "name": "Poulet curry coco",
+      "prepTime": 30,
+      "mealType": "Midi et Soir",
+      "category": "Viande",
+      "allergens": [],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "riz",
+        "carottes courgette"
+      ],
+      "rating": 5,
+      "instructions": "1. Émincer et faire dorer le poulet.\n2. Ajouter de la pâte de curry et faire revenir.\n3. Verser le lait de coco et laisser mijoter 15 minutes."
+    },
+    {
+      "name": "Boulettes de bœuf façon tajine",
+      "prepTime": 35,
+      "mealType": "Midi et Soir",
+      "category": "Viande",
+      "allergens": [],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "semoule",
+        "poêlée légumes"
+      ],
+      "rating": 4,
+      "instructions": "1. Former des boulettes avec la viande hachée.\n2. Les faire dorer dans une sauteuse.\n3. Ajouter des tomates concassées, des épices et mijoter."
+    },
+    {
+      "name": "Salade composée estivale",
+      "prepTime": 15,
+      "mealType": "Midi",
+      "category": "Végétarien",
+      "allergens": [],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "salade",
+        "concombre",
+        "olives"
+      ],
+      "rating": 5,
+      "instructions": "1. Laver et essorer la salade.\n2. Couper tous les ingrédients en petits morceaux.\n3. Assembler et assaisonner d'une vinaigrette légère."
+    },
+    {
+      "name": "Tartiflette traditionnelle",
+      "prepTime": 60,
+      "mealType": "Soir",
+      "category": "Viande",
+      "allergens": [
+        "Lactose"
+      ],
+      "requiresFreeTime": true,
+      "suggestedSides": [
+        "Pommes rissolées",
+        "charcut",
+        "salade"
+      ],
+      "rating": 5,
+      "instructions": "1. Cuire les pommes de terre à l'eau.\n2. Faire revenir les oignons et les lardons.\n3. Disposer dans un plat, couvrir de reblochon et cuire au four."
+    },
+    {
+      "name": "Croque-monsieur express",
+      "prepTime": 15,
+      "mealType": "Soir",
+      "category": "Autre",
+      "allergens": [
+        "Gluten",
+        "Lactose"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "pain",
+        "eminces jambon",
+        "fromage"
+      ],
+      "rating": 4,
+      "instructions": "1. Beurrer les tranches de pain de mie.\n2. Intercaler du jambon et du fromage.\n3. Cuire dans un appareil à croque ou à la poêle."
+    },
+    {
+      "name": "Daurade en papillote",
+      "prepTime": 35,
+      "mealType": "Midi",
+      "category": "Poisson",
+      "allergens": [
+        "Poisson"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "tian aubergine",
+        "riz"
+      ],
+      "rating": 4,
+      "instructions": "1. Préparer des carrés de papier cuisson.\n2. Déposer les filets de daurade avec un filet d'huile et des aromates.\n3. Refermer la papillote et cuire au four 20 minutes."
+    },
+    {
+      "name": "Burger maison gourmand",
+      "prepTime": 25,
+      "mealType": "Soir",
+      "category": "Viande",
+      "allergens": [
+        "Gluten",
+        "Lactose",
+        "Oeuf"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "frites",
+        "salade"
+      ],
+      "rating": 5,
+      "instructions": "1. Toaster les pains à burger.\n2. Cuire les steaks hachés et faire fondre le fromage dessus.\n3. Monter le burger avec sauce et crudités."
+    },
+    {
+      "name": "Lasagnes végétariennes",
+      "prepTime": 60,
+      "mealType": "Midi et Soir",
+      "category": "Pâtes",
+      "allergens": [
+        "Gluten",
+        "Lactose"
+      ],
+      "requiresFreeTime": true,
+      "suggestedSides": [
+        "bechamel",
+        "epinards",
+        "salade"
+      ],
+      "rating": 5,
+      "instructions": "1. Préparer une fondue de légumes et une béchamel.\n2. Monter les lasagnes en alternant pâtes, légumes et sauce.\n3. Parsemer de fromage râpé et enfourner 40 minutes."
+    },
+    {
+      "name": "Wok de crevettes sauce soja",
+      "prepTime": 20,
+      "mealType": "Soir",
+      "category": "Poisson",
+      "allergens": [
+        "Crustacés",
+        "Soja",
+        "Gluten"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "Nouilles sautées aux légumes",
+        "champignons"
+      ],
+      "rating": 4,
+      "instructions": "1. Faire sauter les légumes coupés finement dans un wok très chaud.\n2. Ajouter les crevettes décortiquées.\n3. Déglacer à la sauce soja et servir immédiatement."
+    },
+    {
+      "name": "Porc au caramel",
+      "prepTime": 45,
+      "mealType": "Midi et Soir",
+      "category": "Viande",
+      "allergens": [
+        "Soja"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "riz cantonais"
+      ],
+      "rating": 4,
+      "instructions": "1. Réaliser un caramel dans une grande sauteuse.\n2. Ajouter les morceaux de porc pour les enrober.\n3. Laisser mijoter avec un peu d'eau et de sauce soja."
+    },
+    {
+      "name": "Couscous express aux légumes",
+      "prepTime": 40,
+      "mealType": "Midi",
+      "category": "Végétarien",
+      "allergens": [
+        "Gluten"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "semoule",
+        "poêlée légumes"
+      ],
+      "rating": 4,
+      "instructions": "1. Faire bouillir le bouillon avec des épices à couscous.\n2. Plonger les légumes coupés et laisser mijoter 30 minutes.\n3. Préparer la semoule à part avec un filet d'huile d'olive."
+    },
+    {
+      "name": "Hachis Parmentier familial",
+      "prepTime": 60,
+      "mealType": "Midi et Soir",
+      "category": "Viande",
+      "allergens": [
+        "Lactose"
+      ],
+      "requiresFreeTime": true,
+      "suggestedSides": [
+        "pommes de terres",
+        "salade"
+      ],
+      "rating": 5,
+      "instructions": "1. Faire une purée maison onctueuse.\n2. Revenir la viande hachée avec oignons et sauce tomate.\n3. Étaler la viande au fond d'un plat, recouvrir de purée, gratiner."
+    },
+    {
+      "name": "Salade au chèvre chaud",
+      "prepTime": 15,
+      "mealType": "Midi",
+      "category": "Végétarien",
+      "allergens": [
+        "Gluten",
+        "Lactose"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "chevre chaud",
+        "pain",
+        "salade"
+      ],
+      "rating": 4,
+      "instructions": "1. Disposer des rondelles de chèvre sur des tranches de pain.\n2. Passer sous le grill du four jusqu'à ce que le fromage fonde.\n3. Servir sur un lit de verdure assaisonnée."
+    },
+    {
+      "name": "Nuggets de poulet maison",
+      "prepTime": 30,
+      "mealType": "Midi et Soir",
+      "category": "Viande",
+      "allergens": [
+        "Gluten",
+        "Oeuf"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "frites",
+        "Crudités"
+      ],
+      "rating": 5,
+      "instructions": "1. Couper les blancs de poulet en cubes.\n2. Paner chaque morceau dans l'oeuf puis la chapelure.\n3. Cuire au four sur une plaque huilée ou à la poêle."
+    },
+    {
+      "name": "Pâtes à la carbonara",
+      "prepTime": 15,
+      "mealType": "Midi et Soir",
+      "category": "Pâtes",
+      "allergens": [
+        "Gluten",
+        "Oeuf",
+        "Lactose"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "pates",
+        "bacon",
+        "fromage"
+      ],
+      "rating": 5,
+      "instructions": "1. Cuire les pâtes al dente.\n2. Faire rissoler la viande sans matière grasse ajoutée.\n3. Mélanger les pâtes chaudes avec la garniture et un mélange oeuf-fromage."
+    },
+    {
+      "name": "Steak de thon grillé",
+      "prepTime": 15,
+      "mealType": "Midi",
+      "category": "Poisson",
+      "allergens": [
+        "Poisson"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "ratatouille",
+        "riz"
+      ],
+      "rating": 4,
+      "instructions": "1. Badigeonner les steaks de thon d'un peu d'huile d'olive.\n2. Chauffer très fort une poêle grill.\n3. Saisir 2 minutes de chaque côté pour garder le centre rosé."
+    },
+    {
+      "name": "Gratin dauphinois",
+      "prepTime": 75,
+      "mealType": "Soir",
+      "category": "Végétarien",
+      "allergens": [
+        "Lactose"
+      ],
+      "requiresFreeTime": true,
+      "suggestedSides": [
+        "pommes de terres",
+        "bechamel",
+        "salade"
+      ],
+      "rating": 5,
+      "instructions": "1. Peler et couper les pommes de terre en fines rondelles.\n2. Frotter un plat à gratin d'ail.\n3. Disposer les rondelles, couvrir de lait, crème et muscade, puis enfourner 1h."
+    },
+    {
+      "name": "Rôti de porc aux pommes",
+      "prepTime": 75,
+      "mealType": "Midi",
+      "category": "Viande",
+      "allergens": [],
+      "requiresFreeTime": true,
+      "suggestedSides": [
+        "Pommes rissolées",
+        "carottes vichy"
+      ],
+      "rating": 4,
+      "instructions": "1. Saisir le rôti sur toutes ses faces en cocotte.\n2. Ajouter un fond d'eau, fermer la cocotte et cuire 45 min.\n3. Ajouter des quartiers de pommes et terminer la cuisson."
+    },
+    {
+      "name": "Oeufs au plat gourmands",
+      "prepTime": 10,
+      "mealType": "Soir",
+      "category": "Végétarien",
+      "allergens": [
+        "Oeuf"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "rosti",
+        "epinards"
+      ],
+      "rating": 3,
+      "instructions": "1. Chauffer un peu de matière grasse dans une poêle.\n2. Casser les oeufs délicatement.\n3. Cuire jusqu'à ce que le blanc soit pris mais le jaune coulant."
+    },
+    {
+      "name": "Truite aux amandes",
+      "prepTime": 20,
+      "mealType": "Midi",
+      "category": "Poisson",
+      "allergens": [
+        "Poisson",
+        "Fruits à coque",
+        "Lactose"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "riz",
+        "haricots verts"
+      ],
+      "rating": 4,
+      "instructions": "1. Fariner légèrement les truites vidées.\n2. Les faire dorer dans du beurre fondu.\n3. Ajouter des amandes effilées en fin de cuisson pour les torréfier."
+    },
+    {
+      "name": "Soupe de légumes d'hiver",
+      "prepTime": 40,
+      "mealType": "Soir",
+      "category": "Végétarien",
+      "allergens": [],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "puree legumes",
+        "pain",
+        "fromage fouetté"
+      ],
+      "rating": 4,
+      "instructions": "1. Couper grossièrement tous les légumes.\n2. Les couvrir d'eau bouillante et d'un bouillon cube.\n3. Cuire 30 minutes puis mixer finement."
+    },
+    {
+      "name": "Escalope milanaise",
+      "prepTime": 25,
+      "mealType": "Midi",
+      "category": "Viande",
+      "allergens": [
+        "Gluten",
+        "Oeuf",
+        "Lactose"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "pates",
+        "salade"
+      ],
+      "rating": 5,
+      "instructions": "1. Aplatir les escalopes de veau ou dinde.\n2. Les paner avec un mélange de chapelure et de parmesan.\n3. Cuire à la poêle dans un mélange beurre et huile."
+    },
+    {
+      "name": "Salade de pâtes méditerranéenne",
+      "prepTime": 15,
+      "mealType": "Midi",
+      "category": "Pâtes",
+      "allergens": [
+        "Gluten"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "pates",
+        "concombre",
+        "olives"
+      ],
+      "rating": 4,
+      "instructions": "1. Cuire les pâtes courtes et les refroidir sous l'eau froide.\n2. Ajouter tomates séchées, féta, olives et légumes frais.\n3. Arroser d'huile d'olive et de vinaigre balsamique."
+    },
+    {
+      "name": "Cordon bleu maison",
+      "prepTime": 25,
+      "mealType": "Midi et Soir",
+      "category": "Viande",
+      "allergens": [
+        "Gluten",
+        "Lactose",
+        "Oeuf"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "pates",
+        "carottes"
+      ],
+      "rating": 5,
+      "instructions": "1. Ouvrir des poitrines de poulet en deux sans les séparer.\n2. Glisser du jambon et du fromage à l'intérieur, refermer.\n3. Paner et cuire à la poêle à feu moyen."
+    },
+    {
+      "name": "Fondue de poireaux au saumon",
+      "prepTime": 30,
+      "mealType": "Soir",
+      "category": "Poisson",
+      "allergens": [
+        "Poisson",
+        "Lactose"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "poireaux",
+        "riz"
+      ],
+      "rating": 4,
+      "instructions": "1. Émincer finement les poireaux et les faire suer au beurre.\n2. Ajouter de la crème fraîche en fin de cuisson.\n3. Servir bien chaud avec le saumon juste poêlé."
+    },
+    {
+      "name": "Gnocchis sauce gorgonzola",
+      "prepTime": 15,
+      "mealType": "Midi et Soir",
+      "category": "Pâtes",
+      "allergens": [
+        "Gluten",
+        "Lactose"
+      ],
+      "requiresFreeTime": false,
+      "suggestedSides": [
+        "gnocchis",
+        "fromage"
+      ],
+      "rating": 5,
+      "instructions": "1. Faire fondre le gorgonzola avec un peu de crème liquide.\n2. Plonger les gnocchis dans l'eau bouillante jusqu'à ce qu'ils remontent.\n3. Égoutter et mélanger délicatement avec la sauce fromagère."
+    }
+  ],
+  "participants": [],
+  "menus": []
+}

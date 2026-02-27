@@ -14,6 +14,7 @@ class DataExportService {
         let sideDishes = (try? context.fetch(FetchDescriptor<SideDish>())) ?? []
         let recipes = (try? context.fetch(FetchDescriptor<Recipe>())) ?? []
         let participants = (try? context.fetch(FetchDescriptor<Participant>())) ?? []
+        let menus = (try? context.fetch(FetchDescriptor<WeeklyMenu>())) ?? []
         
         let exportData = AppDataExport(
             version: 1,
@@ -28,7 +29,8 @@ class DataExportService {
                     allergens: recipe.allergens.map { $0.name },
                     requiresFreeTime: recipe.requiresFreeTime,
                     suggestedSides: recipe.suggestedSides.map { $0.name },
-                    rating: recipe.rating
+                    rating: recipe.rating,
+                    instructions: recipe.instructions
                 )
             },
             participants: participants.map { p in
@@ -36,6 +38,20 @@ class DataExportService {
                     name: p.name,
                     isActive: p.isActive,
                     allergies: p.allergies.map { $0.name }
+                )
+            },
+            menus: menus.map { menu in
+                WeeklyMenuDTO(
+                    startDate: menu.startDate,
+                    meals: (menu.meals ?? []).map { meal in
+                        MealDTO(
+                            date: meal.date,
+                            type: meal.type.rawValue,
+                            status: meal.status.rawValue,
+                            recipeName: meal.recipe?.name,
+                            selectedSideDishes: meal.selectedSideDishes.map { $0.name }
+                        )
+                    }
                 )
             }
         )
@@ -107,6 +123,9 @@ class DataExportService {
                 suggestedSides: rDTO.suggestedSides.compactMap { sideMap[$0] }
             )
             r.rating = rDTO.rating
+            if let instructions = rDTO.instructions {
+                r.instructions = instructions
+            }
             context.insert(r)
         }
         

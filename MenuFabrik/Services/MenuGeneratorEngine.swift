@@ -90,11 +90,13 @@ struct MenuGeneratorEngine {
             if let prevSide = previousSideDish, sides.count > 1 {
                 sides.removeAll { $0.name.lowercased() == prevSide.lowercased() }
             }
-            meal.selectedSideDish = sides.randomElement()
-            
-            usedRecipeIDs.insert(chosenRecipe.id)
-            previousCategory = chosenRecipe.category
-            previousSideDish = meal.selectedSideDish?.name
+            if let randomSide = sides.randomElement() {
+                meal.selectedSideDishes = [randomSide]
+                previousSideDish = randomSide.name
+            } else {
+                meal.selectedSideDishes = []
+                previousSideDish = nil
+            }
         }
     }
     
@@ -155,6 +157,10 @@ struct MenuGeneratorEngine {
         let chosenRecipe = bestCandidates.randomElement() ?? scoredCandidates[0].recipe
         
         meal.recipe = chosenRecipe
-        meal.selectedSideDish = chosenRecipe.suggestedSides.randomElement()
+        if let randomSide = chosenRecipe.suggestedSides.randomElement() {
+            meal.selectedSideDishes = [randomSide]
+        } else {
+            meal.selectedSideDishes = []
+        }
     }
 }

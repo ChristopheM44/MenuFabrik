@@ -49,7 +49,11 @@ struct RecipeSelectionView: View {
     private func select(_ recipe: Recipe) {
         meal.recipe = recipe
         meal.status = .planned
-        meal.selectedSideDish = recipe.suggestedSides.randomElement()
+        if let randomSide = recipe.suggestedSides.randomElement() {
+            meal.selectedSideDishes = [randomSide]
+        } else {
+            meal.selectedSideDishes = []
+        }
         try? modelContext.save()
         dismiss()
     }

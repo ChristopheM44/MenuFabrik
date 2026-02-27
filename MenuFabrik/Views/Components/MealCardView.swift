@@ -13,6 +13,7 @@ struct MealCardView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel: MealCardViewModel
     @State private var isShowingRecipePicker = false
+    @State private var isShowingMealDetail = false
     
     init(meal: Meal) {
         self._viewModel = State(initialValue: MealCardViewModel(meal: meal))
@@ -34,11 +35,12 @@ struct MealCardView: View {
                             .font(.headline)
                             .lineLimit(2)
                         
-                        if let side = viewModel.meal.selectedSideDish?.name {
-                    Text("+ \(side)")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .italic()
+                        if !viewModel.meal.selectedSideDishes.isEmpty {
+                            let sidesText = viewModel.meal.selectedSideDishes.map { $0.name }.joined(separator: ", ")
+                            Text("+ \(sidesText)")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .italic()
                         }
                     }
                     
@@ -121,6 +123,14 @@ struct MealCardView: View {
         }
         .sheet(isPresented: $isShowingRecipePicker) {
             RecipeSelectionView(meal: viewModel.meal)
+        }
+        .onTapGesture {
+            if viewModel.meal.status == .planned {
+                isShowingMealDetail = true
+            }
+        }
+        .sheet(isPresented: $isShowingMealDetail) {
+            MealDetailView(meal: viewModel.meal)
         }
     }
     
