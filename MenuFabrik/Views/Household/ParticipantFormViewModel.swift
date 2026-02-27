@@ -5,7 +5,7 @@ import SwiftData
 class ParticipantFormViewModel {
     var name: String = ""
     var isActive: Bool = true
-    var allergies: [String] = []
+    var allergies: [Allergen] = []
     
     // Modèle d'origine en cas d'édition
     var editingParticipant: Participant?

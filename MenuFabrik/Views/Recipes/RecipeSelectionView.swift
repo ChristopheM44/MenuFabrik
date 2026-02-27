@@ -35,7 +35,6 @@ struct RecipeSelectionView: View {
                 }
             }
             .navigationTitle("Choisir une recette")
-            .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $searchText, prompt: "Rechercher...")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -50,6 +49,7 @@ struct RecipeSelectionView: View {
     private func select(_ recipe: Recipe) {
         meal.recipe = recipe
         meal.status = .planned
+        meal.selectedSideDish = recipe.suggestedSides.randomElement()
         try? modelContext.save()
         dismiss()
     }

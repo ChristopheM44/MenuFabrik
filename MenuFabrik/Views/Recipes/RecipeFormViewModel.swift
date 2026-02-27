@@ -9,7 +9,7 @@ class RecipeFormViewModel {
     var category: RecipeCategory = .other
     var instructions: String = ""
     var rating: Int = 0
-    var allergens: [String] = []
+    var allergens: [Allergen] = []
     
     // Nouveaux champs Phase 5
     var requiresFreeTime: Bool = false

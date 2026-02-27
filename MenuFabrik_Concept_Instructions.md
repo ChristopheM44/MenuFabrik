@@ -16,7 +16,12 @@ L'application est fondamentalement **Multiplateforme Apple (iOS, iPadOS, macOS)*
 ## 🔑 Modèles Cœurs (Core Entities)
 - `Participant` : Un membre de la famille. Possède un prénom, un état actif/inactif (participe au menu ?) et une liste d'allergies/régimes.
 - `Recipe` : Une recette. Nom, temps de préparation, moment (Midi/Soir), catégorie (Pâtes, Viande, etc.), une note sur 5, et des allergènes.
-- `Meal` : Un repas unique généré. Contient une date, le type (Midi/Soir) et une référence (Optionnelle) vers la Recette choisie.
+  - **Intelligence (`requiresFreeTime`)** : Tag boolean signalant un plat de Week-end/Vacances vs plat de semaine.
+  - **Accompagnements (`suggestedSides`)** : Liste d'accompagnements possibles pour ce plat.
+- `Meal` : Un repas unique généré.
+  - `status` (`MealStatus`) : Prévu, Restaurant, Au Travail, Absent.
+  - `recipe` : Référence optionnelle vers la Recette choisie.
+  - `selectedSideDish` : Chaine de caractères (l'accompagnement tiré au sort pour ce repas).
 - `WeeklyMenu` : Une période temporelle contenant plusieurs repas.
 
 ## 🚨 Règles pour Antigravity (Directives de développement)

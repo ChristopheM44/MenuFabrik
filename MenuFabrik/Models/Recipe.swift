@@ -25,7 +25,7 @@ final class Recipe {
     var prepTime: Int // en minutes
     var mealType: MealType
     var category: RecipeCategory
-    var allergens: [String]
+    var allergens: [Allergen]
     var instructions: String
     var rating: Int // De 0 à 5 étoiles
     
@@ -37,7 +37,7 @@ final class Recipe {
          prepTime: Int, 
          mealType: MealType = .both, 
          category: RecipeCategory = .other, 
-         allergens: [String] = [], 
+         allergens: [Allergen] = [], 
          instructions: String = "",
          rating: Int = 0,
          requiresFreeTime: Bool = false,

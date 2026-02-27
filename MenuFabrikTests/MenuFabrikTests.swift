@@ -12,12 +12,12 @@ struct MenuGeneratorEngineTests {
         let meals = [meal]
         
         // Recette avec gluten
-        let pasta = Recipe(name: "Pâtes", prepTime: 20, mealType: .both, category: .pasta, allergens: ["Gluten"])
+        let pasta = Recipe(name: "Pâtes", prepTime: 20, mealType: .both, category: .pasta, allergens: [Allergen(name: "Gluten")])
         // Recette sûre sans allergènes
         let salad = Recipe(name: "Salade", prepTime: 15, mealType: .both, category: .salad, allergens: [])
         
         let recipes = [pasta, salad]
-        let participants = [Participant(name: "John", isActive: true, allergies: ["Gluten"])]
+        let participants = [Participant(name: "John", isActive: true, allergies: [Allergen(name: "Gluten")])]
         
         // Act
         MenuGeneratorEngine.generateMenu(for: meals, availableRecipes: recipes, participants: participants)

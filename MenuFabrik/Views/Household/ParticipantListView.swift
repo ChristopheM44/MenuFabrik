@@ -26,7 +26,7 @@ struct ParticipantListView: View {
                             }
                         }
                         if !participant.allergies.isEmpty {
-                            Text("Allergies: \(participant.allergies.joined(separator: ", "))")
+                            Text("Allergies: \(participant.allergies.map { $0.name }.joined(separator: ", "))")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }

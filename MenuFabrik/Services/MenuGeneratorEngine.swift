@@ -1,21 +1,21 @@
 import Foundation
 
-/// Moteur de génération pur, totalement découplé de la persistance de SwiftData (ModelContext).
-/// L'objectif est de le rendre 100% testable unitairement en lui passant uniquement des tableaux d'objets.
+/// Moteur de génération basé sur un système de Scoring (Pondération) continu.
+/// Toujours 100% découplé de la couche de persistance.
 struct MenuGeneratorEngine {
     
-    /// Assigne des recettes à une liste de repas pour une semaine complète, en respectant les règles d'allergies et de diversité.
+    /// Assigne des recettes à une liste de repas
     static func generateMenu(for meals: [Meal], availableRecipes: [Recipe], participants: [Participant]) {
-        // 1. Extraire toutes les allergies à éviter
-        let excludedAllergens = Set(participants.flatMap { $0.allergies.map { $0.lowercased() } })
+        // 1. Extraire les noms d'allergènes à éviter pour une comparaison rapide
+        let excludedAllergens = Set(participants.flatMap { $0.allergies.map { $0.name.lowercased() } })
         
-        // 2. Filtrer les recettes sûres
+        // 2. Filtrer les recettes sûres (Hard Constraint)
         let safeRecipes = availableRecipes.filter { recipe in
-            let recipeAllergens = Set(recipe.allergens.map { $0.lowercased() })
+            let recipeAllergens = Set(recipe.allergens.map { $0.name.lowercased() })
             return recipeAllergens.isDisjoint(with: excludedAllergens)
         }
         
-        // 3. Trier les repas chronologiquement (Midi avant le soir)
+        // 3. Trier les repas chronologiquement
         let sortedMeals = meals.sorted {
             if Calendar.current.isDate($0.date, inSameDayAs: $1.date) {
                 return $0.type == .lunch && $1.type == .dinner
@@ -25,86 +25,134 @@ struct MenuGeneratorEngine {
         
         var usedRecipeIDs: Set<UUID> = []
         var previousCategory: RecipeCategory? = nil
+        var previousSideDish: String? = nil
         
         for meal in sortedMeals {
-            // Ignorer la génération pour les repas non planifiés
             guard meal.status == .planned else { continue }
             
             let expectedType: MealType = (meal.type == .lunch) ? .lunch : .dinner
             let isWeekend = Calendar.current.isDateInWeekend(meal.date)
             
-            var candidates = safeRecipes.filter { $0.mealType == .both || $0.mealType == expectedType }
+            // On retient les scores pour chaque recette
+            var scoredCandidates: [(recipe: Recipe, score: Int)] = []
             
-            // Règle du temps libre: Exclure les plats longs en semaine
-            if !isWeekend {
-                candidates = candidates.filter { !$0.requiresFreeTime }
+            for recipe in safeRecipes {
+                var score = 0
+                
+                // --- PÉNALITÉS ROUDHIBITOIRES (ou presque) ---
+                if recipe.mealType != .both && recipe.mealType != expectedType {
+                    score -= 100
+                }
+                
+                if !isWeekend && recipe.requiresFreeTime {
+                    score -= 50
+                }
+                
+                if usedRecipeIDs.contains(recipe.id) {
+                    score -= 80  // Diversité: Ne pas remanger la même chose la même semaine
+                }
+                
+                if let prevCat = previousCategory, prevCat == recipe.category {
+                    score -= 40  // Diversité: Ne pas manger la même catégorie de suite
+                }
+                
+                // --- BONUS ---
+                if meal.type == .lunch && recipe.prepTime <= 30 {
+                    score += 20 // Idéal pour le midi
+                }
+                
+                if isWeekend && recipe.requiresFreeTime {
+                    score += 15 // C'est le bon moment pour la faire !
+                }
+                
+                scoredCandidates.append((recipe, score))
             }
             
-            // Règle de temps: Privilégier les recettes rapides pour le midi (< 30 min)
-            if meal.type == .lunch {
-                let fastCandidates = candidates.filter { $0.prepTime <= 30 }
-                if !fastCandidates.isEmpty { candidates = fastCandidates }
-            }
+            // Tri décroissant pour avoir le meilleur score en premier
+            scoredCandidates.sort { $0.score > $1.score }
             
-            // Règle de diversité 1: Ne pas manger deux fois la même recette dans la semaine
-            let unseenCandidates = candidates.filter { !usedRecipeIDs.contains($0.id) }
-            if !unseenCandidates.isEmpty { candidates = unseenCandidates }
-            
-            // Règle de diversité 2: Ne pas manger la même catégorie deux repas de suite
-            if let prevCat = previousCategory {
-                let diffCatCandidates = candidates.filter { $0.category != prevCat }
-                if !diffCatCandidates.isEmpty { candidates = diffCatCandidates }
-            }
-            
-            // Sélection aléatoire
-            guard let chosenRecipe = candidates.randomElement() else {
-                print("Alerte: Pas assez de recettes compatibles pour le \(meal.date) - \(meal.type.rawValue)")
+            // S'il ne reste rien, tant pis, on passe
+            guard !scoredCandidates.isEmpty else {
+                print("Alerte: Pas de recettes compatibles pour \(meal.date)")
                 continue
             }
             
+            // On peut prendre aléatoirement parmi le Top 3 pour garder un peu de surprise
+            let topScore = scoredCandidates[0].score
+            // Les recettes dont le score est proche du top (marge de tolérance)
+            let bestCandidates = scoredCandidates.filter { $0.score >= topScore - 10 }.map { $0.recipe }
+            let chosenRecipe = bestCandidates.randomElement() ?? scoredCandidates[0].recipe
+            
             meal.recipe = chosenRecipe
-            meal.selectedSideDish = chosenRecipe.suggestedSides.randomElement()
+            
+            // Amélioration: Tirage au sort de l'accompagnement (en évitant l'accompagnement précédent)
+            var sides = chosenRecipe.suggestedSides
+            if let prevSide = previousSideDish, sides.count > 1 {
+                sides.removeAll { $0.lowercased() == prevSide.lowercased() }
+            }
+            meal.selectedSideDish = sides.randomElement()
+            
             usedRecipeIDs.insert(chosenRecipe.id)
             previousCategory = chosenRecipe.category
+            previousSideDish = meal.selectedSideDish
         }
     }
     
-    /// Trouve une recette alternative pour un seul repas, en évitant les recettes déjà présentes dans l'historique de la semaine.
+    /// Trouve une recette alternative pour un repas unique
     static func generateAlternative(for meal: Meal, availableRecipes: [Recipe], participants: [Participant], history: [Meal]) {
         guard meal.status == .planned else { return }
         
-        let currentRecipe = meal.recipe
-        let excludedAllergens = Set(participants.flatMap { $0.allergies.map { $0.lowercased() } })
-        
+        let excludedAllergens = Set(participants.flatMap { $0.allergies.map { $0.name.lowercased() } })
         let safeRecipes = availableRecipes.filter { recipe in
-            let recipeAllergens = Set(recipe.allergens.map { $0.lowercased() })
+            let recipeAllergens = Set(recipe.allergens.map { $0.name.lowercased() })
             return recipeAllergens.isDisjoint(with: excludedAllergens)
         }
         
-        let usedRecipeIDs = Set(history.compactMap { $0.recipe?.id })
         let expectedType: MealType = (meal.type == .lunch) ? .lunch : .dinner
         let isWeekend = Calendar.current.isDateInWeekend(meal.date)
+        let usedRecipeIDs = Set(history.compactMap { $0.recipe?.id })
+        let currentRecipeID = meal.recipe?.id
         
-        var candidates = safeRecipes.filter { $0.mealType == .both || $0.mealType == expectedType }
+        var scoredCandidates: [(recipe: Recipe, score: Int)] = []
         
-        // Règle du temps libre: Exclure les plats longs en semaine
-        if !isWeekend {
-            candidates = candidates.filter { !$0.requiresFreeTime }
+        for recipe in safeRecipes {
+            var score = 0
+            
+            // Interdiction absolue de reproposer la recette qu'on vient de refuser
+            if recipe.id == currentRecipeID {
+                continue
+            }
+            
+            if recipe.mealType != .both && recipe.mealType != expectedType {
+                score -= 100
+            }
+            
+            if !isWeekend && recipe.requiresFreeTime {
+                score -= 50
+            }
+            
+            if usedRecipeIDs.contains(recipe.id) {
+                score -= 80
+            }
+            
+            if meal.type == .lunch && recipe.prepTime <= 30 {
+                score += 20
+            }
+            
+            if isWeekend && recipe.requiresFreeTime {
+                score += 15
+            }
+            
+            scoredCandidates.append((recipe, score))
         }
         
-        // Exclure la recette actuelle
-        if let current = currentRecipe {
-            candidates.removeAll { $0.id == current.id }
-        }
+        scoredCandidates.sort { $0.score > $1.score }
         
-        // Exclure celles déjà dans la semaine
-        let unseenCandidates = candidates.filter { !usedRecipeIDs.contains($0.id) }
-        if !unseenCandidates.isEmpty { candidates = unseenCandidates }
+        guard !scoredCandidates.isEmpty else { return }
         
-        guard let chosenRecipe = candidates.randomElement() else {
-            print("Impossible de trouver une alternative pour le repas.")
-            return
-        }
+        let topScore = scoredCandidates[0].score
+        let bestCandidates = scoredCandidates.filter { $0.score >= topScore - 10 }.map { $0.recipe }
+        let chosenRecipe = bestCandidates.randomElement() ?? scoredCandidates[0].recipe
         
         meal.recipe = chosenRecipe
         meal.selectedSideDish = chosenRecipe.suggestedSides.randomElement()

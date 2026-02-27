@@ -30,9 +30,11 @@ struct CreateMenuView: View {
                 }
             }
             .navigationTitle("Nouveau Menu")
-            .navigationBarItems(leading: Button("Annuler") {
-                dismiss()
-            })
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Annuler") { dismiss() }
+                }
+            }
         }
     }
     

@@ -10,27 +10,31 @@ struct MealTransfer: Codable, Transferable {
 }
 
 struct MealCardView: View {
-    let meal: Meal
-    
+    @Environment(\.modelContext) private var modelContext
+    @State private var viewModel: MealCardViewModel
     @State private var isShowingRecipePicker = false
+    
+    init(meal: Meal) {
+        self._viewModel = State(initialValue: MealCardViewModel(meal: meal))
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(meal.type.rawValue)
+                Text(viewModel.meal.type.rawValue)
                     .font(.caption)
                     .fontWeight(.bold)
                     .foregroundColor(.secondary)
             }
             
-            if meal.status == .planned {
-                if let recipe = meal.recipe {
+            if viewModel.meal.status == .planned {
+                if let recipe = viewModel.meal.recipe {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(recipe.name)
                             .font(.headline)
                             .lineLimit(2)
                         
-                        if let sideDish = meal.selectedSideDish {
+                        if let sideDish = viewModel.meal.selectedSideDish {
                             Text("avec \(sideDish)")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
@@ -65,30 +69,28 @@ struct MealCardView: View {
                 // Affichage stylisé pour les autres statuts
                 VStack {
                     Spacer()
-                    Image(systemName: iconForStatus(meal.status))
+                    Image(systemName: iconForStatus(viewModel.meal.status))
                         .font(.largeTitle)
-                        .foregroundColor(colorForStatus(meal.status))
+                        .foregroundColor(colorForStatus(viewModel.meal.status))
                         .padding(.bottom, 4)
-                    Text(meal.status.rawValue)
+                    Text(viewModel.meal.status.rawValue)
                         .font(.headline)
-                        .foregroundColor(colorForStatus(meal.status))
+                        .foregroundColor(colorForStatus(viewModel.meal.status))
                     Spacer()
                 }
                 .frame(maxWidth: .infinity)
             }
         }
         .padding()
-        .frame(height: 140)
-        .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(12)
-        .draggable(MealTransfer(id: meal.id))
+        .background(Color.secondary.opacity(0.1))
+        .draggable(MealTransfer(id: viewModel.meal.id))
         .dropDestination(for: MealTransfer.self) { items, location in
-            handleDrop(of: items)
+            viewModel.handleDrop(of: items, context: modelContext)
         }
         .contextMenu {
-            if meal.status == .planned {
+            if viewModel.meal.status == .planned {
                 Button {
-                    regenerateMeal()
+                    viewModel.regenerateMeal(context: modelContext)
                 } label: {
                     Label("Changer de recette aléatoirement", systemImage: "arrow.triangle.2.circlepath")
                 }
@@ -103,9 +105,9 @@ struct MealCardView: View {
             Menu {
                 ForEach(MealStatus.allCases, id: \.self) { status in
                     Button {
-                        changeStatus(to: status)
+                        viewModel.changeStatus(to: status, context: modelContext)
                     } label: {
-                        if meal.status == status {
+                        if viewModel.meal.status == status {
                             Label(status.rawValue, systemImage: "checkmark")
                         } else {
                             Text(status.rawValue)
@@ -117,52 +119,11 @@ struct MealCardView: View {
             }
         }
         .sheet(isPresented: $isShowingRecipePicker) {
-            RecipeSelectionView(meal: meal)
+            RecipeSelectionView(meal: viewModel.meal)
         }
     }
     
-    private func handleDrop(of items: [MealTransfer]) -> Bool {
-        guard let droppedId = items.first?.id,
-              let context = meal.modelContext else { return false }
-        
-        let descriptor = FetchDescriptor<Meal>(predicate: #Predicate { $0.id == droppedId })
-        guard let droppedMeal = try? context.fetch(descriptor).first else { return false }
-        
-        // Empecher l'échange avec soi-même
-        guard droppedMeal.id != meal.id else { return false }
-        
-        // Intervertir les recettes et les statuts
-        let tempRecipe = meal.recipe
-        let tempStatus = meal.status
-        
-        meal.recipe = droppedMeal.recipe
-        meal.status = droppedMeal.status
-        
-        droppedMeal.recipe = tempRecipe
-        droppedMeal.status = tempStatus
-        
-        try? context.save()
-        return true
-    }
-    
-    private func changeStatus(to newStatus: MealStatus) {
-        meal.status = newStatus
-        if newStatus != .planned {
-            // On retire la recette si on passe sur un statut non planifié
-            meal.recipe = nil
-        } else if meal.recipe == nil {
-            // Si on repasse en planifié et qu'il n'y a pas de recette, on régénère
-            regenerateMeal()
-        }
-        try? meal.modelContext?.save()
-    }
-    
-    private func regenerateMeal() {
-        guard let context = meal.modelContext else { return }
-        let generator = MenuGeneratorService(context: context)
-        generator.generate(for: meal)
-    }
-    
+
     private func iconForStatus(_ status: MealStatus) -> String {
         switch status {
         case .restaurant: return "fork.knife"

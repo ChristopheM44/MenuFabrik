@@ -35,14 +35,18 @@ struct ParticipantFormView: View {
                 }
             }
             .navigationTitle(viewModel.editingParticipant == nil ? "Nouveau Membre" : "Modifier le Membre")
-            .navigationBarItems(
-                leading: Button("Annuler") { dismiss() },
-                trailing: Button("Enregistrer") {
-                    viewModel.save(context: modelContext)
-                    dismiss()
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Annuler") { dismiss() }
                 }
-                .disabled(viewModel.isSaveDisabled)
-            )
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Enregistrer") {
+                        viewModel.save(context: modelContext)
+                        dismiss()
+                    }
+                    .disabled(viewModel.isSaveDisabled)
+                }
+            }
         }
     }
 }

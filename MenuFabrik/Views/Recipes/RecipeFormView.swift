@@ -57,14 +57,18 @@ struct RecipeFormView: View {
                 }
             }
             .navigationTitle(viewModel.editingRecipe == nil ? "Nouvelle Recette" : "Modifier la Recette")
-            .navigationBarItems(
-                leading: Button("Annuler") { dismiss() },
-                trailing: Button("Enregistrer") {
-                    viewModel.save(context: modelContext)
-                    dismiss()
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Annuler") { dismiss() }
                 }
-                .disabled(viewModel.isSaveDisabled)
-            )
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Enregistrer") {
+                        viewModel.save(context: modelContext)
+                        dismiss()
+                    }
+                    .disabled(viewModel.isSaveDisabled)
+                }
+            }
         }
     }
 }

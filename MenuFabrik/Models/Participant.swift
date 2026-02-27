@@ -6,9 +6,9 @@ final class Participant {
     var id: UUID = UUID()
     var name: String
     var isActive: Bool
-    var allergies: [String] // Noms des allergènes pour filtrer facilement
+    var allergies: [Allergen] // Relations fortes vers les allergènes
     
-    init(name: String, isActive: Bool = true, allergies: [String] = []) {
+    init(name: String, isActive: Bool = true, allergies: [Allergen] = []) {
         self.name = name
         self.isActive = isActive
         self.allergies = allergies
