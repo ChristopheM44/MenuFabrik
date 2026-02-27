@@ -31,7 +31,14 @@ struct MenuGeneratorEngine {
             guard meal.status == .planned else { continue }
             
             let expectedType: MealType = (meal.type == .lunch) ? .lunch : .dinner
+            let isWeekend = Calendar.current.isDateInWeekend(meal.date)
+            
             var candidates = safeRecipes.filter { $0.mealType == .both || $0.mealType == expectedType }
+            
+            // Règle du temps libre: Exclure les plats longs en semaine
+            if !isWeekend {
+                candidates = candidates.filter { !$0.requiresFreeTime }
+            }
             
             // Règle de temps: Privilégier les recettes rapides pour le midi (< 30 min)
             if meal.type == .lunch {
@@ -56,6 +63,7 @@ struct MenuGeneratorEngine {
             }
             
             meal.recipe = chosenRecipe
+            meal.selectedSideDish = chosenRecipe.suggestedSides.randomElement()
             usedRecipeIDs.insert(chosenRecipe.id)
             previousCategory = chosenRecipe.category
         }
@@ -75,8 +83,14 @@ struct MenuGeneratorEngine {
         
         let usedRecipeIDs = Set(history.compactMap { $0.recipe?.id })
         let expectedType: MealType = (meal.type == .lunch) ? .lunch : .dinner
+        let isWeekend = Calendar.current.isDateInWeekend(meal.date)
         
         var candidates = safeRecipes.filter { $0.mealType == .both || $0.mealType == expectedType }
+        
+        // Règle du temps libre: Exclure les plats longs en semaine
+        if !isWeekend {
+            candidates = candidates.filter { !$0.requiresFreeTime }
+        }
         
         // Exclure la recette actuelle
         if let current = currentRecipe {
@@ -93,5 +107,6 @@ struct MenuGeneratorEngine {
         }
         
         meal.recipe = chosenRecipe
+        meal.selectedSideDish = chosenRecipe.suggestedSides.randomElement()
     }
 }

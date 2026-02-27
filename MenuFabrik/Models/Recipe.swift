@@ -29,13 +29,19 @@ final class Recipe {
     var instructions: String
     var rating: Int // De 0 à 5 étoiles
     
+    // Nouveaux champs pour l'intelligence
+    var requiresFreeTime: Bool
+    var suggestedSides: [String]
+    
     init(name: String, 
          prepTime: Int, 
          mealType: MealType = .both, 
          category: RecipeCategory = .other, 
          allergens: [String] = [], 
          instructions: String = "",
-         rating: Int = 0) {
+         rating: Int = 0,
+         requiresFreeTime: Bool = false,
+         suggestedSides: [String] = []) {
         self.name = name
         self.prepTime = prepTime
         self.mealType = mealType
@@ -43,5 +49,7 @@ final class Recipe {
         self.allergens = allergens
         self.instructions = instructions
         self.rating = rating
+        self.requiresFreeTime = requiresFreeTime
+        self.suggestedSides = suggestedSides
     }
 }

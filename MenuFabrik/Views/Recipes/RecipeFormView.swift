@@ -27,6 +27,7 @@ struct RecipeFormView: View {
                             Text(cat.rawValue).tag(cat)
                         }
                     }
+                    Toggle("Nécessite du temps libre (Week-end / Vacances)", isOn: $viewModel.requiresFreeTime)
                 }
                 
                 Section(header: Text("Notation")) {
@@ -34,6 +35,8 @@ struct RecipeFormView: View {
                 }
                 
                 AllergenInputView(allergens: $viewModel.allergens)
+                
+                SideDishInputView(sides: $viewModel.suggestedSides)
                 
                 Section(header: Text("Instructions")) {
                     TextEditor(text: $viewModel.instructions)

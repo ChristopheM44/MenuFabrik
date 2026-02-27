@@ -25,9 +25,18 @@ struct MealCardView: View {
             
             if meal.status == .planned {
                 if let recipe = meal.recipe {
-                    Text(recipe.name)
-                        .font(.headline)
-                        .lineLimit(2)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(recipe.name)
+                            .font(.headline)
+                            .lineLimit(2)
+                        
+                        if let sideDish = meal.selectedSideDish {
+                            Text("avec \(sideDish)")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .italic()
+                        }
+                    }
                     
                     HStack {
                         Image(systemName: "clock")

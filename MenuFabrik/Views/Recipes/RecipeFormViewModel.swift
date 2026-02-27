@@ -11,6 +11,10 @@ class RecipeFormViewModel {
     var rating: Int = 0
     var allergens: [String] = []
     
+    // Nouveaux champs Phase 5
+    var requiresFreeTime: Bool = false
+    var suggestedSides: [String] = []
+    
     // Le modèle d'origine si on est en édition
     var editingRecipe: Recipe?
     
@@ -28,6 +32,8 @@ class RecipeFormViewModel {
             self.instructions = recipe.instructions
             self.allergens = recipe.allergens
             self.rating = recipe.rating
+            self.requiresFreeTime = recipe.requiresFreeTime
+            self.suggestedSides = recipe.suggestedSides
         }
     }
     
@@ -41,6 +47,8 @@ class RecipeFormViewModel {
             recipe.instructions = instructions
             recipe.allergens = allergens
             recipe.rating = rating
+            recipe.requiresFreeTime = requiresFreeTime
+            recipe.suggestedSides = suggestedSides
         } else {
             // Création
             let newRecipe = Recipe(
@@ -50,7 +58,9 @@ class RecipeFormViewModel {
                 category: category,
                 allergens: allergens,
                 instructions: instructions,
-                rating: rating
+                rating: rating,
+                requiresFreeTime: requiresFreeTime,
+                suggestedSides: suggestedSides
             )
             context.insert(newRecipe)
         }
