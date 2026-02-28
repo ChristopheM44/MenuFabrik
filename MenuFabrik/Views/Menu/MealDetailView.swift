@@ -6,6 +6,8 @@ struct MealDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Bindable var meal: Meal
     
+    @State private var recipeToEdit: Recipe?
+    
     var body: some View {
         NavigationStack {
             Form {
@@ -31,6 +33,19 @@ struct MealDetailView: View {
                             Text("\(recipe.prepTime) min")
                                 .foregroundColor(.secondary)
                         }
+                        
+                        HStack {
+                            Text("Note")
+                            Spacer()
+                            if recipe.rating > 0 {
+                                StarRatingView(rating: .constant(recipe.rating))
+                                    .allowsHitTesting(false)
+                            } else {
+                                Text("Non notée")
+                                    .foregroundColor(.secondary)
+                                    .italic()
+                            }
+                        }
                     }
                     
                     if !recipe.instructions.isEmpty {
@@ -55,8 +70,12 @@ struct MealDetailView: View {
                         .listRowInsets(EdgeInsets())
                     }
                     
-                    if !recipe.allergens.isEmpty {
-                        Section(header: Text("Allergènes de la recette")) {
+                    Section(header: Text("Allergènes de la recette")) {
+                        if recipe.allergens.isEmpty {
+                            Text("Aucun allergène déclaré")
+                                .foregroundColor(.secondary)
+                                .italic()
+                        } else {
                             let allergensText = recipe.allergens.map { $0.name }.joined(separator: ", ")
                             Text(allergensText)
                                 .foregroundColor(.red)
@@ -91,6 +110,17 @@ struct MealDetailView: View {
                         dismiss()
                     }
                 }
+                
+                if meal.recipe != nil {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button("Modifier") {
+                            recipeToEdit = meal.recipe
+                        }
+                    }
+                }
+            }
+            .sheet(item: $recipeToEdit) { recipe in
+                RecipeFormView(recipe: recipe)
             }
         }
     }

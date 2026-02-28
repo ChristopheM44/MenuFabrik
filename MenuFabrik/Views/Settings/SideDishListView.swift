@@ -27,12 +27,20 @@ struct SideDishListView: View {
                         .foregroundColor(.secondary)
                 } else {
                     List {
-                        ForEach(sideDishes) { side in
+                        let sortedSides = sideDishes.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+                        ForEach(sortedSides) { side in
                             @Bindable var editableSide = side
                             TextField("Nom de l'accompagnement", text: $editableSide.name)
                                 .onSubmit { try? modelContext.save() }
                         }
-                        .onDelete(perform: deleteSideDishes)
+                        .onDelete { indices in
+                            // Convert visual index back to the actual object to delete
+                            for index in indices {
+                                let sideToDelete = sortedSides[index]
+                                modelContext.delete(sideToDelete)
+                            }
+                            try? modelContext.save()
+                        }
                     }
                 }
             }
@@ -51,13 +59,5 @@ struct SideDishListView: View {
             try? modelContext.save()
             newSide = ""
         }
-    }
-    
-    private func deleteSideDishes(offsets: IndexSet) {
-        for index in offsets {
-            let side = sideDishes[index]
-            modelContext.delete(side)
-        }
-        try? modelContext.save()
     }
 }

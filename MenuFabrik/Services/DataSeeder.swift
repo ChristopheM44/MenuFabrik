@@ -5,7 +5,28 @@ import SwiftData
 class DataSeeder {
     static func seed(context: ModelContext) {
         // --- 0. Seed Allergens ---
-        let allergenNames = ["Arachide", "Gluten", "Lactose", "Oeuf", "Soja", "Mollusques", "Poisson", "Crustacés", "Arachides", "Moutarde"]
+        let allergenNames = [
+            "Amandes",
+            "Arachides",       
+            "Céleri",
+            "Crustacés",
+            "Gluten",
+            "Lactose",
+            "Lupin",
+            "Mollusques",
+            "Moutarde",
+            "Noisettes",       
+            "Noix",          
+            "Noix de cajou",
+            "Noix de macadamia",
+            "Noix de pécan",
+            "Oeuf",
+            "Pistaches",
+            "Poisson",
+            "Sésame",
+            "Soja",
+            "Sulfites"
+        ]
         var allergensDict: [String: Allergen] = [:]
         
         let fetchAllergens = FetchDescriptor<Allergen>()
@@ -29,14 +50,23 @@ class DataSeeder {
 
         // --- 0.5 Seed SideDishes ---
         let sideDishNames = [
-            "ail et fines herbes", "bacon", "bechamel", "burrata", "carottes", "carottes courgette",
-            "carottes vichy", "carrottes rapées", "caviar aubergine", "champignons", "charcut",
-            "chevre", "chevre chaud", "chips", "concombre", "creme champignons", "Crudités",
-            "eminces jambon", "epinards", "frites", "fromage", "fromage fouetté", "galette pdt rosti",
-            "gnocchis", "haricots verts", "jambon", "Nouilles sautées aux légumes", "olives", "pain", "pates",
-            "pdt rissolees", "petits pois", "poêlée légumes", "poireaux", "pommes de terres",
-            "pommes noisettes", "Pommes rissolées", "puree legumes", "ratatouille", "riz",
-            "riz cantonais", "rosti", "salade", "semoule", "tian aubergine"
+            "Ail et fines herbes", "Asperges", "Bacon", "Béchamel", "Boulgour", 
+            "Brocolis vapeur", "Burrata", "Carottes", "Carottes et courgettes", 
+            "Carottes râpées", "Carottes Vichy", "Caviar d'aubergine", "Champignons", 
+            "Charcuterie", "Chèvre", "Chèvre chaud", "Chips", "Chorizo", "Concombre", 
+            "Coquillettes", "Courgettes sautées", "Crème aux champignons", "Crudités", 
+            "Émincés de jambon", "Épinards", "Fondue de poireaux", "Frites", 
+            "Frites de patate douce", "Fromage", "Fromage fouetté", "Gnocchis", 
+            "Gratin dauphinois", "Gratin de chou-fleur", "Haricots verts", "Jambon", 
+            "Julienne de légumes", "Lardons", "Lentilles", "Mozzarella", 
+            "Nouilles sautées aux légumes", "Œuf au plat", "Olives", "Pain", 
+            "Parmesan râpé", "Patates douces rôties", "Pâtes", "Petits pois", 
+            "Poêlée de légumes", "Poireaux", "Polenta", "Pommes de terre", 
+            "Pommes noisettes", "Pommes rissolées", "Purée de légumes", 
+            "Purée de pommes de terre", "Quinoa", "Ratatouille", "Riz", 
+            "Riz cantonais", "Röstis de pommes de terre", "Salade verte", 
+            "Saumon fumé", "Sauce au poivre", "Sauce tomate", "Sauce yaourt et ciboulette", 
+            "Semoule", "Tian d'aubergines", "Tomates à la provençale"
         ]
         
         var sidesDict: [String: SideDish] = [:]
@@ -69,19 +99,30 @@ class DataSeeder {
             }
         }
 
-        // 1. Ajouter des participants (s'ils n'existent pas déjà)
+        // 1. Mettre à jour les participants (synchronisation)
         let fetchParticipants = FetchDescriptor<Participant>()
-        if let existingParticipants = try? context.fetch(fetchParticipants), existingParticipants.isEmpty {
-            let p1 = Participant(name: "Christophe", isActive: true, allergies: mapAllergens(["Arachide"]))
-            let p2 = Participant(name: "Edith", isActive: true, allergies: mapAllergens(["Gluten"]))
-            let p3 = Participant(name: "Jonathan", isActive: true, allergies: mapAllergens([]))
-            let p4 = Participant(name: "Kylian", isActive: true, allergies: mapAllergens([]))
-            
-            context.insert(p1)
-            context.insert(p2)
-            context.insert(p3)
-            context.insert(p4)
+        let existingParticipants = (try? context.fetch(fetchParticipants)) ?? []
+        
+        // On désactive tous les anciens par défaut pour ne pas casser l'historique des vieux repas
+        for p in existingParticipants {
+            p.isActive = false
         }
+        
+        // Helper pour mettre à jour ou créer
+        func upsertParticipant(name: String, allergies: [Allergen]) {
+            if let existing = existingParticipants.first(where: { $0.name == name }) {
+                existing.isActive = true
+                existing.allergies = allergies
+            } else {
+                let newP = Participant(name: name, isActive: true, allergies: allergies)
+                context.insert(newP)
+            }
+        }
+        
+        upsertParticipant(name: "Christophe", allergies: mapAllergens(["Arachide"]))
+        upsertParticipant(name: "Edith", allergies: mapAllergens(["Gluten"]))
+        upsertParticipant(name: "Jonathan", allergies: mapAllergens([]))
+        upsertParticipant(name: "Kylian", allergies: mapAllergens([]))
         
         // 1.5. Détacher les anciennes recettes des repas existants pour éviter les crashs "invalidated model instance"
         let fetchMeals = FetchDescriptor<Meal>()
@@ -103,7 +144,7 @@ class DataSeeder {
         let recipes = [
             Recipe(name: "Apero", prepTime: 10, mealType: .both, category: .other, allergens: mapAllergens([]), requiresFreeTime: false, suggestedSides: mapSides([])),
             Recipe(name: "Arancini", prepTime: 60, mealType: .both, category: .vegetarian, allergens: mapAllergens(["Gluten", "Lactose", "Oeuf"]), requiresFreeTime: true, suggestedSides: mapSides([])),
-            Recipe(name: "Ballotine de poulet", prepTime: 45, mealType: .dinner, category: .meat, allergens: mapAllergens([]), requiresFreeTime: false, suggestedSides: mapSides(["Purée de légumes", "Haricots verts", "Riz"])),
+            Recipe(name: "Ballotine de poulet", prepTime: 45, mealType: .dinner, category: .meat, allergens: mapAllergens([]), requiresFreeTime: true, suggestedSides: mapSides(["Purée de légumes", "Haricots verts", "Riz"]), sourceURL: "https://cookidoo.fr/recipes/recipe/fr-FR/r57840"),
             Recipe(name: "Barbecue", prepTime: 60, mealType: .both, category: .meat, allergens: mapAllergens([]), requiresFreeTime: true, suggestedSides: mapSides(["Salade verte", "Pommes rissolées", "Chips"])),
             Recipe(name: "Bœuf aux oignons", prepTime: 30, mealType: .dinner, category: .meat, allergens: mapAllergens(["Soja"]), requiresFreeTime: false, suggestedSides: mapSides(["Riz", "Nouilles sautées aux légumes"])),
             Recipe(name: "Boulettes de boeuf sauce tomate", prepTime: 30, mealType: .both, category: .meat, allergens: mapAllergens([]), requiresFreeTime: false, suggestedSides: mapSides(["Pâtes", "Riz", "Semoule"])),

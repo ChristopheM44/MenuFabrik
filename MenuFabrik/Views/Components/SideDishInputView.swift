@@ -29,7 +29,8 @@ struct SideDishInputView: View {
             
             if !availableSides.isEmpty {
                 Menu {
-                    ForEach(availableSides.filter { s in !sides.contains(s) }) { side in
+                    let sortedAvailableSides = availableSides.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+                    ForEach(sortedAvailableSides.filter { s in !sides.contains(s) }) { side in
                         Button(side.name) {
                             sides.append(side)
                         }
