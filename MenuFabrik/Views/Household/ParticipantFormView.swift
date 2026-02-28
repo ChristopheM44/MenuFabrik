@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
 
 struct ParticipantFormView: View {
     @Environment(\.modelContext) private var modelContext
@@ -14,6 +15,34 @@ struct ParticipantFormView: View {
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    HStack {
+                        Spacer()
+                        PhotosPicker(selection: $viewModel.selectedPhoto, matching: .images, photoLibrary: .shared()) {
+                            if let photoData = viewModel.photoData, let uiImage = UIImage(data: photoData) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 80, height: 80)
+                                    .clipShape(Circle())
+                            } else {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.gray.opacity(0.2))
+                                        .frame(width: 80, height: 80)
+                                    Image(systemName: "camera.fill")
+                                        .foregroundColor(.gray)
+                                        .font(.title)
+                                }
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                }
+                .listRowBackground(Color.clear)
+                
                 Section(header: Text("Informations")) {
                     TextField("Prénom", text: $viewModel.name)
                     Toggle("Actif pour les menus", isOn: $viewModel.isActive)

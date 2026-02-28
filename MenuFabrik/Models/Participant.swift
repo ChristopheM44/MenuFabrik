@@ -7,10 +7,12 @@ final class Participant {
     var name: String
     var isActive: Bool
     var allergies: [Allergen] // Relations fortes vers les allergènes
+    @Attribute(.externalStorage) var photoData: Data?
     
-    init(name: String, isActive: Bool = true, allergies: [Allergen] = []) {
+    init(name: String, isActive: Bool = true, allergies: [Allergen] = [], photoData: Data? = nil) {
         self.name = name
         self.isActive = isActive
         self.allergies = allergies
+        self.photoData = photoData
     }
 }

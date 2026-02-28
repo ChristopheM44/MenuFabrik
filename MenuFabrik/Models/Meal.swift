@@ -25,12 +25,14 @@ final class Meal {
     var recipe: Recipe?
     @Relationship var selectedSideDishes: [SideDish]
     var menu: WeeklyMenu?
+    @Relationship var attendees: [Participant]?
     
-    init(date: Date, type: MealTime, status: MealStatus = .planned, recipe: Recipe? = nil, selectedSideDishes: [SideDish] = []) {
+    init(date: Date, type: MealTime, status: MealStatus = .planned, recipe: Recipe? = nil, selectedSideDishes: [SideDish] = [], attendees: [Participant]? = []) {
         self.date = date
         self.type = type
         self.status = status
         self.recipe = recipe
         self.selectedSideDishes = selectedSideDishes
+        self.attendees = attendees
     }
 }

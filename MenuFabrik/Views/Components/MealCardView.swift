@@ -17,6 +17,10 @@ struct MealCardView: View {
     @State private var isShowingActionHub = false
     @State private var isShowingRecipePicker = false
     @State private var isShowingMealDetail = false
+    @State private var isEditingAttendees = false
+    
+    @Query(filter: #Predicate<Participant> { $0.isActive == true })
+    private var allActiveParticipants: [Participant]
     
     init(meal: Meal) {
         self._viewModel = State(initialValue: MealCardViewModel(meal: meal))
@@ -62,6 +66,11 @@ struct MealCardView: View {
         .sheet(isPresented: $isShowingMealDetail) {
             MealDetailView(meal: viewModel.meal)
         }
+        .sheet(isPresented: $isEditingAttendees) {
+            attendeesEditorSheet()
+                .presentationDetents([.fraction(0.35)])
+                .presentationDragIndicator(.visible)
+        }
     }
     
     // Sous-vue pour le repas prévu avec recette
@@ -101,6 +110,30 @@ struct MealCardView: View {
                     .background(Color.blue.opacity(0.1))
                     .foregroundColor(.blue)
                     .cornerRadius(6)
+            }
+            
+            // Attendees summary preview
+            if let attendees = viewModel.meal.attendees, !attendees.isEmpty {
+                HStack(spacing: -8) {
+                    Spacer()
+                    ForEach(attendees.prefix(3)) { attendee in
+                        Text(String(attendee.name.prefix(1)).uppercased())
+                            .font(.system(size: 10, weight: .bold))
+                            .frame(width: 20, height: 20)
+                            .background(Color.blue.opacity(0.2))
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(Color(UIColor.systemBackground), lineWidth: 1))
+                    }
+                    if attendees.count > 3 {
+                        Text("+\(attendees.count - 3)")
+                            .font(.system(size: 10, weight: .bold))
+                            .frame(width: 20, height: 20)
+                            .background(Color.gray.opacity(0.2))
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(Color(UIColor.systemBackground), lineWidth: 1))
+                    }
+                }
+                .padding(.top, 4)
             }
         }
     }
@@ -233,6 +266,25 @@ struct MealCardView: View {
                         }
                     }
                 }
+                
+                Section("Participants") {
+                    Button {
+                        isShowingActionHub = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            isEditingAttendees = true
+                        }
+                    } label: {
+                        HStack {
+                            Label("Gérer les présences", systemImage: "person.2")
+                            Spacer()
+                            if let attendees = viewModel.meal.attendees {
+                                Text("\(attendees.count) pers.")
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .foregroundColor(.primary)
+                    }
+                }
             }
             .navigationTitle(titleForHub())
             .navigationBarTitleDisplayMode(.inline)
@@ -271,6 +323,67 @@ struct MealCardView: View {
         case .shopping: return .teal
         case .skipped: return .gray
         case .planned: return .primary
+        }
+    }
+    
+    // MARK: - Attendees Editor
+    @ViewBuilder
+    private func attendeesEditorSheet() -> some View {
+        NavigationStack {
+            VStack {
+                Text("Modifier les présences pour recommander une recette adaptée aux personnes présentes.")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding()
+                
+                let binding = Binding<Set<Participant>>(
+                    get: { Set(viewModel.meal.attendees ?? []) },
+                    set: { newValue in
+                        viewModel.meal.attendees = Array(newValue)
+                        try? modelContext.save()
+                        
+                        // Si le repas a déjà une recette, on recommande de régénérer si les allergies matchent plus
+                        // Pour simplifier, on régénère si on a modifié la présence.
+                        // (On pourrait ajouter un dialogue de confirmation ici dans un cas plus élaboré)
+                    }
+                )
+                
+                ParticipantBubbleGroup(
+                    allParticipants: allActiveParticipants,
+                    selectedParticipants: binding
+                )
+                .padding()
+                
+                Spacer()
+                
+                if viewModel.meal.status == .planned && viewModel.meal.recipe != nil {
+                    Button(action: {
+                        withAnimation {
+                            viewModel.regenerateMeal(context: modelContext)
+                            isEditingAttendees = false
+                        }
+                    }) {
+                        Text("Regénérer ce plat")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                            .padding(.horizontal)
+                    }
+                    .padding(.bottom)
+                }
+            }
+            .navigationTitle("Présences")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Terminer") {
+                        isEditingAttendees = false
+                    }
+                }
+            }
         }
     }
 }

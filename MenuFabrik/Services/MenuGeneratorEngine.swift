@@ -6,14 +6,7 @@ struct MenuGeneratorEngine {
     
     /// Assigne des recettes à une liste de repas
     static func generateMenu(for meals: [Meal], availableRecipes: [Recipe], participants: [Participant]) {
-        // 1. Extraire les noms d'allergènes à éviter pour une comparaison rapide
-        let excludedAllergens = Set(participants.flatMap { $0.allergies.map { $0.name.lowercased() } })
-        
-        // 2. Filtrer les recettes sûres (Hard Constraint)
-        let safeRecipes = availableRecipes.filter { recipe in
-            let recipeAllergens = Set(recipe.allergens.map { $0.name.lowercased() })
-            return recipeAllergens.isDisjoint(with: excludedAllergens)
-        }
+        // La logique d'exclusion globale est supprimée, car on gère ça plat par plat désormais
         
         // 3. Trier les repas chronologiquement
         let sortedMeals = meals.sorted {
@@ -32,6 +25,19 @@ struct MenuGeneratorEngine {
             
             let expectedType: MealType = (meal.type == .lunch) ? .lunch : .dinner
             let isWeekend = Calendar.current.isDateInWeekend(meal.date)
+            
+            // Seulement si le meal n'a pas encore de recette (pour un futur cas où on garde des repas verrouillés)
+            guard meal.recipe == nil else { continue }
+            
+            // 1. Extraire les noms d'allergènes à éviter UNIQUEMENT pour les personnes présentes
+            let attendees = meal.attendees ?? participants // Fallback sur tous les participants si `attendees` n'est pas rempli
+            let excludedAllergens = Set(attendees.flatMap { $0.allergies.map { $0.name.lowercased() } })
+            
+            // 2. Filtrer les recettes sûres pour CE repas
+            let safeRecipes = availableRecipes.filter { recipe in
+                let recipeAllergens = Set(recipe.allergens.map { $0.name.lowercased() })
+                return recipeAllergens.isDisjoint(with: excludedAllergens)
+            }
             
             // On retient les scores pour chaque recette
             var scoredCandidates: [(recipe: Recipe, score: Int)] = []
@@ -104,7 +110,9 @@ struct MenuGeneratorEngine {
     static func generateAlternative(for meal: Meal, availableRecipes: [Recipe], participants: [Participant], history: [Meal]) {
         guard meal.status == .planned else { return }
         
-        let excludedAllergens = Set(participants.flatMap { $0.allergies.map { $0.name.lowercased() } })
+        let attendees = meal.attendees ?? participants
+        let excludedAllergens = Set(attendees.flatMap { $0.allergies.map { $0.name.lowercased() } })
+        
         let safeRecipes = availableRecipes.filter { recipe in
             let recipeAllergens = Set(recipe.allergens.map { $0.name.lowercased() })
             return recipeAllergens.isDisjoint(with: excludedAllergens)

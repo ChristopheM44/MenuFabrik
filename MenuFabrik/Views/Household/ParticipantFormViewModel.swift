@@ -1,11 +1,27 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
+import SwiftData
 
 @Observable
 class ParticipantFormViewModel {
     var name: String = ""
     var isActive: Bool = true
     var allergies: [Allergen] = []
+    var photoData: Data? = nil
+    
+    // Pour le PhotosPicker
+    @ObservationIgnored var selectedPhoto: PhotosPickerItem? {
+        didSet {
+            Task {
+                if let data = try? await selectedPhoto?.loadTransferable(type: Data.self) {
+                    await MainActor.run {
+                        self.photoData = data
+                    }
+                }
+            }
+        }
+    }
     
     // Modèle d'origine en cas d'édition
     var editingParticipant: Participant?
@@ -20,6 +36,7 @@ class ParticipantFormViewModel {
             self.name = participant.name
             self.isActive = participant.isActive
             self.allergies = participant.allergies
+            self.photoData = participant.photoData
         }
     }
     
@@ -29,9 +46,10 @@ class ParticipantFormViewModel {
             participant.name = name
             participant.isActive = isActive
             participant.allergies = allergies
+            participant.photoData = photoData
         } else {
             // Création d'un nouveau membre
-            let newParticipant = Participant(name: name, isActive: isActive, allergies: allergies)
+            let newParticipant = Participant(name: name, isActive: isActive, allergies: allergies, photoData: photoData)
             context.insert(newParticipant)
         }
         
