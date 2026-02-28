@@ -206,7 +206,7 @@ struct MealCardView: View {
             List {
                 Section {
                     if meal.status == .planned {
-                        if meal.recipe != nil {
+                        if let recipe = meal.recipe {
                             Button {
                                 isShowingActionHub = false
                                 // Dispatch to allow previous sheet to fully dismiss
@@ -215,6 +215,13 @@ struct MealCardView: View {
                                 }
                             } label: {
                                 Label("Voir la recette", systemImage: "book")
+                            }
+                            
+                            if let urlString = recipe.sourceURL, !urlString.isEmpty {
+                                let platform = RecipeSourcePlatform.detect(from: urlString)
+                                Link(destination: URL(string: urlString)!) {
+                                    Label(platform.displayName, systemImage: platform.isSFSymbol ? platform.iconName : "link")
+                                }
                             }
                         }
                         

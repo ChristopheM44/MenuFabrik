@@ -33,6 +33,9 @@ final class Recipe {
     var requiresFreeTime: Bool
     @Relationship var suggestedSides: [SideDish]
     
+    // Lien externe (Cookidoo, etc.)
+    var sourceURL: String?
+    
     init(name: String, 
          prepTime: Int, 
          mealType: MealType = .both, 
@@ -41,7 +44,8 @@ final class Recipe {
          instructions: String = "",
          rating: Int = 0,
          requiresFreeTime: Bool = false,
-         suggestedSides: [SideDish] = []) {
+         suggestedSides: [SideDish] = [],
+         sourceURL: String? = nil) {
         self.name = name
         self.prepTime = prepTime
         self.mealType = mealType
@@ -51,5 +55,6 @@ final class Recipe {
         self.rating = rating
         self.requiresFreeTime = requiresFreeTime
         self.suggestedSides = suggestedSides
+        self.sourceURL = sourceURL
     }
 }

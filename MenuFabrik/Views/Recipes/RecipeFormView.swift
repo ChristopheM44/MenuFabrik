@@ -28,6 +28,10 @@ struct RecipeFormView: View {
                         }
                     }
                     Toggle("Nécessite du temps libre (Week-end / Vacances)", isOn: $viewModel.requiresFreeTime)
+                    TextField("Lien externe (Cookidoo, etc.)", text: $viewModel.sourceURL)
+                        .keyboardType(.URL)
+                        .autocapitalization(.none)
+                        .disableAutocorrection(true)
                 }
                 
                 Section(header: Text("Notation")) {

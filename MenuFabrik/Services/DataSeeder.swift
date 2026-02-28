@@ -73,12 +73,14 @@ class DataSeeder {
         let fetchParticipants = FetchDescriptor<Participant>()
         if let existingParticipants = try? context.fetch(fetchParticipants), existingParticipants.isEmpty {
             let p1 = Participant(name: "Christophe", isActive: true, allergies: mapAllergens(["Arachide"]))
-            let p2 = Participant(name: "Marie", isActive: true, allergies: mapAllergens([]))
-            let p3 = Participant(name: "Enfant 1", isActive: true, allergies: mapAllergens(["Gluten"]))
+            let p2 = Participant(name: "Edith", isActive: true, allergies: mapAllergens(["Gluten"]))
+            let p3 = Participant(name: "Jonathan", isActive: true, allergies: mapAllergens([]))
+            let p4 = Participant(name: "Kylian", isActive: true, allergies: mapAllergens([]))
             
             context.insert(p1)
             context.insert(p2)
             context.insert(p3)
+            context.insert(p4)
         }
         
         // 1.5. Détacher les anciennes recettes des repas existants pour éviter les crashs "invalidated model instance"

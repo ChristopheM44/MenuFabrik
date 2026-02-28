@@ -47,6 +47,14 @@ struct MealDetailView: View {
                         }
                     }
                     
+                    if let urlString = recipe.sourceURL, !urlString.trimmingCharacters(in: .whitespaces).isEmpty {
+                        Section {
+                            RecipeSourceLinkButton(urlString: urlString)
+                        }
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets())
+                    }
+                    
                     if !recipe.allergens.isEmpty {
                         Section(header: Text("Allergènes de la recette")) {
                             let allergensText = recipe.allergens.map { $0.name }.joined(separator: ", ")

@@ -14,6 +14,7 @@ class RecipeFormViewModel {
     // Nouveaux champs Phase 5
     var requiresFreeTime: Bool = false
     var suggestedSides: [SideDish] = []
+    var sourceURL: String = ""
     
     // Le modèle d'origine si on est en édition
     var editingRecipeID: PersistentIdentifier?
@@ -34,10 +35,13 @@ class RecipeFormViewModel {
             self.rating = recipe.rating
             self.requiresFreeTime = recipe.requiresFreeTime
             self.suggestedSides = recipe.suggestedSides
+            self.sourceURL = recipe.sourceURL ?? ""
         }
     }
     
     func save(context: ModelContext) {
+        let finalSourceURL = sourceURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : sourceURL
+
         if let id = editingRecipeID, let recipe = context.registeredModel(for: id) as Recipe? {
             // Modification
             recipe.name = name
@@ -49,6 +53,7 @@ class RecipeFormViewModel {
             recipe.rating = rating
             recipe.requiresFreeTime = requiresFreeTime
             recipe.suggestedSides = suggestedSides
+            recipe.sourceURL = finalSourceURL
         } else {
             // Création
             let newRecipe = Recipe(
@@ -60,7 +65,8 @@ class RecipeFormViewModel {
                 instructions: instructions,
                 rating: rating,
                 requiresFreeTime: requiresFreeTime,
-                suggestedSides: suggestedSides
+                suggestedSides: suggestedSides,
+                sourceURL: finalSourceURL
             )
             context.insert(newRecipe)
         }
