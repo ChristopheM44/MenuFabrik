@@ -3,7 +3,7 @@ import SwiftData
 
 struct WeeklyMenuView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \WeeklyMenu.startDate, order: .reverse) private var menus: [WeeklyMenu]
+    @Query(sort: \Meal.date, order: .forward) private var meals: [Meal]
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     @State private var showingCreateSheet = false
@@ -12,12 +12,12 @@ struct WeeklyMenuView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if let currentMenu = menus.first {
+                if !meals.isEmpty {
                     ScrollView {
                         if horizontalSizeClass == .compact {
-                            WeeklyMenuList(menu: currentMenu)
+                            WeeklyMenuList(meals: meals)
                         } else {
-                            WeeklyMenuGrid(menu: currentMenu)
+                            WeeklyMenuGrid(meals: meals)
                         }
                     }
                 } else {
@@ -29,9 +29,9 @@ struct WeeklyMenuView: View {
                 }
             }
             .overlay(alignment: .bottom) {
-                if let currentMenu = menus.first {
+                if !meals.isEmpty {
                     Button(action: {
-                        generateRemainingMeals(for: currentMenu)
+                        generateRemainingMeals(for: meals)
                     }) {
                         HStack {
                             Image(systemName: "sparkles")
@@ -64,14 +64,14 @@ struct WeeklyMenuView: View {
         }
     }
     
-    private func generateRemainingMeals(for menu: WeeklyMenu) {
+    private func generateRemainingMeals(for meals: [Meal]) {
         isGenerating = true
         let generator = MenuGeneratorService(context: modelContext)
         
         // Simulating a bit of loading for UX
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             withAnimation {
-                generator.generate(for: menu)
+                generator.generate(for: meals)
                 isGenerating = false
             }
         }

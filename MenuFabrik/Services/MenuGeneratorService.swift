@@ -8,15 +8,13 @@ class MenuGeneratorService {
         self.context = context
     }
     
-    func generate(for menu: WeeklyMenu) {
+    func generate(for meals: [Meal]) {
         // Le service ne fait plus que récupérer les données de la base
         let fetchParticipants = FetchDescriptor<Participant>(predicate: #Predicate { $0.isActive == true })
         let participants = (try? context.fetch(fetchParticipants)) ?? []
         
         let fetchRecipes = FetchDescriptor<Recipe>()
         let allRecipes = (try? context.fetch(fetchRecipes)) ?? []
-        
-        guard let meals = menu.meals else { return }
         
         // On délègue toute la logique complexe au moteur pur et testable
         MenuGeneratorEngine.generateMenu(
@@ -30,7 +28,7 @@ class MenuGeneratorService {
     }
     
     func generate(for meal: Meal) {
-        guard let menu = meal.menu else { return }
+        // En V3, un repas n'appartient plus forcément à un menu.
         
         let fetchParticipants = FetchDescriptor<Participant>(predicate: #Predicate { $0.isActive == true })
         let participants = (try? context.fetch(fetchParticipants)) ?? []
@@ -38,7 +36,10 @@ class MenuGeneratorService {
         let fetchRecipes = FetchDescriptor<Recipe>()
         let allRecipes = (try? context.fetch(fetchRecipes)) ?? []
         
-        let history = menu.meals ?? []
+        // On récupère un historique récent pour éviter les redites
+        let historyDescriptor = FetchDescriptor<Meal>(sortBy: [SortDescriptor(\.date, order: .reverse)])
+        let allHistory = (try? context.fetch(historyDescriptor)) ?? []
+        let history = Array(allHistory.prefix(30)) // Les 30 derniers repas en historique
         
         MenuGeneratorEngine.generateAlternative(
             for: meal,

@@ -11,7 +11,7 @@ struct MealTransfer: Codable, Transferable {
 
 struct MealCardView: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var viewModel: MealCardViewModel
+    let meal: Meal
     
     // Sheets state
     @State private var isShowingActionHub = false
@@ -22,18 +22,14 @@ struct MealCardView: View {
     @Query(filter: #Predicate<Participant> { $0.isActive == true })
     private var allActiveParticipants: [Participant]
     
-    init(meal: Meal) {
-        self._viewModel = State(initialValue: MealCardViewModel(meal: meal))
-    }
-    
     var body: some View {
         ZStack {
             // Background
             Color.secondary.opacity(0.1)
                 
             VStack(alignment: .leading, spacing: 0) {
-                if viewModel.meal.status == .planned {
-                    if let recipe = viewModel.meal.recipe {
+                if meal.status == .planned {
+                    if let recipe = meal.recipe {
                         plannedRecipeView(recipe: recipe)
                     } else {
                         emptyRecipeView()
@@ -51,9 +47,9 @@ struct MealCardView: View {
         .onTapGesture {
             isShowingActionHub = true
         }
-        .draggable(MealTransfer(id: viewModel.meal.id))
+        .draggable(MealTransfer(id: meal.id))
         .dropDestination(for: MealTransfer.self) { items, location in
-            viewModel.handleDrop(of: items, context: modelContext)
+            handleDrop(of: items)
         }
         .sheet(isPresented: $isShowingActionHub) {
             actionHubSheet()
@@ -61,10 +57,10 @@ struct MealCardView: View {
                 .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $isShowingRecipePicker) {
-            RecipeSelectionView(meal: viewModel.meal)
+            RecipeSelectionView(meal: meal)
         }
         .sheet(isPresented: $isShowingMealDetail) {
-            MealDetailView(meal: viewModel.meal)
+            MealDetailView(meal: meal)
         }
         .sheet(isPresented: $isEditingAttendees) {
             attendeesEditorSheet()
@@ -85,8 +81,8 @@ struct MealCardView: View {
                 .font(.headline)
                 .lineLimit(2)
             
-            if !viewModel.meal.selectedSideDishes.isEmpty {
-                let sidesText = viewModel.meal.selectedSideDishes.map { $0.name }.joined(separator: ", ")
+            if !meal.selectedSideDishes.isEmpty {
+                let sidesText = meal.selectedSideDishes.map { $0.name }.joined(separator: ", ")
                 Text("+ \(sidesText)")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
@@ -113,7 +109,7 @@ struct MealCardView: View {
             }
             
             // Attendees summary preview
-            if let attendees = viewModel.meal.attendees, !attendees.isEmpty {
+            if let attendees = meal.attendees, !attendees.isEmpty {
                 HStack(spacing: -8) {
                     Spacer()
                     ForEach(attendees.prefix(3)) { attendee in
@@ -169,7 +165,7 @@ struct MealCardView: View {
     private func otherStatusView() -> some View {
         VStack {
             HStack {
-                Text(viewModel.meal.type.rawValue)
+                Text(meal.type.rawValue)
                     .font(.caption)
                     .fontWeight(.bold)
                     .foregroundColor(.secondary)
@@ -179,12 +175,12 @@ struct MealCardView: View {
             Spacer()
             
             HStack(spacing: 12) {
-                Image(systemName: iconForStatus(viewModel.meal.status))
+                Image(systemName: iconForStatus(meal.status))
                     .font(.title2)
-                Text(viewModel.meal.status.rawValue)
+                Text(meal.status.rawValue)
                     .font(.headline)
             }
-            .foregroundColor(colorForStatus(viewModel.meal.status))
+            .foregroundColor(colorForStatus(meal.status))
             
             Spacer()
         }
@@ -194,7 +190,7 @@ struct MealCardView: View {
     @ViewBuilder
     private func headerRow() -> some View {
         HStack {
-            Text(viewModel.meal.type.rawValue)
+            Text(meal.type.rawValue)
                 .font(.caption)
                 .fontWeight(.bold)
                 .foregroundColor(.secondary)
@@ -209,8 +205,8 @@ struct MealCardView: View {
         NavigationStack {
             List {
                 Section {
-                    if viewModel.meal.status == .planned {
-                        if viewModel.meal.recipe != nil {
+                    if meal.status == .planned {
+                        if meal.recipe != nil {
                             Button {
                                 isShowingActionHub = false
                                 // Dispatch to allow previous sheet to fully dismiss
@@ -225,7 +221,7 @@ struct MealCardView: View {
                         Button {
                             // Changer aléatoirement
                             withAnimation {
-                                viewModel.regenerateMeal(context: modelContext)
+                                regenerateMeal()
                                 isShowingActionHub = false
                             }
                         } label: {
@@ -247,7 +243,7 @@ struct MealCardView: View {
                     ForEach(MealStatus.allCases, id: \.self) { status in
                         Button {
                             withAnimation {
-                                viewModel.changeStatus(to: status, context: modelContext)
+                                changeStatus(to: status)
                                 isShowingActionHub = false
                             }
                         } label: {
@@ -258,7 +254,7 @@ struct MealCardView: View {
                                 Text(status.rawValue)
                                     .foregroundColor(.primary)
                                 Spacer()
-                                if viewModel.meal.status == status {
+                                if meal.status == status {
                                     Image(systemName: "checkmark")
                                         .foregroundColor(.blue)
                                 }
@@ -277,7 +273,7 @@ struct MealCardView: View {
                         HStack {
                             Label("Gérer les présences", systemImage: "person.2")
                             Spacer()
-                            if let attendees = viewModel.meal.attendees {
+                            if let attendees = meal.attendees {
                                 Text("\(attendees.count) pers.")
                                     .foregroundColor(.secondary)
                             }
@@ -299,7 +295,7 @@ struct MealCardView: View {
     }
     
     private func titleForHub() -> String {
-        return "Options du \(viewModel.meal.type.rawValue)"
+        return "Options du \(meal.type.rawValue)"
     }
 
     private func iconForStatus(_ status: MealStatus) -> String {
@@ -338,9 +334,9 @@ struct MealCardView: View {
                     .padding()
                 
                 let binding = Binding<Set<Participant>>(
-                    get: { Set(viewModel.meal.attendees ?? []) },
+                    get: { Set(meal.attendees ?? []) },
                     set: { newValue in
-                        viewModel.meal.attendees = Array(newValue)
+                        meal.attendees = Array(newValue)
                         try? modelContext.save()
                         
                         // Si le repas a déjà une recette, on recommande de régénérer si les allergies matchent plus
@@ -357,10 +353,10 @@ struct MealCardView: View {
                 
                 Spacer()
                 
-                if viewModel.meal.status == .planned && viewModel.meal.recipe != nil {
+                if meal.status == .planned && meal.recipe != nil {
                     Button(action: {
                         withAnimation {
-                            viewModel.regenerateMeal(context: modelContext)
+                            regenerateMeal()
                             isEditingAttendees = false
                         }
                     }) {
@@ -385,5 +381,45 @@ struct MealCardView: View {
                 }
             }
         }
+    }
+    // MARK: - Actions
+    private func handleDrop(of items: [MealTransfer]) -> Bool {
+        guard let droppedId = items.first?.id else { return false }
+        
+        let descriptor = FetchDescriptor<Meal>(predicate: #Predicate { $0.id == droppedId })
+        guard let droppedMeal = try? modelContext.fetch(descriptor).first else { return false }
+        
+        guard droppedMeal.id != meal.id else { return false }
+        
+        let tempRecipe = meal.recipe
+        let tempStatus = meal.status
+        let tempSideDishes = meal.selectedSideDishes
+        
+        meal.recipe = droppedMeal.recipe
+        meal.status = droppedMeal.status
+        meal.selectedSideDishes = droppedMeal.selectedSideDishes
+        
+        droppedMeal.recipe = tempRecipe
+        droppedMeal.status = tempStatus
+        droppedMeal.selectedSideDishes = tempSideDishes
+        
+        try? modelContext.save()
+        return true
+    }
+    
+    private func changeStatus(to newStatus: MealStatus) {
+        meal.status = newStatus
+        if newStatus != .planned {
+            meal.recipe = nil
+            meal.selectedSideDishes = []
+        } else if meal.recipe == nil {
+            regenerateMeal()
+        }
+        try? modelContext.save()
+    }
+    
+    private func regenerateMeal() {
+        let generator = MenuGeneratorService(context: modelContext)
+        generator.generate(for: meal)
     }
 }

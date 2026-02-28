@@ -2,7 +2,8 @@ import SwiftUI
 import SwiftData
 
 struct WeeklyMenuList: View {
-    let menu: WeeklyMenu
+    let meals: [Meal]
+    @Environment(\.modelContext) private var modelContext
     
     var body: some View {
         LazyVStack(spacing: 24) {
@@ -25,6 +26,13 @@ struct WeeklyMenuList: View {
                             .padding(.horizontal)
                     }
                 }
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    Button(role: .destructive) {
+                        deleteDay(day.meals)
+                    } label: {
+                        Label("Supprimer", systemImage: "trash")
+                    }
+                }
             }
         }
         .padding(.vertical)
@@ -36,12 +44,18 @@ struct WeeklyMenuList: View {
     }
     
     private func groupedAndSortedDays() -> [DayMeals] {
-        guard let meals = menu.meals else { return [] }
         let grouped = Dictionary(grouping: meals) { meal in
             Calendar.current.startOfDay(for: meal.date)
         }
         return grouped.map { DayMeals(date: $0.key, meals: $0.value) }
             .sorted(by: { $0.date < $1.date })
+    }
+    
+    private func deleteDay(_ mealsToDelete: [Meal]) {
+        for meal in mealsToDelete {
+            modelContext.delete(meal)
+        }
+        try? modelContext.save()
     }
     
     private func formatDate(_ date: Date) -> String {

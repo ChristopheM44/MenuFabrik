@@ -42,23 +42,34 @@ struct CreateMenuView: View {
     private var activeParticipants: [Participant]
     
     private func createEmptyMenu() {
-        let newMenu = WeeklyMenu(startDate: startDate, dayCount: dayCount)
-        modelContext.insert(newMenu)
-        
         let calendar = Calendar.current
         let defaultAttendees = Array(activeParticipants)
+        let startOfDay = calendar.startOfDay(for: startDate)
+        
+        // On récupère tous les repas existants pour éviter les doublons
+        let descriptor = FetchDescriptor<Meal>()
+        let existingMeals = (try? modelContext.fetch(descriptor)) ?? []
         
         for i in 0..<dayCount {
-            if let date = calendar.date(byAdding: .day, value: i, to: startDate) {
-                let lunch = Meal(date: date, type: .lunch, attendees: defaultAttendees)
-                let dinner = Meal(date: date, type: .dinner, attendees: defaultAttendees)
-                lunch.menu = newMenu
-                dinner.menu = newMenu
-                modelContext.insert(lunch)
-                modelContext.insert(dinner)
+            if let date = calendar.date(byAdding: .day, value: i, to: startOfDay) {
+                
+                // Recherche si un repas existe déjà (Midi et Soir)
+                let hasLunch = existingMeals.contains { calendar.isDate($0.date, inSameDayAs: date) && $0.type == .lunch }
+                let hasDinner = existingMeals.contains { calendar.isDate($0.date, inSameDayAs: date) && $0.type == .dinner }
+                
+                if !hasLunch {
+                    let lunch = Meal(date: date, type: .lunch, attendees: defaultAttendees)
+                    modelContext.insert(lunch)
+                }
+                
+                if !hasDinner {
+                    let dinner = Meal(date: date, type: .dinner, attendees: defaultAttendees)
+                    modelContext.insert(dinner)
+                }
             }
         }
         
+        try? modelContext.save()
         dismiss()
     }
     
