@@ -12,7 +12,7 @@ import SwiftData
 struct MenuFabrikApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Participant.self, Allergen.self, SideDish.self, Recipe.self, WeeklyMenu.self, Meal.self
+            Participant.self, Allergen.self, SideDish.self, Recipe.self, Meal.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

@@ -23,8 +23,8 @@ class ParticipantFormViewModel {
         }
     }
     
-    // Modèle d'origine en cas d'édition
-    var editingParticipant: Participant?
+    // Identifiant du modèle d'origine en cas d'édition
+    var editingParticipantID: PersistentIdentifier?
     
     var isSaveDisabled: Bool {
         name.trimmingCharacters(in: .whitespaces).isEmpty
@@ -32,7 +32,7 @@ class ParticipantFormViewModel {
     
     init(participant: Participant? = nil) {
         if let participant = participant {
-            self.editingParticipant = participant
+            self.editingParticipantID = participant.persistentModelID
             self.name = participant.name
             self.isActive = participant.isActive
             self.allergies = participant.allergies
@@ -41,7 +41,7 @@ class ParticipantFormViewModel {
     }
     
     func save(context: ModelContext) {
-        if let participant = editingParticipant {
+        if let id = editingParticipantID, let participant = context.registeredModel(for: id) as Participant? {
             // Mise à jour de l'existant
             participant.name = name
             participant.isActive = isActive

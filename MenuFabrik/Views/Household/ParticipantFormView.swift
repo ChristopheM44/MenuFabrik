@@ -50,10 +50,10 @@ struct ParticipantFormView: View {
                 
                 AllergenInputView(allergens: $viewModel.allergies)
                 
-                if viewModel.editingParticipant != nil {
+                if viewModel.editingParticipantID != nil {
                     Section {
                         Button("Supprimer le membre", role: .destructive) {
-                            if let participant = viewModel.editingParticipant {
+                            if let id = viewModel.editingParticipantID, let participant = modelContext.registeredModel(for: id) as Participant? {
                                 modelContext.delete(participant)
                                 try? modelContext.save()
                                 dismiss()
@@ -63,7 +63,7 @@ struct ParticipantFormView: View {
                     }
                 }
             }
-            .navigationTitle(viewModel.editingParticipant == nil ? "Nouveau Membre" : "Modifier le Membre")
+            .navigationTitle(viewModel.editingParticipantID == nil ? "Nouveau Membre" : "Modifier le Membre")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Annuler") { dismiss() }

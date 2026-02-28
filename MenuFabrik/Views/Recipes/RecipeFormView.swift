@@ -43,10 +43,10 @@ struct RecipeFormView: View {
                         .frame(minHeight: 100)
                 }
                 
-                if viewModel.editingRecipe != nil {
+                if viewModel.editingRecipeID != nil {
                     Section {
                         Button("Supprimer la recette", role: .destructive) {
-                            if let recipe = viewModel.editingRecipe {
+                            if let id = viewModel.editingRecipeID, let recipe = modelContext.registeredModel(for: id) as Recipe? {
                                 modelContext.delete(recipe)
                                 try? modelContext.save()
                                 dismiss()
@@ -56,7 +56,7 @@ struct RecipeFormView: View {
                     }
                 }
             }
-            .navigationTitle(viewModel.editingRecipe == nil ? "Nouvelle Recette" : "Modifier la Recette")
+            .navigationTitle(viewModel.editingRecipeID == nil ? "Nouvelle Recette" : "Modifier la Recette")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Annuler") { dismiss() }

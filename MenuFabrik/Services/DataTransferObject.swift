@@ -34,10 +34,7 @@ struct MealDTO: Codable {
     let selectedSideDishes: [String]
 }
 
-struct WeeklyMenuDTO: Codable {
-    let startDate: Date
-    let meals: [MealDTO]
-}
+
 
 struct AppDataExport: Codable {
     let version: Int
@@ -45,5 +42,5 @@ struct AppDataExport: Codable {
     let sideDishes: [SideDishDTO]
     let recipes: [RecipeDTO]
     let participants: [ParticipantDTO]
-    let menus: [WeeklyMenuDTO]
+    let meals: [MealDTO]
 }

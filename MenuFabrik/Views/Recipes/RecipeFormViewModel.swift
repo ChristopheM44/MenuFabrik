@@ -16,7 +16,7 @@ class RecipeFormViewModel {
     var suggestedSides: [SideDish] = []
     
     // Le modèle d'origine si on est en édition
-    var editingRecipe: Recipe?
+    var editingRecipeID: PersistentIdentifier?
     
     var isSaveDisabled: Bool {
         name.trimmingCharacters(in: .whitespaces).isEmpty
@@ -24,7 +24,7 @@ class RecipeFormViewModel {
     
     init(recipe: Recipe? = nil) {
         if let recipe = recipe {
-            self.editingRecipe = recipe
+            self.editingRecipeID = recipe.persistentModelID
             self.name = recipe.name
             self.prepTime = recipe.prepTime
             self.mealType = recipe.mealType
@@ -38,7 +38,7 @@ class RecipeFormViewModel {
     }
     
     func save(context: ModelContext) {
-        if let recipe = editingRecipe {
+        if let id = editingRecipeID, let recipe = context.registeredModel(for: id) as Recipe? {
             // Modification
             recipe.name = name
             recipe.prepTime = prepTime

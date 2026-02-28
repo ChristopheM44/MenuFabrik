@@ -24,7 +24,6 @@ final class Meal {
     var status: MealStatus
     var recipe: Recipe?
     @Relationship var selectedSideDishes: [SideDish]
-    var menu: WeeklyMenu?
     @Relationship var attendees: [Participant]?
     
     init(date: Date, type: MealTime, status: MealStatus = .planned, recipe: Recipe? = nil, selectedSideDishes: [SideDish] = [], attendees: [Participant]? = []) {

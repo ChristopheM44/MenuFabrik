@@ -14,7 +14,7 @@ class DataExportService {
         let sideDishes = (try? context.fetch(FetchDescriptor<SideDish>())) ?? []
         let recipes = (try? context.fetch(FetchDescriptor<Recipe>())) ?? []
         let participants = (try? context.fetch(FetchDescriptor<Participant>())) ?? []
-        let menus = (try? context.fetch(FetchDescriptor<WeeklyMenu>())) ?? []
+        let meals = (try? context.fetch(FetchDescriptor<Meal>())) ?? []
         
         let exportData = AppDataExport(
             version: 1,
@@ -40,18 +40,13 @@ class DataExportService {
                     allergies: p.allergies.map { $0.name }
                 )
             },
-            menus: menus.map { menu in
-                WeeklyMenuDTO(
-                    startDate: menu.startDate,
-                    meals: (menu.meals ?? []).map { meal in
-                        MealDTO(
-                            date: meal.date,
-                            type: meal.type.rawValue,
-                            status: meal.status.rawValue,
-                            recipeName: meal.recipe?.name,
-                            selectedSideDishes: meal.selectedSideDishes.map { $0.name }
-                        )
-                    }
+            meals: meals.map { meal in
+                MealDTO(
+                    date: meal.date,
+                    type: meal.type.rawValue,
+                    status: meal.status.rawValue,
+                    recipeName: meal.recipe?.name,
+                    selectedSideDishes: meal.selectedSideDishes.map { $0.name }
                 )
             }
         )
@@ -84,9 +79,6 @@ class DataExportService {
         
         let oldMeals = (try? context.fetch(FetchDescriptor<Meal>())) ?? []
         for m in oldMeals { context.delete(m) }
-        
-        let oldMenus = (try? context.fetch(FetchDescriptor<WeeklyMenu>())) ?? []
-        for m in oldMenus { context.delete(m) }
         
         var allergenMap: [String: Allergen] = [:]
         
@@ -136,6 +128,26 @@ class DataExportService {
                 allergies: pDTO.allergies.compactMap { allergenMap[$0] }
             )
             context.insert(p)
+        }
+        
+        let fetchRecipes = FetchDescriptor<Recipe>()
+        let allRecipes = (try? context.fetch(fetchRecipes)) ?? []
+        var recipeMap: [String: Recipe] = [:]
+        for r in allRecipes { recipeMap[r.name] = r }
+        
+        let fetchParticipants = FetchDescriptor<Participant>()
+        let allParticipants = (try? context.fetch(fetchParticipants)) ?? []
+        
+        for mDTO in imported.meals {
+            let m = Meal(
+                date: mDTO.date,
+                type: MealTime(rawValue: mDTO.type) ?? .lunch,
+                status: MealStatus(rawValue: mDTO.status) ?? .planned,
+                recipe: mDTO.recipeName.flatMap { recipeMap[$0] },
+                selectedSideDishes: mDTO.selectedSideDishes.compactMap { sideMap[$0] },
+                attendees: allParticipants.filter { $0.isActive } // Restauration basique des présences
+            )
+            context.insert(m)
         }
         
         try context.save()

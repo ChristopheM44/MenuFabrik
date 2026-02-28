@@ -3,7 +3,7 @@
 ## 🎯 Le Concept (L'esprit de l'App)
 MenuFabrik est un générateur intelligent de menus de la semaine, fortement inspiré d'applications comme JOW. L'objectif principal est de réduire la charge mentale liée à la question "Qu'est-ce qu'on mange ?". 
 
-Le cœur de la valeur ajoutée réside dans son **moteur de génération** qui doit être intelligent : il doit prendre en compte les contraintes du foyer (allergies, régimes) et assurer une diversité alimentaire (ne pas manger de pâtes deux fois de suite, privilégier le rapide à midi).
+Le cœur de la valeur ajoutée réside dans son **moteur de génération** qui doit être intelligent : il doit prendre en compte les contraintes du foyer (allergies, régimes) plat par plat (gestion dynamique des présences), et assurer une diversité alimentaire (ne pas manger de pâtes deux fois de suite, privilégier le rapide à midi). Le projet a évolué vers un modèle d'Agenda Hybride Continu, s'affranchissant du carcan de "semaine stricte".
 
 L'application est fondamentalement **Multiplateforme Apple (iOS, iPadOS, macOS)**. Son interface doit donc être réactive et s'adapter au support de l'utilisateur (ex: affichage en grille sur Mac/iPad, mais en liste classique sur iPhone).
 
@@ -18,11 +18,11 @@ L'application est fondamentalement **Multiplateforme Apple (iOS, iPadOS, macOS)*
 - `Recipe` : Une recette. Nom, temps de préparation, moment (Midi/Soir), catégorie (Pâtes, Viande, etc.), une note sur 5, et des allergènes.
   - **Intelligence (`requiresFreeTime`)** : Tag boolean signalant un plat de Week-end/Vacances vs plat de semaine.
   - **Accompagnements (`suggestedSides`)** : Liste d'accompagnements possibles pour ce plat.
-- `Meal` : Un repas unique généré.
+- `Meal` : Un repas unique généré, inséré dans l'**Agenda Continu**.
   - `status` (`MealStatus`) : Prévu, Restaurant, Au Travail, Absent.
   - `recipe` : Référence optionnelle vers la Recette choisie.
-  - `selectedSideDish` : Chaine de caractères (l'accompagnement tiré au sort pour ce repas).
-- `WeeklyMenu` : Une période temporelle contenant plusieurs repas.
+  - `selectedSideDishes` : Liste d'accompagnements tirés au sort pour ce repas.
+  - `attendees` : Liste des participants prévus pour ce repas précis. L'intelligence du générateur se base sur ces présences pour proposer des plats compatibles (gestion fine des allergies à l'échelle du repas).
 
 ## 🚨 Règles pour Antigravity (Directives de développement)
 1. **Séparation des préoccupations (SoC)** : Ne jamais mélanger la logique complexe de sélection de recette à l'intérieur d'une Vue SwiftUI. Les vues SwiftUI ne font que l'affichage et appellent des services / ViewModels.
