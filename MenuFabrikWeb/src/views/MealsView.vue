@@ -15,6 +15,7 @@ import PlanMealDialog from '../components/planning/PlanMealDialog.vue';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import ProgressSpinner from 'primevue/progressspinner';
+import InputText from 'primevue/inputtext';
 
 const mealStore = useMealStore();
 const recipeStore = useRecipeStore();
@@ -41,6 +42,11 @@ const isGeneratingGlobal = ref(false);
 const showDeleteConfirmDialog = ref(false);
 const deleteTargetType = ref<'meal' | 'day'>('meal');
 const deleteTargetId = ref<string>(''); // id du meal ou dateKey
+
+// --- ÉTAT CHOIX RECETTE MANUEL ---
+const showRecipePicker = ref(false);
+const recipeSearchQuery = ref('');
+const targetMealIdForPicker = ref<string>('');
 
 onMounted(async () => {
     if (recipeStore.recipes.length === 0) await recipeStore.fetchRecipes();
@@ -108,6 +114,18 @@ const hasEmptySkeletons = computed(() => {
     return mealStore.meals.some(m => (!m.recipeId || m.recipeId === '') && m.status === MealStatus.PLANNED);
 });
 
+// Filtrage et tri des recettes pour le Dialog
+const pickerFilteredRecipes = computed(() => {
+    let recipes = [...recipeStore.recipes];
+    if (recipeSearchQuery.value) {
+        const query = recipeSearchQuery.value.toLowerCase();
+        recipes = recipes.filter(r => 
+            r.name.toLowerCase().includes(query) || 
+            (r.category && r.category.toLowerCase().includes(query))
+        );
+    }
+    return recipes.sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
+});
 
 // -------------------------------
 // ACTIONS
@@ -169,6 +187,53 @@ const generateSingleMeal = async (meal: Meal) => {
         }
     } catch (e) {
         console.error("Erreur lors de la génération ciblée:", e);
+    }
+};
+
+// 3.5 Choisir Manuellement
+const openRecipePicker = (meal: Meal) => {
+    if (!meal.id) return;
+    targetMealIdForPicker.value = meal.id;
+    recipeSearchQuery.value = '';
+    showRecipePicker.value = true;
+};
+
+const chooseRecipeForTarget = async (recipe: any) => {
+    if (!targetMealIdForPicker.value || !recipe.id) return;
+    try {
+        await mealStore.updateMeal(targetMealIdForPicker.value, {
+            recipeId: recipe.id,
+            selectedSideDishIds: []
+        });
+        showRecipePicker.value = false;
+    } catch (e) {
+        console.error("Erreur selection manuelle:", e);
+    }
+};
+
+// 3.6 Permuter Midi / Soir
+const swapMeals = async (meal: Meal, dateMeals: Meal[]) => {
+    if (!meal.id) return;
+    const targetType = meal.type === MealTime.LUNCH ? MealTime.DINNER : MealTime.LUNCH;
+    const otherMeal = dateMeals.find(m => m.type === targetType);
+    
+    if (!otherMeal || !otherMeal.id) {
+        alert(`Aucun repas du ${targetType.toLowerCase()} n'est planifié pour cette journée.`);
+        return;
+    }
+
+    try {
+        const meal1Updates = { recipeId: otherMeal.recipeId || '', selectedSideDishIds: otherMeal.selectedSideDishIds || [] };
+        const meal2Updates = { recipeId: meal.recipeId || '', selectedSideDishIds: meal.selectedSideDishIds || [] };
+        
+        // Exécution en parallèle
+        await Promise.all([
+            mealStore.updateMeal(meal.id, meal1Updates),
+            mealStore.updateMeal(otherMeal.id, meal2Updates)
+        ]);
+    } catch (e) {
+        console.error("Erreur de permutation:", e);
+        alert("Une erreur est survenue lors de la permutation.");
     }
 };
 
@@ -306,6 +371,8 @@ const handleMealClick = (meal: Meal) => {
                         :key="meal.id || meal.type+day.dateKey" 
                         :meal="meal"
                         @generate="generateSingleMeal(meal)"
+                        @choose-recipe="openRecipePicker(meal)"
+                        @swap="swapMeals(meal, day.meals)"
                         @click="handleMealClick(meal)"
                         @delete="confirmDeleteMeal(meal)"
                         @change-status="changeMealStatus(meal, $event)"
@@ -317,6 +384,42 @@ const handleMealClick = (meal: Meal) => {
 
         <PlanMealDialog v-model:visible="showPlanDialog" />
         
+        <!-- RECIPE PICKER MODAL -->
+        <Dialog v-model:visible="showRecipePicker" modal header="Choisir une recette" :style="{ width: '90vw', maxWidth: '600px' }">
+            <div class="flex flex-col gap-4 py-2 h-[60vh]">
+                <span class="p-input-icon-left w-full">
+                    <i class="pi pi-search z-10" />
+                    <InputText v-model="recipeSearchQuery" placeholder="Rechercher un plat..." class="w-full" />
+                </span>
+                <div class="flex-1 overflow-y-auto pr-2 flex flex-col gap-2">
+                    <div 
+                        v-for="recipe in pickerFilteredRecipes" 
+                        :key="recipe.id"
+                        class="p-3 border border-surface-200 dark:border-surface-700 rounded-lg cursor-pointer hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors flex items-center justify-between group"
+                        @click="chooseRecipeForTarget(recipe)"
+                    >
+                        <div class="flex flex-col">
+                            <span class="font-bold text-surface-900 dark:text-surface-0 group-hover:text-primary-600 transition-colors flex items-center gap-2">
+                                {{ recipe.name }}
+                            </span>
+                            <div class="flex items-center gap-2 text-xs text-surface-500 mt-1">
+                                <span v-if="recipe.rating && recipe.rating > 0" class="text-primary-500 flex items-center gap-1">
+                                    <i class="pi pi-star-fill text-[10px]"></i> {{ recipe.rating }}
+                                </span>
+                                <span><i class="pi pi-clock text-[10px]"></i> {{ recipe.prepTime }} min</span>
+                                <span><i class="pi pi-tag"></i> {{ recipe.category }}</span>
+                            </div>
+                        </div>
+                        <Button icon="pi pi-chevron-right" severity="secondary" text rounded />
+                    </div>
+                    
+                    <div v-if="pickerFilteredRecipes.length === 0" class="text-center p-8 text-surface-500">
+                        Aucune recette trouvée.
+                    </div>
+                </div>
+            </div>
+        </Dialog>
+
         <!-- Dialog de Confirmation de Suppression -->
         <Dialog v-model:visible="showDeleteConfirmDialog" modal header="Confirmation" :style="{ width: '90vw', maxWidth: '400px' }">
             <div class="flex items-center gap-4 py-4">

@@ -14,6 +14,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     (e: 'generate'): void;
+    (e: 'choose-recipe'): void;
+    (e: 'swap'): void;
     (e: 'click'): void;
     (e: 'delete'): void;
     (e: 'change-status', payload: MealStatus): void;
@@ -77,6 +79,7 @@ const categoryColorClass = computed(() => {
                     
                     <!-- Actions (Refresh / Corbeille) placés à côté de Midi/Soir -->
                     <div class="flex items-center ml-1">
+                        <Button v-if="hasRecipe && isPlanned" icon="pi pi-sync" text rounded severity="secondary" size="small" style="width: 2rem; height: 2rem; padding: 0;" @click.stop="emit('swap')" aria-label="Permuter" title="Permuter avec l'autre repas de la journée" />
                         <Button v-if="hasRecipe && isPlanned" icon="pi pi-refresh" text rounded severity="secondary" size="small" style="width: 2rem; height: 2rem; padding: 0;" @click.stop="emit('generate')" aria-label="Alternative" title="Proposer une alternative" />
                         <!-- Options Status -->
                         <Button icon="pi pi-ellipsis-v" text rounded severity="secondary" size="small" style="width: 2rem; height: 2rem; padding: 0;" @click.stop="toggleMenu" aria-label="Options" title="Options du repas" />
@@ -129,10 +132,17 @@ const categoryColorClass = computed(() => {
             </div>
             
             <!-- Empty state (Prêt à générer) -->
-            <div v-else-if="isPlanned" class="flex items-center justify-center p-2 border-2 border-dashed border-surface-200 dark:border-surface-700 rounded-lg bg-surface-50/50 dark:bg-surface-800/50 mt-1 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer" @click.stop="emit('generate')">
-                <div class="flex items-center gap-2">
-                    <i class="pi pi-sparkles text-surface-400 dark:text-surface-500 text-lg"></i>
-                    <span class="text-sm font-medium text-surface-500 dark:text-surface-400">Générer {{ meal.type.toLowerCase() }}</span>
+            <div v-else-if="isPlanned" class="flex items-stretch gap-2 mt-1">
+                <!-- Action Générer (majoritaire) -->
+                <div class="flex-1 flex justify-center items-center p-2 border-2 border-dashed border-surface-200 dark:border-surface-700 rounded-lg bg-surface-50/50 dark:bg-surface-800/50 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer" @click.stop="emit('generate')">
+                    <div class="flex items-center gap-2">
+                        <i class="pi pi-sparkles text-surface-400 dark:text-surface-500 text-lg"></i>
+                        <span class="text-sm font-medium text-surface-500 dark:text-surface-400">Générer</span>
+                    </div>
+                </div>
+                <!-- Action Choisir manuellement -->
+                <div class="flex items-center justify-center p-2 border-2 border-dashed border-surface-200 dark:border-surface-700 rounded-lg bg-surface-50/50 dark:bg-surface-800/50 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer" @click.stop="emit('choose-recipe')" title="Choisir une recette manuellement">
+                    <i class="pi pi-search text-surface-400 dark:text-surface-500 text-lg"></i>
                 </div>
             </div>
 
