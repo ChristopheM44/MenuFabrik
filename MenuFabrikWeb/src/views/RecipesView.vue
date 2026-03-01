@@ -6,6 +6,7 @@ import Column from 'primevue/column';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Tag from 'primevue/tag';
+import Rating from 'primevue/rating';
 import { MealType } from '../models/Recipe';
 
 const recipeStore = useRecipeStore();
@@ -87,14 +88,26 @@ const formatTime = (minutes: number) => {
                 <Column field="name" header="Nom" :sortable="true" class="w-full sm:w-auto">
                     <template #body="{ data }">
                         <div class="flex flex-col gap-1">
-                            <span class="font-semibold text-primary-700 dark:text-primary-300">{{ data.name }}</span>
+                            <span class="font-semibold text-primary-700 dark:text-primary-300 flex items-center gap-2">
+                                {{ data.name }}
+                            </span>
                             <!-- Infos compactes sur mobile -->
                             <div class="flex sm:hidden items-center gap-2 text-xs text-surface-500">
+                                <span v-if="data.rating" class="flex items-center gap-1 text-primary-500">
+                                    <i class="pi pi-star-fill"></i> {{ data.rating }}
+                                </span>
                                 <span><i class="pi pi-clock text-[10px]"></i> {{ formatTime(data.prepTime) }}</span>
                                 <span>•</span>
                                 <span>{{ data.category }}</span>
                             </div>
                         </div>
+                    </template>
+                </Column>
+
+                <Column field="rating" header="Note" :sortable="true" class="hidden sm:table-cell text-center">
+                    <template #body="{ data }">
+                        <Rating v-if="data.rating > 0" :modelValue="data.rating" readonly :cancel="false" />
+                        <span v-else class="text-surface-300 italic text-sm">-</span>
                     </template>
                 </Column>
 

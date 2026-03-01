@@ -12,6 +12,7 @@ import InputNumber from 'primevue/inputnumber';
 import Select from 'primevue/select';
 import MultiSelect from 'primevue/multiselect';
 import ToggleSwitch from 'primevue/toggleswitch';
+import Rating from 'primevue/rating';
 
 const route = useRoute();
 const router = useRouter();
@@ -43,9 +44,14 @@ const recipeForm = ref<Partial<Recipe>>({
     prepTime: 30,
     mealType: MealType.BOTH,
     requiresFreeTime: false,
+    rating: 0,
     allergenIds: [],
     suggestedSideIds: [],
     sourceURL: ''
+});
+
+const sortedSideDishes = computed(() => {
+    return [...sideDishStore.sideDishes].sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
 });
 
 onMounted(async () => {
@@ -85,6 +91,7 @@ const saveRecipe = async () => {
                 name: recipeForm.value.name.trim(),
                 category: recipeForm.value.category as RecipeCategory || 'Viande',
                 prepTime: recipeForm.value.prepTime || 30,
+                rating: recipeForm.value.rating || 0,
                 mealType: recipeForm.value.mealType || MealType.BOTH,
                 requiresFreeTime: recipeForm.value.requiresFreeTime || false,
                 allergenIds: recipeForm.value.allergenIds || [],
@@ -158,6 +165,16 @@ const cancel = () => {
             <hr class="border-surface-200 dark:border-surface-700 my-2" />
 
             <div class="flex flex-col gap-2">
+                <label class="font-semibold text-surface-900 dark:text-surface-0">Appréciation globale (Optionnel)</label>
+                <div class="flex items-center gap-3">
+                    <Rating v-model="recipeForm.rating" :stars="5" :cancel="true" class="text-primary-500" />
+                    <span class="text-sm text-surface-500 min-w-[50px]">{{ recipeForm.rating || 0 }} / 5</span>
+                </div>
+            </div>
+
+            <hr class="border-surface-200 dark:border-surface-700 my-2" />
+
+            <div class="flex flex-col gap-2">
                 <label for="allergens" class="font-semibold">Allergènes Présents</label>
                 <MultiSelect 
                     id="allergens" 
@@ -178,7 +195,7 @@ const cancel = () => {
                 <MultiSelect 
                     id="sides" 
                     v-model="recipeForm.suggestedSideIds" 
-                    :options="sideDishStore.sideDishes" 
+                    :options="sortedSideDishes" 
                     optionLabel="name" 
                     optionValue="id" 
                     display="chip"

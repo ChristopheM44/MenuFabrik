@@ -4,8 +4,10 @@ service cloud.firestore {
   match /databases/{database}/documents {
     
     function isPayloadValid() {
-      // 50KB max payload
-      return request.resource == null || (request.resource.size < 50 * 1024);
+      // Les règles de sécurité sont exécutées de manière stricte.
+      // Firebase Firestore n'a pas de propriété native request.resource.size (c'est Storage qui a ça).
+      // Nous nous fions donc à la taille max de Firestore (1MB) et aux validations de schéma.
+      return true;
     }
 
     function isOwner(userId) {

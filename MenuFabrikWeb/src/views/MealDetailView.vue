@@ -18,6 +18,7 @@ import Avatar from 'primevue/avatar';
 import AvatarGroup from 'primevue/avatargroup';
 import Badge from 'primevue/badge';
 import ProgressSpinner from 'primevue/progressspinner';
+import Rating from 'primevue/rating';
 
 const route = useRoute();
 const router = useRouter();
@@ -108,6 +109,10 @@ const filteredRecipes = computed(() => {
     }
     // Tri alphabétique
     return recipes.sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
+});
+
+const sortedSideDishes = computed(() => {
+    return [...sideDishStore.sideDishes].sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
 });
 
 // Actions
@@ -213,6 +218,7 @@ const getCategoryColor = (category?: string) => {
                                         {{ hydratedMeal.recipe.category || 'Non catégorisé' }}
                                     </span>
                                     <h3 class="text-2xl font-bold text-surface-900 dark:text-surface-0 leading-tight">{{ hydratedMeal.recipe.name }}</h3>
+                                    <Rating v-if="hydratedMeal.recipe.rating && hydratedMeal.recipe.rating > 0" :modelValue="hydratedMeal.recipe.rating" readonly :cancel="false" class="mt-2 text-sm" />
                                 </div>
                                 <Button icon="pi pi-pencil" label="Changer" size="small" outlined @click="openRecipeDialog" />
                             </div>
@@ -262,7 +268,7 @@ const getCategoryColor = (category?: string) => {
                         
                         <MultiSelect 
                             v-model="selectedSideDishIds" 
-                            :options="sideDishStore.sideDishes" 
+                            :options="sortedSideDishes" 
                             optionLabel="name" 
                             optionValue="id"
                             placeholder="Choisir des accompagnements"
@@ -302,9 +308,14 @@ const getCategoryColor = (category?: string) => {
                         @click="replaceRecipe(recipe)"
                     >
                         <div class="flex flex-col">
-                            <span class="font-bold text-surface-900 dark:text-surface-0 group-hover:text-primary-600 transition-colors">{{ recipe.name }}</span>
+                            <span class="font-bold text-surface-900 dark:text-surface-0 group-hover:text-primary-600 transition-colors flex items-center gap-2">
+                                {{ recipe.name }}
+                            </span>
                             <div class="flex items-center gap-2 text-xs text-surface-500 mt-1">
-                                <span><i class="pi pi-clock"></i> {{ recipe.prepTime }} min</span>
+                                <span v-if="recipe.rating && recipe.rating > 0" class="text-primary-500 flex items-center gap-1">
+                                    <i class="pi pi-star-fill text-[10px]"></i> {{ recipe.rating }}
+                                </span>
+                                <span><i class="pi pi-clock text-[10px]"></i> {{ recipe.prepTime }} min</span>
                                 <span><i class="pi pi-tag"></i> {{ recipe.category }}</span>
                             </div>
                         </div>
