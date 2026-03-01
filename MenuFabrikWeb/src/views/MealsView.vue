@@ -9,13 +9,11 @@ import { useRouter } from 'vue-router';
 import type { Meal } from '../models/Meal';
 import { MealStatus, MealTime } from '../models/Meal';
 import MealCardView from '../components/MealCardView.vue';
+import PlanMealDialog from '../components/planning/PlanMealDialog.vue';
 
 // PrimeVue
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
-import DatePicker from 'primevue/datepicker';
-import Select from 'primevue/select';
-import MultiSelect from 'primevue/multiselect';
 import ProgressSpinner from 'primevue/progressspinner';
 
 const mealStore = useMealStore();
@@ -37,19 +35,7 @@ const getLocalISODate = (date: Date): string => {
 
 // --- ÉTAT PLANIFICATION ---
 const showPlanDialog = ref(false);
-const isPlanning = ref(false);
 const isGeneratingGlobal = ref(false);
-
-const planStartDate = ref(new Date());
-const planDaysOptions = [
-    { label: '1 Jour', value: 1 },
-    { label: '3 Jours', value: 3 },
-    { label: '5 Jours', value: 5 },
-    { label: '1 Semaine', value: 7 },
-    { label: '2 Semaines', value: 14 }
-];
-const planNumDays = ref(3);
-const planAttendees = ref<string[]>([]); // Liste des ID sélectionnés
 
 // --- ÉTAT SUPPRESSION ---
 const showDeleteConfirmDialog = ref(false);
@@ -92,14 +78,19 @@ const mealsByDate = computed(() => {
     const sortedKeys = Object.keys(groups).sort();
     
     return sortedKeys.map(key => {
-        const sortedMealsDay = groups[key].sort((a, b) => {
+        const mealsForDay = groups[key] || [];
+        const sortedMealsDay = mealsForDay.sort((a, b) => {
             if (a.type === MealTime.LUNCH && b.type === MealTime.DINNER) return -1;
             if (a.type === MealTime.DINNER && b.type === MealTime.LUNCH) return 1;
             return 0;
         });
 
         const parts = key.split('-');
-        const d_date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        const year = parseInt(parts[0] || '1970', 10);
+        const month = parseInt(parts[1] || '1', 10) - 1;
+        const day = parseInt(parts[2] || '1', 10);
+        
+        const d_date = new Date(year, month, day);
         const label = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).format(d_date);
         const formattedLabel = label.charAt(0).toUpperCase() + label.slice(1);
 
@@ -123,57 +114,7 @@ const hasEmptySkeletons = computed(() => {
 // -------------------------------
 
 const openPlanDialog = () => {
-    planStartDate.value = new Date();
-    // Par défaut, tous les participants actifs
-    planAttendees.value = participantStore.participants.filter(p => p.isActive).map(p => p.id as string);
     showPlanDialog.value = true;
-};
-
-// 1. Planifier les "Skeletons" (structure vide)
-const planEmptyMeals = async () => {
-    isPlanning.value = true;
-    try {
-        const mealsToProcess: Meal[] = [];
-        const start = new Date(planStartDate.value);
-        start.setHours(0,0,0,0);
-        
-        for (let i = 0; i < planNumDays.value; i++) {
-            const currentDate = new Date(start);
-            currentDate.setDate(start.getDate() + i);
-            const dateStr = getLocalISODate(currentDate);
-
-            for (const type of [MealTime.LUNCH, MealTime.DINNER]) {
-                let existingMeal = mealStore.meals.find(m => {
-                    let mdObj = new Date(m.date);
-                    if (isNaN(mdObj.getTime())) return false;
-                    const mDate = getLocalISODate(mdObj);
-                    return mDate === dateStr && m.type === type;
-                });
-
-                if (!existingMeal) {
-                    mealsToProcess.push({
-                        date: dateStr,
-                        type: type,
-                        status: MealStatus.PLANNED,
-                        attendeeIds: [...planAttendees.value], // On assigne les participants choisis !
-                        selectedSideDishIds: []
-                    });
-                }
-            }
-        }
-
-        if (mealsToProcess.length > 0) {
-            await mealStore.saveMealsBatch(mealsToProcess);
-        }
-        
-        showPlanDialog.value = false;
-
-    } catch (e) {
-        console.error("Erreur Planification:", e);
-        alert("Une erreur est survenue lors de la planification.");
-    } finally {
-        isPlanning.value = false;
-    }
 };
 
 // 2. Générer globalement tous les skeletons vides
@@ -231,7 +172,40 @@ const generateSingleMeal = async (meal: Meal) => {
     }
 };
 
-// 4. Suppression
+// 4. Changement Statut Repas
+const changeMealStatus = async (meal: Meal, newStatus: MealStatus) => {
+    if (!meal.id) return;
+    try {
+        const updateData: Partial<Meal> = { status: newStatus };
+        if (newStatus !== MealStatus.PLANNED) {
+            updateData.recipeId = '';
+            updateData.selectedSideDishIds = [];
+        }
+        await mealStore.updateMeal(meal.id, updateData);
+        
+        // Si on repasse en PLANNED et qu'on n'avait pas de recette,
+        // on pourrait déclencher la génération ici (comportement iPad).
+        if (newStatus === MealStatus.PLANNED && !meal.recipeId) {
+            // on déclenche silencieusement une génération pour ce repas
+            const mealToUpdate = { ...meal, status: MealStatus.PLANNED, recipeId: '', selectedSideDishIds: [] };
+             MenuGeneratorEngine.generateMenu(
+                [mealToUpdate], 
+                recipeStore.recipes, 
+                participantStore.participants
+            );
+            if (mealToUpdate.recipeId) {
+                await mealStore.updateMeal(meal.id, {
+                    recipeId: mealToUpdate.recipeId,
+                    selectedSideDishIds: mealToUpdate.selectedSideDishIds
+                });
+            }
+        }
+    } catch (e) {
+        console.error("Erreur lors du changement de statut:", e);
+    }
+}
+
+// 5. Suppression
 const confirmDeleteMeal = (meal: Meal) => {
     if (!meal.id) return;
     deleteTargetType.value = 'meal';
@@ -334,48 +308,14 @@ const handleMealClick = (meal: Meal) => {
                         @generate="generateSingleMeal(meal)"
                         @click="handleMealClick(meal)"
                         @delete="confirmDeleteMeal(meal)"
+                        @change-status="changeMealStatus(meal, $event)"
                     />
                 </div>
             </div>
             
         </div>
 
-        <!-- Dialog de Planification (Skeletons) -->
-        <Dialog v-model:visible="showPlanDialog" modal header="Planifier les Jours" :style="{ width: '90vw', maxWidth: '450px' }">
-            <div class="flex flex-col gap-4 py-4 pt-2">
-                <p class="text-surface-600 dark:text-surface-400 text-sm mb-2">
-                    Ajoutez des emplacements vides dans votre agenda. Vous pourrez ensuite générer des recettes selon les personnes présentes.
-                </p>
-
-                <div class="flex flex-col gap-2">
-                    <label class="font-semibold text-sm">À partir du</label>
-                    <DatePicker v-model="planStartDate" dateFormat="dd/mm/yy" class="w-full" showIcon />
-                </div>
-
-                <div class="flex flex-col gap-2">
-                    <label class="font-semibold text-sm">Pendant</label>
-                    <Select v-model="planNumDays" :options="planDaysOptions" optionLabel="label" optionValue="value" class="w-full" />
-                </div>
-                
-                <div class="flex flex-col gap-2">
-                    <label class="font-semibold text-sm">Participants (Général)</label>
-                    <MultiSelect 
-                        v-model="planAttendees" 
-                        :options="participantStore.participants" 
-                        optionLabel="name" 
-                        optionValue="id"
-                        placeholder="Sélectionner les convives"
-                        class="w-full" 
-                        display="chip"
-                    />
-                </div>
-            </div>
-            
-            <template #footer>
-                <Button label="Annuler" icon="pi pi-times" text severity="secondary" @click="showPlanDialog = false" />
-                <Button label="Ajouter à l'agenda" icon="pi pi-calendar-plus" @click="planEmptyMeals" :loading="isPlanning" />
-            </template>
-        </Dialog>
+        <PlanMealDialog v-model:visible="showPlanDialog" />
         
         <!-- Dialog de Confirmation de Suppression -->
         <Dialog v-model:visible="showDeleteConfirmDialog" modal header="Confirmation" :style="{ width: '90vw', maxWidth: '400px' }">

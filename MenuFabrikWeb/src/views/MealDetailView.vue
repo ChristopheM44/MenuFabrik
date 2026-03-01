@@ -7,18 +7,17 @@ import { useParticipantStore } from '../stores/participantStore';
 import { useSideDishStore } from '../stores/sideDishStore';
 import type { Meal } from '../models/Meal';
 import type { Recipe } from '../models/Recipe';
-import { MealStatus } from '../models/Meal';
 
 // PrimeVue Components
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import MultiSelect from 'primevue/multiselect';
 import InputText from 'primevue/inputtext';
+import RecipeSourceLinkButton from '../components/recipes/RecipeSourceLinkButton.vue';
 import Avatar from 'primevue/avatar';
 import AvatarGroup from 'primevue/avatargroup';
 import Badge from 'primevue/badge';
 import ProgressSpinner from 'primevue/progressspinner';
-import Divider from 'primevue/divider';
 
 const route = useRoute();
 const router = useRouter();
@@ -82,8 +81,16 @@ const formattedDate = computed(() => {
     // Compensation fuseau horaire
     const offset = dateObj.getTimezoneOffset() * 60000;
     const localStr = (new Date(dateObj.getTime() - offset)).toISOString().split('T')[0];
+    if (!localStr) return hydratedMeal.value.date;
     const parts = localStr.split('-');
-    const localDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    if (parts.length < 3) return hydratedMeal.value.date;
+    
+    // Explicitly parse to guarantee no undefined passing to Date
+    const year = parseInt(parts[0] || '1970', 10);
+    const month = parseInt(parts[1] || '1', 10) - 1;
+    const day = parseInt(parts[2] || '1', 10);
+    
+    const localDate = new Date(year, month, day);
 
     const label = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).format(localDate);
     return label.charAt(0).toUpperCase() + label.slice(1);
@@ -228,6 +235,11 @@ const getCategoryColor = (category?: string) => {
                             <div v-if="hydratedMeal.recipe.instructions" class="mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
                                 <h4 class="font-semibold mb-2">Instructions</h4>
                                 <p class="text-surface-700 dark:text-surface-300 whitespace-pre-wrap text-sm leading-relaxed">{{ hydratedMeal.recipe.instructions }}</p>
+                            </div>
+
+                            <!-- Lien Web -->
+                            <div v-if="hydratedMeal.recipe.sourceURL" class="mt-6">
+                                <RecipeSourceLinkButton :url="hydratedMeal.recipe.sourceURL" />
                             </div>
 
                         </div>

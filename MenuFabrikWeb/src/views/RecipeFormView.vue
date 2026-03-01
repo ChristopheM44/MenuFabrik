@@ -44,7 +44,8 @@ const recipeForm = ref<Partial<Recipe>>({
     mealType: MealType.BOTH,
     requiresFreeTime: false,
     allergenIds: [],
-    suggestedSideIds: []
+    suggestedSideIds: [],
+    sourceURL: ''
 });
 
 onMounted(async () => {
@@ -87,7 +88,8 @@ const saveRecipe = async () => {
                 mealType: recipeForm.value.mealType || MealType.BOTH,
                 requiresFreeTime: recipeForm.value.requiresFreeTime || false,
                 allergenIds: recipeForm.value.allergenIds || [],
-                suggestedSideIds: recipeForm.value.suggestedSideIds || []
+                suggestedSideIds: recipeForm.value.suggestedSideIds || [],
+                sourceURL: recipeForm.value.sourceURL || ''
             };
             await recipeStore.addRecipe(newRecipe);
         }
@@ -119,6 +121,11 @@ const cancel = () => {
             <div class="flex flex-col gap-2">
                 <label for="name" class="font-semibold">Nom de la recette *</label>
                 <InputText id="name" v-model="recipeForm.name" placeholder="Ex: Poulet Basquaise" class="w-full text-lg" autofocus />
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label for="sourceURL" class="font-semibold">Lien Web (URL - Optionnel)</label>
+                <InputText id="sourceURL" v-model="recipeForm.sourceURL" placeholder="Ex: https://cookidoo.fr/..." class="w-full font-mono text-sm" />
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

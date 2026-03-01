@@ -12,10 +12,15 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppLayout: typeof import('./src/components/layout/AppLayout.vue')['default']
-    Button: typeof import('primevue/button')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     MealCardView: typeof import('./src/components/MealCardView.vue')['default']
+    PlanMealDialog: typeof import('./src/components/planning/PlanMealDialog.vue')['default']
+    RecipeSourceLinkButton: typeof import('./src/components/recipes/RecipeSourceLinkButton.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SettingsAdminZone: typeof import('./src/components/settings/SettingsAdminZone.vue')['default']
+    SettingsAllergensTab: typeof import('./src/components/settings/SettingsAllergensTab.vue')['default']
+    SettingsParticipantsTab: typeof import('./src/components/settings/SettingsParticipantsTab.vue')['default']
+    SettingsSideDishesTab: typeof import('./src/components/settings/SettingsSideDishesTab.vue')['default']
   }
 }

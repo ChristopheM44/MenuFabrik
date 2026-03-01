@@ -20,12 +20,15 @@ onMounted(async () => {
 });
 
 const filteredRecipes = computed(() => {
-    if (!searchQuery.value) return recipeStore.recipes;
-    const lowerQuery = searchQuery.value.toLowerCase();
-    return recipeStore.recipes.filter(r => 
-        r.name.toLowerCase().includes(lowerQuery) || 
-        r.category.toLowerCase().includes(lowerQuery)
-    );
+    let result = recipeStore.recipes;
+    if (searchQuery.value) {
+        const lowerQuery = searchQuery.value.toLowerCase();
+        result = result.filter(r => 
+            r.name.toLowerCase().includes(lowerQuery) || 
+            r.category.toLowerCase().includes(lowerQuery)
+        );
+    }
+    return result.slice().sort((a, b) => a.name.localeCompare(b.name));
 });
 
 const getSeverityForMealType = (type: MealType) => {
@@ -46,17 +49,17 @@ const formatTime = (minutes: number) => {
 </script>
 
 <template>
-    <div class="recipes-view animate-fadein">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 p-4 md:p-0">
+    <div class="recipes-view w-full max-w-5xl mx-auto p-4 animate-fadein pb-24">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div>
-                <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0">Carnet de Recettes</h1>
-                <p class="text-surface-500 dark:text-surface-400 mt-1">{{ recipeStore.recipes.length }} recettes disponibles</p>
+                <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0 border-l-4 pl-3 border-primary-500">Carnet de Recettes</h1>
+                <p class="text-surface-500 dark:text-surface-400 mt-1 pl-3">{{ recipeStore.recipes.length }} recettes disponibles</p>
             </div>
             
             <div class="flex w-full md:w-auto gap-3">
                 <span class="relative w-full md:w-64">
                     <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-surface-400"></i>
-                    <InputText v-model="searchQuery" placeholder="Rechercher une recette..." class="pl-10 w-full" />
+                    <InputText v-model="searchQuery" placeholder="Rechercher une recette..." class="w-full" style="padding-left: 2.5rem;" />
                 </span>
                 <Button icon="pi pi-plus" label="Nouvelle" severity="primary" class="shrink-0" @click="$router.push('/recipes/new')" />
             </div>
@@ -70,7 +73,6 @@ const formatTime = (minutes: number) => {
                 paginator 
                 :rows="10" 
                 :rowsPerPageOptions="[5, 10, 20, 50]"
-                responsiveLayout="scroll"
                 class="p-datatable-sm md:p-datatable-lg border-none"
             >
                 <template #empty>
@@ -82,19 +84,27 @@ const formatTime = (minutes: number) => {
                     </div>
                 </template>
 
-                <Column field="name" header="Nom" :sortable="true" style="min-width: 200px">
+                <Column field="name" header="Nom" :sortable="true" class="w-full sm:w-auto">
                     <template #body="{ data }">
-                        <div class="font-semibold text-primary-700 dark:text-primary-300">{{ data.name }}</div>
+                        <div class="flex flex-col gap-1">
+                            <span class="font-semibold text-primary-700 dark:text-primary-300">{{ data.name }}</span>
+                            <!-- Infos compactes sur mobile -->
+                            <div class="flex sm:hidden items-center gap-2 text-xs text-surface-500">
+                                <span><i class="pi pi-clock text-[10px]"></i> {{ formatTime(data.prepTime) }}</span>
+                                <span>•</span>
+                                <span>{{ data.category }}</span>
+                            </div>
+                        </div>
                     </template>
                 </Column>
 
-                <Column field="category" header="Catégorie" :sortable="true">
+                <Column field="category" header="Catégorie" :sortable="true" class="hidden sm:table-cell">
                     <template #body="{ data }">
                         <Tag :value="data.category" severity="secondary" rounded></Tag>
                     </template>
                 </Column>
 
-                <Column field="prepTime" header="Temps" :sortable="true">
+                <Column field="prepTime" header="Temps" :sortable="true" class="hidden sm:table-cell">
                     <template #body="{ data }">
                         <div class="flex items-center gap-2 text-surface-600 dark:text-surface-400">
                             <i class="pi pi-clock"></i>
@@ -103,13 +113,13 @@ const formatTime = (minutes: number) => {
                     </template>
                 </Column>
 
-                <Column field="mealType" header="Type" :sortable="true" class="hidden sm:table-cell">
+                <Column field="mealType" header="Type" :sortable="true" class="hidden md:table-cell">
                     <template #body="{ data }">
                         <Tag :value="data.mealType" :severity="getSeverityForMealType(data.mealType)"></Tag>
                     </template>
                 </Column>
 
-                <Column :exportable="false" style="min-width: 8rem" alignFrozen="right" frozen>
+                <Column :exportable="false" bodyStyle="white-space: nowrap; text-align: right;">
                     <template #body="{ data }">
                         <div class="flex gap-2 justify-end">
                             <Button icon="pi pi-pencil" outlined rounded severity="secondary" aria-label="Éditer" @click="$router.push(`/recipes/${data.id}`)" />
