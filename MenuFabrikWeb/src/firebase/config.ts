@@ -3,12 +3,12 @@ import { getFirestore } from "firebase/firestore";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyAnj8_mmCCyeq4L_C9VKj6l5Ep-GZXzHzE",
-    authDomain: "menufabrik.firebaseapp.com",
-    projectId: "menufabrik",
-    storageBucket: "menufabrik.firebasestorage.app",
-    messagingSenderId: "427770132784",
-    appId: "1:427770132784:web:6aafc7a563520e0b89b0f5"
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 // Initialize Firebase
