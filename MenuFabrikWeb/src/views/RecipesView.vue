@@ -1,0 +1,138 @@
+<script setup lang="ts">
+import { onMounted, ref, computed } from 'vue';
+import { useRecipeStore } from '../stores/recipeStore';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
+import Tag from 'primevue/tag';
+import { MealType } from '../models/Recipe';
+
+const recipeStore = useRecipeStore();
+const searchQuery = ref('');
+
+onMounted(async () => {
+    // Dans le monde réel, on ajouterait une vérification côté store 
+    // pour ne pas refetcher si déjà chargé, mais pour l'instant:
+    if (recipeStore.recipes.length === 0) {
+        await recipeStore.fetchRecipes();
+    }
+});
+
+const filteredRecipes = computed(() => {
+    if (!searchQuery.value) return recipeStore.recipes;
+    const lowerQuery = searchQuery.value.toLowerCase();
+    return recipeStore.recipes.filter(r => 
+        r.name.toLowerCase().includes(lowerQuery) || 
+        r.category.toLowerCase().includes(lowerQuery)
+    );
+});
+
+const getSeverityForMealType = (type: MealType) => {
+    switch (type) {
+        case MealType.LUNCH: return 'info';
+        case MealType.DINNER: return 'contrast';
+        case MealType.BOTH: return 'success';
+        default: return 'secondary';
+    }
+};
+
+const formatTime = (minutes: number) => {
+    if (minutes < 60) return `${minutes} min`;
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return m > 0 ? `${h}h${m}` : `${h}h`;
+};
+</script>
+
+<template>
+    <div class="recipes-view animate-fadein">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 p-4 md:p-0">
+            <div>
+                <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0">Carnet de Recettes</h1>
+                <p class="text-surface-500 dark:text-surface-400 mt-1">{{ recipeStore.recipes.length }} recettes disponibles</p>
+            </div>
+            
+            <div class="flex w-full md:w-auto gap-3">
+                <span class="relative w-full md:w-64">
+                    <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-surface-400"></i>
+                    <InputText v-model="searchQuery" placeholder="Rechercher une recette..." class="pl-10 w-full" />
+                </span>
+                <Button icon="pi pi-plus" label="Nouvelle" severity="primary" class="shrink-0" @click="$router.push('/recipes/new')" />
+            </div>
+        </div>
+
+        <div class="card p-0 md:p-4 rounded-xl md:shadow-sm md:bg-white md:dark:bg-surface-900">
+            <DataTable 
+                :value="filteredRecipes" 
+                :loading="recipeStore.isLoading"
+                stripedRows 
+                paginator 
+                :rows="10" 
+                :rowsPerPageOptions="[5, 10, 20, 50]"
+                responsiveLayout="scroll"
+                class="p-datatable-sm md:p-datatable-lg border-none"
+            >
+                <template #empty>
+                    <div class="text-center p-8 text-surface-500">
+                        <i class="pi pi-inbox text-4xl mb-4 text-surface-300"></i>
+                        <p v-if="recipeStore.isLoading">Chargement des recettes...</p>
+                        <p v-else-if="searchQuery">Aucune recette ne correspond à votre recherche.</p>
+                        <p v-else>Aucune recette dans votre carnet. Ajoutez-en une !</p>
+                    </div>
+                </template>
+
+                <Column field="name" header="Nom" :sortable="true" style="min-width: 200px">
+                    <template #body="{ data }">
+                        <div class="font-semibold text-primary-700 dark:text-primary-300">{{ data.name }}</div>
+                    </template>
+                </Column>
+
+                <Column field="category" header="Catégorie" :sortable="true">
+                    <template #body="{ data }">
+                        <Tag :value="data.category" severity="secondary" rounded></Tag>
+                    </template>
+                </Column>
+
+                <Column field="prepTime" header="Temps" :sortable="true">
+                    <template #body="{ data }">
+                        <div class="flex items-center gap-2 text-surface-600 dark:text-surface-400">
+                            <i class="pi pi-clock"></i>
+                            <span>{{ formatTime(data.prepTime) }}</span>
+                        </div>
+                    </template>
+                </Column>
+
+                <Column field="mealType" header="Type" :sortable="true" class="hidden sm:table-cell">
+                    <template #body="{ data }">
+                        <Tag :value="data.mealType" :severity="getSeverityForMealType(data.mealType)"></Tag>
+                    </template>
+                </Column>
+
+                <Column :exportable="false" style="min-width: 8rem" alignFrozen="right" frozen>
+                    <template #body="{ data }">
+                        <div class="flex gap-2 justify-end">
+                            <Button icon="pi pi-pencil" outlined rounded severity="secondary" aria-label="Éditer" @click="$router.push(`/recipes/${data.id}`)" />
+                            <Button icon="pi pi-trash" outlined rounded severity="danger" aria-label="Supprimer" @click="recipeStore.deleteRecipe(data.id)" />
+                        </div>
+                    </template>
+                </Column>
+            </DataTable>
+        </div>
+    </div>
+</template>
+
+<style scoped>
+.animate-fadein {
+    animation: fadein 0.3s ease-out forwards;
+}
+@keyframes fadein {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Optimisation Mobile: cacher bordures de datatable sur petits écrans */
+:deep(.p-datatable .p-datatable-thead > tr > th) {
+    background: transparent;
+}
+</style>
