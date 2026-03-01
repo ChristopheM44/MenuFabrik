@@ -1,9 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { watch } from 'vue'
 import { useAuthStore } from '../stores/authStore'
-import MealsView from '../views/MealsView.vue'
-import RecipesView from '../views/RecipesView.vue'
-import SettingsView from '../views/SettingsView.vue'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,7 +18,7 @@ const router = createRouter({
         {
             path: '/meals',
             name: 'meals',
-            component: MealsView,
+            component: () => import('../views/MealsView.vue'),
             meta: { title: 'Agenda', requiresAuth: true }
         },
         {
@@ -33,7 +30,7 @@ const router = createRouter({
         {
             path: '/recipes',
             name: 'recipes',
-            component: RecipesView,
+            component: () => import('../views/RecipesView.vue'),
             meta: { title: 'Recettes', requiresAuth: true }
         },
         {
@@ -51,7 +48,7 @@ const router = createRouter({
         {
             path: '/settings',
             name: 'settings',
-            component: SettingsView,
+            component: () => import('../views/SettingsView.vue'),
             meta: { title: 'Paramètres', requiresAuth: true }
         }
     ]

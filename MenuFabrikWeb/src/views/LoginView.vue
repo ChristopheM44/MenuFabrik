@@ -81,13 +81,5 @@ const handleSubmit = async () => {
             </template>
         </Card>
         
-        <!-- Loading overlay for space initialization -->
-        <div v-if="authStore.user && !authStore.isUserDbInitialized" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-surface-0/90 dark:bg-surface-900/90 backdrop-blur-sm">
-            <i class="pi pi-spin pi-spinner text-primary text-5xl mb-6"></i>
-            <h2 class="text-2xl font-bold mb-2 text-surface-900 dark:text-surface-0">Création de votre espace en cours...</h2>
-            <p class="text-surface-600 dark:text-surface-400 mt-2 text-center max-w-md">
-                Nous préparons vos recettes et accompagnements par défaut depuis la base de données centrale. Cela ne prendra que quelques instants.
-            </p>
-        </div>
     </div>
 </template>

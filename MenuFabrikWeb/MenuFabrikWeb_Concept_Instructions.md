@@ -8,11 +8,12 @@ La nouveauté de cette version **Web** est de permettre une **synchronisation gr
 1. **Framework Core** : Vue.js 3 avec l'API de Composition (`<script setup>`).
 2. **Langage** : TypeScript (Typer fortement les modèles pour faciliter la migration depuis Swift).
 3. **UI & Design** : Tailwind CSS (pour le styling utility-first) + PrimeVue (Aura Theme) pour les composants riches (Modales, Selects, Calendriers).
-4. **Persistance des données & Synchro** : Firebase (Firestore) remplace SwiftData.
-5. **Gestion d'État (State Management)** : Pinia (remplace le `@Environment`) pour gérer l'interface réactive liée à Firebase.
-6. **Outil de Build & PWA** : Vite + `vite-plugin-pwa` (pour l'installation sur l'écran d'accueil iOS/Android).
+4. **Persistance des données & Synchro** : Firebase (Firestore) remplace SwiftData. Les données sont structurées en mode **Multi-tenant** (`/users/{uid}/*`) pour une isolation totale de chaque foyer.
+5. **Authentification** : Firebase Auth (Google Sign-In + Email/Mot de passe) gérée via un `authStore` Pinia de manière globale.
+6. **Gestion d'État (State Management)** : Pinia (remplace le `@Environment`) pour gérer l'interface réactive, liée dynamiquement à l'UID de l'utilisateur.
+7. **Outil de Build & PWA** : Vite + `vite-plugin-pwa` (pour l'installation sur l'écran d'accueil iOS/Android).
 
-## 🔑 Modèles Cœurs (Core Entities à traduire en TS)
+## 🔑 Modèles Cœurs (Core Entities)
 - `Participant` : Membre de la famille (prénom, allergies, actif/inactif).
 - `Recipe` : Nom, temps de prépa, moment, catégorie, note, allergènes, `requiresFreeTime` (we/vacances), `suggestedSides` (accompagnements).
 - `Meal` : Un repas de l'agenda continu (`status`, `recipe`, `selectedSideDishes`, `attendees`).

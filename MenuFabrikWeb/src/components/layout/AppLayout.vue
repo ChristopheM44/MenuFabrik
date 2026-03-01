@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
+import ConfirmDialog from 'primevue/confirmdialog'
 
 const route = useRoute()
 
@@ -68,6 +69,9 @@ const navItems = [
       </router-link>
     </nav>
     
+    <!-- Modale Globale de Confirmation -->
+    <ConfirmDialog></ConfirmDialog>
+
   </div>
 </template>
 

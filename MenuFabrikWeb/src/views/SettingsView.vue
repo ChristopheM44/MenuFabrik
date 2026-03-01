@@ -17,7 +17,6 @@ import Tab from 'primevue/tab';
 import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
 import ProgressSpinner from 'primevue/progressspinner';
-import ConfirmDialog from 'primevue/confirmdialog';
 
 const participantStore = useParticipantStore();
 const sideDishStore = useSideDishStore();
@@ -75,9 +74,6 @@ onMounted(async () => {
           <SettingsAdminZone />
 
       </div>
-
-      <!-- Composant essentiel pour que useConfirm() affiche la boite de dialogue -->
-      <ConfirmDialog></ConfirmDialog>
 
   </div>
 </template>

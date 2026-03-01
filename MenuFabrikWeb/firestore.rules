@@ -3,6 +3,15 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    function isPayloadValid() {
+      // 50KB max payload
+      return request.resource == null || (request.resource.size < 50 * 1024);
+    }
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
     // Verrouillage de la base de données par défaut : tout est refusé
     match /{document=**} {
       allow read, write: if false;
@@ -10,8 +19,40 @@ service cloud.firestore {
 
     // 1. Isolation multi-tenant : chaque utilisateur a les droits complets sur son espace personnel
     match /users/{userId} {
-      match /{document=**} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Modèle de base pour s'assurer que le champ vital 'name' est présent à la création
+      match /recipes/{docId} {
+        allow read, delete: if isOwner(userId);
+        allow create: if isOwner(userId) && isPayloadValid() && request.resource.data.keys().hasAll(['name']);
+        allow update: if isOwner(userId) && isPayloadValid();
+      }
+      
+      match /participants/{docId} {
+        allow read, delete: if isOwner(userId);
+        allow create: if isOwner(userId) && isPayloadValid() && request.resource.data.keys().hasAll(['name']);
+        allow update: if isOwner(userId) && isPayloadValid();
+      }
+
+      match /allergens/{docId} {
+        allow read, delete: if isOwner(userId);
+        allow create: if isOwner(userId) && isPayloadValid() && request.resource.data.keys().hasAll(['name']);
+        allow update: if isOwner(userId) && isPayloadValid();
+      }
+
+      match /sideDishes/{docId} {
+        allow read, delete: if isOwner(userId);
+        allow create: if isOwner(userId) && isPayloadValid() && request.resource.data.keys().hasAll(['name']);
+        allow update: if isOwner(userId) && isPayloadValid();
+      }
+      
+      match /meals/{docId} {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isPayloadValid();
+      }
+      
+      match /profile/data {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isPayloadValid();
       }
     }
     
