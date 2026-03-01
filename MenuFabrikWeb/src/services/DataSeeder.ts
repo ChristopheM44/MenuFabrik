@@ -2,7 +2,6 @@ import { collection, doc, writeBatch, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { MealType, RecipeCategory } from '../models/Recipe';
 import type { Recipe } from '../models/Recipe';
-import type { Participant } from '../models/Participant';
 import type { Allergen } from '../models/Allergen';
 import type { SideDish } from '../models/SideDish';
 
@@ -19,13 +18,12 @@ const clearCollection = async (collectionName: string) => {
 
 export const seedDatabase = async () => {
     try {
-        console.log("Démarrage du DataSeeder Web (Mode Relationnel)...");
+        console.log("Démarrage du DataSeeder Web (Mode Base Publique Centrale)...");
 
-        console.log("Nettoyage des anciennes données...");
-        await clearCollection('recipes');
-        await clearCollection('participants');
-        await clearCollection('sideDishes');
-        await clearCollection('allergens');
+        console.log("Nettoyage des anciennes données publiques...");
+        await clearCollection('public_recipes');
+        await clearCollection('public_sideDishes');
+        await clearCollection('public_allergens');
 
         const batch = writeBatch(db);
 
@@ -41,9 +39,9 @@ export const seedDatabase = async () => {
         const allergensMap = new Map<string, string>();
 
         allergenNames.forEach(name => {
-            const ref = doc(collection(db, 'allergens'));
+            const ref = doc(collection(db, 'public_allergens'));
             allergensMap.set(name, ref.id);
-            const allergen: Allergen = { name }; // L'ID n'est pas forcément stocké dans le body, Firestore l'a en clé primaire, mais on peut le mettre
+            const allergen: Allergen = { name };
             batch.set(ref, allergen);
         });
 
@@ -68,7 +66,7 @@ export const seedDatabase = async () => {
         const sideDishesMap = new Map<string, string>();
 
         sideDishNames.forEach(name => {
-            const ref = doc(collection(db, 'sideDishes'));
+            const ref = doc(collection(db, 'public_sideDishes'));
             sideDishesMap.set(name, ref.id);
             const side: SideDish = { name };
             batch.set(ref, side);
@@ -79,20 +77,7 @@ export const seedDatabase = async () => {
             return names.map(n => sideDishesMap.get(n)!).filter(Boolean);
         };
 
-        // --- 3. PARTICIPANTS ---
-        const participantsData: Omit<Participant, 'id' | 'allergies'>[] = [
-            { name: "Christophe", isActive: true, allergyIds: mapAllergens(["Arachides"]) },
-            { name: "Edith", isActive: true, allergyIds: mapAllergens(["Gluten"]) },
-            { name: "Jonathan", isActive: true, allergyIds: [] },
-            { name: "Kylian", isActive: true, allergyIds: [] }
-        ];
-
-        participantsData.forEach(p => {
-            const pRef = doc(collection(db, 'participants'));
-            batch.set(pRef, p);
-        });
-
-        // --- 4. RECETTES ---
+        // --- 3. RECETTES (Seul un extrait est gardé ici pour plus de clarté par la suite - Le reste doit être importé par les admins depuis l'interface) ---
         const recipesData: Omit<Recipe, 'id' | 'allergens' | 'suggestedSides'>[] = [
             { name: "Apero", prepTime: 10, mealType: MealType.BOTH, category: RecipeCategory.OTHER, allergenIds: mapAllergens([]), requiresFreeTime: false, suggestedSideIds: mapSides([]) },
             { name: "Arancini", prepTime: 60, mealType: MealType.BOTH, category: RecipeCategory.VEGETARIAN, allergenIds: mapAllergens(["Gluten", "Lactose", "Oeuf"]), requiresFreeTime: true, suggestedSideIds: mapSides([]) },
@@ -196,16 +181,17 @@ export const seedDatabase = async () => {
         ];
 
         recipesData.forEach(r => {
-            const rRef = doc(collection(db, 'recipes'));
+            const rRef = doc(collection(db, 'public_recipes'));
             batch.set(rRef, r);
         });
 
         // Commit du batch : Envoie tout en une seule requête optimisée !
         console.log("Envoi du lot vers Firestore...");
         await batch.commit();
-        console.log("Les données RELATIONNELLES ont été injectées avec succès ! ✅");
+        console.log("La base publique a été injectée avec succès ! ✅");
 
     } catch (error) {
         console.error("Erreur lors de l'injection :", error);
+        throw error;
     }
 };

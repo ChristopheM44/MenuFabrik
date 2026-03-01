@@ -1,19 +1,35 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, onSnapshot } from 'firebase/firestore'
+import type { Unsubscribe } from 'firebase/firestore'
 import { db } from '../firebase/config'
 import type { Allergen } from '../models/Allergen'
+import { useAuthStore } from './authStore'
 
 export const useAllergenStore = defineStore('allergen', () => {
     const allergens = ref<Allergen[]>([])
     const isLoading = ref(false)
     const error = ref<string | null>(null)
 
+    let unsubscribe: Unsubscribe | null = null
+    const authStore = useAuthStore()
+
+    const getCollectionRef = () => {
+        if (!authStore.user) throw new Error("Utilisateur non authentifié")
+        return collection(db, 'users', authStore.user.uid, 'allergens')
+    }
+
+    const getDocRef = (id: string) => {
+        if (!authStore.user) throw new Error("Utilisateur non authentifié")
+        return doc(db, 'users', authStore.user.uid, 'allergens', id)
+    }
+
     const fetchAllergens = async () => {
+        if (!authStore.user) return
         isLoading.value = true
         error.value = null
         try {
-            const q = query(collection(db, 'allergens'))
+            const q = query(getCollectionRef())
             const querySnapshot = await getDocs(q)
             allergens.value = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Allergen))
         } catch (err: any) {
@@ -24,8 +40,11 @@ export const useAllergenStore = defineStore('allergen', () => {
     }
 
     const setupRealtimeListener = () => {
-        const q = query(collection(db, 'allergens'))
-        return onSnapshot(q, (snapshot) => {
+        if (unsubscribe) unsubscribe()
+        if (!authStore.user) return
+
+        const q = query(getCollectionRef())
+        unsubscribe = onSnapshot(q, (snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === 'added') {
                     const exists = allergens.value.some(a => a.id === change.doc.id)
@@ -46,11 +65,25 @@ export const useAllergenStore = defineStore('allergen', () => {
         }, (err) => {
             error.value = err.message
         })
+
+        return unsubscribe
     }
+
+    watch(() => authStore.user, (user) => {
+        if (user) {
+            setupRealtimeListener()
+        } else {
+            if (unsubscribe) {
+                unsubscribe()
+                unsubscribe = null
+            }
+            $reset()
+        }
+    }, { immediate: true })
 
     const addAllergen = async (allergen: Omit<Allergen, 'id'>) => {
         try {
-            const docRef = await addDoc(collection(db, 'allergens'), allergen)
+            const docRef = await addDoc(getCollectionRef(), allergen)
             return docRef.id
         } catch (err: any) {
             error.value = err.message
@@ -60,8 +93,7 @@ export const useAllergenStore = defineStore('allergen', () => {
 
     const updateAllergen = async (id: string, updates: Partial<Allergen>) => {
         try {
-            const allergenRef = doc(db, 'allergens', id)
-            await updateDoc(allergenRef, updates)
+            await updateDoc(getDocRef(id), updates)
         } catch (err: any) {
             error.value = err.message
             throw err
@@ -70,13 +102,18 @@ export const useAllergenStore = defineStore('allergen', () => {
 
     const deleteAllergen = async (id: string) => {
         try {
-            const allergenRef = doc(db, 'allergens', id)
-            await deleteDoc(allergenRef)
+            await deleteDoc(getDocRef(id))
         } catch (err: any) {
             error.value = err.message
             throw err
         }
     }
 
-    return { allergens, isLoading, error, fetchAllergens, addAllergen, updateAllergen, deleteAllergen, setupRealtimeListener }
+    const $reset = () => {
+        allergens.value = []
+        isLoading.value = false
+        error.value = null
+    }
+
+    return { allergens, isLoading, error, fetchAllergens, addAllergen, updateAllergen, deleteAllergen, setupRealtimeListener, $reset }
 })

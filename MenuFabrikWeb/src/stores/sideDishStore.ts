@@ -1,19 +1,35 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, onSnapshot } from 'firebase/firestore'
+import type { Unsubscribe } from 'firebase/firestore'
 import { db } from '../firebase/config'
 import type { SideDish } from '../models/SideDish'
+import { useAuthStore } from './authStore'
 
 export const useSideDishStore = defineStore('sideDish', () => {
     const sideDishes = ref<SideDish[]>([])
     const isLoading = ref(false)
     const error = ref<string | null>(null)
 
+    let unsubscribe: Unsubscribe | null = null
+    const authStore = useAuthStore()
+
+    const getCollectionRef = () => {
+        if (!authStore.user) throw new Error("Utilisateur non authentifié")
+        return collection(db, 'users', authStore.user.uid, 'sideDishes')
+    }
+
+    const getDocRef = (id: string) => {
+        if (!authStore.user) throw new Error("Utilisateur non authentifié")
+        return doc(db, 'users', authStore.user.uid, 'sideDishes', id)
+    }
+
     const fetchSideDishes = async () => {
+        if (!authStore.user) return
         isLoading.value = true
         error.value = null
         try {
-            const q = query(collection(db, 'sideDishes'))
+            const q = query(getCollectionRef())
             const querySnapshot = await getDocs(q)
             sideDishes.value = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SideDish))
         } catch (err: any) {
@@ -24,8 +40,11 @@ export const useSideDishStore = defineStore('sideDish', () => {
     }
 
     const setupRealtimeListener = () => {
-        const q = query(collection(db, 'sideDishes'))
-        return onSnapshot(q, (snapshot) => {
+        if (unsubscribe) unsubscribe()
+        if (!authStore.user) return
+
+        const q = query(getCollectionRef())
+        unsubscribe = onSnapshot(q, (snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === 'added') {
                     const exists = sideDishes.value.some(sd => sd.id === change.doc.id)
@@ -46,11 +65,25 @@ export const useSideDishStore = defineStore('sideDish', () => {
         }, (err) => {
             error.value = err.message
         })
+
+        return unsubscribe
     }
+
+    watch(() => authStore.user, (user) => {
+        if (user) {
+            setupRealtimeListener()
+        } else {
+            if (unsubscribe) {
+                unsubscribe()
+                unsubscribe = null
+            }
+            $reset()
+        }
+    }, { immediate: true })
 
     const addSideDish = async (sideDish: Omit<SideDish, 'id'>) => {
         try {
-            const docRef = await addDoc(collection(db, 'sideDishes'), sideDish)
+            const docRef = await addDoc(getCollectionRef(), sideDish)
             return docRef.id
         } catch (err: any) {
             error.value = err.message
@@ -60,8 +93,7 @@ export const useSideDishStore = defineStore('sideDish', () => {
 
     const updateSideDish = async (id: string, updates: Partial<SideDish>) => {
         try {
-            const sideDishRef = doc(db, 'sideDishes', id)
-            await updateDoc(sideDishRef, updates)
+            await updateDoc(getDocRef(id), updates)
         } catch (err: any) {
             error.value = err.message
             throw err
@@ -70,13 +102,18 @@ export const useSideDishStore = defineStore('sideDish', () => {
 
     const deleteSideDish = async (id: string) => {
         try {
-            const sideDishRef = doc(db, 'sideDishes', id)
-            await deleteDoc(sideDishRef)
+            await deleteDoc(getDocRef(id))
         } catch (err: any) {
             error.value = err.message
             throw err
         }
     }
 
-    return { sideDishes, isLoading, error, fetchSideDishes, addSideDish, updateSideDish, deleteSideDish, setupRealtimeListener }
+    const $reset = () => {
+        sideDishes.value = []
+        isLoading.value = false
+        error.value = null
+    }
+
+    return { sideDishes, isLoading, error, fetchSideDishes, addSideDish, updateSideDish, deleteSideDish, setupRealtimeListener, $reset }
 })

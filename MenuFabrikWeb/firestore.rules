@@ -1,0 +1,32 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Verrouillage de la base de données par défaut : tout est refusé
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 1. Isolation multi-tenant : chaque utilisateur a les droits complets sur son espace personnel
+    match /users/{userId} {
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // 2. Collections publiques (Données de base initiales clonées à la création du compte)
+    match /public_recipes/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+    match /public_allergens/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+    match /public_sideDishes/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+  }
+}

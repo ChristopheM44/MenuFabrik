@@ -24,6 +24,12 @@ L'application est fondamentalement **Multiplateforme Apple (iOS, iPadOS, macOS)*
   - `selectedSideDishes` : Liste d'accompagnements tirés au sort pour ce repas.
   - `attendees` : Liste des participants prévus pour ce repas précis. L'intelligence du générateur se base sur ces présences pour proposer des plats compatibles (gestion fine des allergies à l'échelle du repas).
 
+## 🔐 Authentification & Multi-Comptes (Multi-tenant)
+- L'application (notamment la déclinaison Web en Vue.js + Firebase) gère l'**Authentification** (e-mail/mot de passe ou SSO).
+- Chaque "Compte" (Foyer) possède sa propre base de données hermétique.
+- **Architecture Firestore (Isolations)** : Au lieu d'avoir des collections globales (`/recipes`, `/meals`), le modèle de données doit être structuré de manière hiérarchique : `/users/{userId}/recipes/` ou via des requêtes strictement paramétrées sur un champ `ownerId` imposé par les **Règles de Sécurité Firestore**.
+- Les *Stores* (Pinia, SwiftData) doivent dynamiser l'écoute des données en fonction de l'ID de l'utilisateur connecté, et se vider intégralement (`store.$reset()`) lors d'une déconnexion.
+
 ## 🚨 Règles pour Antigravity (Directives de développement)
 1. **Séparation des préoccupations (SoC)** : Ne jamais mélanger la logique complexe de sélection de recette à l'intérieur d'une Vue SwiftUI. Les vues SwiftUI ne font que l'affichage et appellent des services / ViewModels.
 2. **Architecture du Générateur** : L'algorithme se trouve dans `MenuGeneratorEngine` (pure function, aucune dépendance à `ModelContext`). Le `MenuGeneratorService` n'est qu'une façade (repository) qui charge les données et appelle l'Engine.
