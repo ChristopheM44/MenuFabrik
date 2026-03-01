@@ -223,8 +223,16 @@ const swapMeals = async (meal: Meal, dateMeals: Meal[]) => {
     }
 
     try {
-        const meal1Updates = { recipeId: otherMeal.recipeId || '', selectedSideDishIds: otherMeal.selectedSideDishIds || [] };
-        const meal2Updates = { recipeId: meal.recipeId || '', selectedSideDishIds: meal.selectedSideDishIds || [] };
+        const meal1Updates = { 
+            status: otherMeal.status || MealStatus.PLANNED,
+            recipeId: otherMeal.recipeId || '', 
+            selectedSideDishIds: otherMeal.selectedSideDishIds || [] 
+        };
+        const meal2Updates = { 
+            status: meal.status || MealStatus.PLANNED,
+            recipeId: meal.recipeId || '', 
+            selectedSideDishIds: meal.selectedSideDishIds || [] 
+        };
         
         // Exécution en parallèle
         await Promise.all([

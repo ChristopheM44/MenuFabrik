@@ -79,7 +79,8 @@ const categoryColorClass = computed(() => {
                     
                     <!-- Actions (Refresh / Corbeille) placés à côté de Midi/Soir -->
                     <div class="flex items-center ml-1">
-                        <Button v-if="hasRecipe && isPlanned" icon="pi pi-sync" text rounded severity="secondary" size="small" style="width: 2rem; height: 2rem; padding: 0;" @click.stop="emit('swap')" aria-label="Permuter" title="Permuter avec l'autre repas de la journée" />
+                        <!-- Permuter: Visible sur les repas générés (hasRecipe) ou sur les status spéciaux (pas en mode skeleton vide) -->
+                        <Button v-if="(hasRecipe && isPlanned) || (!isPlanned)" icon="pi pi-sync" text rounded severity="secondary" size="small" style="width: 2rem; height: 2rem; padding: 0;" @click.stop="emit('swap')" aria-label="Permuter" title="Permuter avec l'autre repas de la journée" />
                         <Button v-if="hasRecipe && isPlanned" icon="pi pi-refresh" text rounded severity="secondary" size="small" style="width: 2rem; height: 2rem; padding: 0;" @click.stop="emit('generate')" aria-label="Alternative" title="Proposer une alternative" />
                         <!-- Options Status -->
                         <Button icon="pi pi-ellipsis-v" text rounded severity="secondary" size="small" style="width: 2rem; height: 2rem; padding: 0;" @click.stop="toggleMenu" aria-label="Options" title="Options du repas" />
