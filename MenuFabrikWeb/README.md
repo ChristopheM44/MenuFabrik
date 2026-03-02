@@ -1,5 +1,90 @@
-# Vue 3 + TypeScript + Vite
+# 🍽️ MenuFabrik Web (PWA)
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+MenuFabrik est une Progressive Web App (PWA) familiale conçue pour réduire la charge mentale liée à la question récurrente : *"Qu'est-ce qu'on mange ce soir ?"*. 
+Née d'une application native iOS, cette version Web permet une **synchronisation en temps réel et multi-plateforme** (iOS, Android, PC) de tous les membres du foyer !
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## ✨ Fonctionnalités Principales
+
+- **📅 Planification de Menus (Agenda)** : Génération automatique, aléatoire ou choix manuel de repas pour le midi et le soir. 
+- **📖 Carnet de Recettes Intelligent** : Gestion de vos recettes favorites avec support des allergènes personnels et suggestions d'accompagnements.
+- **🤖 Assistant IA (Gemini)** : Importez un lien externe ou collez du texte, et laissez Google Gemini extraire avec précision le nom, les ingrédients (avec quantités et unités exactes), le temps de préparation et les étapes essentielles.
+- **🛒 Génération de Liste de Courses** : MenuFabrik consolide mathématiquement tous les ingrédients de vos prévisions sur une période donnée pour générer une liste de courses exportable.
+- **🔐 Multi-tenant & Sécurité** : Chaque famille possède son propre espace clos dans la base de données. Le système de "Seeding" remplit intelligemment un compte vierge à la première connexion.
+
+---
+
+## 🛠️ Stack Technique
+
+- **Core** : [Vue.js 3](https://vuejs.org/) (Composition API / `<script setup>`)
+- **Langage** : [TypeScript](https://www.typescriptlang.org/)
+- **State Management** : [Pinia](https://pinia.vuejs.org/)
+- **UI & Styling** : [Tailwind CSS](https://tailwindcss.com/) + [PrimeVue](https://primevue.org/) (Aura Theme)
+- **Backend as a Service** : [Firebase](https://firebase.google.com/) (Auth, Firestore, Hosting)
+- **Tooling & PWA** : [Vite](https://vitejs.dev/) + [vite-plugin-pwa](https://vite-pwa-org.netlify.app/)
+- **Intelligence Artificielle** : [SDK Google Gen AI](https://github.com/google/generative-ai-js) (Gemini 2.5 Flash)
+
+---
+
+## 🚀 Démarrage Rapide (Développement Local)
+
+### 1. Prérequis
+- `Node.js` (recommandé v18+)
+- `npm` ou `yarn`
+- Outils Firebase CLI (Optionnel pour le déploiement)
+
+### 2. Installation
+Clonez le dépôt ou naviguez dans le sous-dossier de l'application, puis installez les dépendances :
+```bash
+cd MenuFabrikWeb
+npm install
+```
+
+### 3. Variables d'Environnement
+Créez un fichier `.env.local` à la racine (au même niveau que `vite.config.ts`) et ajoutez-y la clé API Gemini ainsi que vos potentielles configurations Firebase de développement :
+
+```env
+# Clé d'API Google Gemini (Obligatoire pour l'Assistant IA)
+VITE_GEMINI_API_KEY=votre_clef_secrete_ici
+```
+
+### 4. Lancer le serveur local
+```bash
+npm run dev
+```
+L'application sera accessible (généralement) sur `http://localhost:5173`.
+
+---
+
+## 📦 Scripts Disponibles
+
+- `npm run dev` : Lance le serveur de développement Vite avec Hot-Module-Replacement (HMR).
+- `npm run build` : Applique les vérifications TypeScript (`vue-tsc`) et génère les fichiers statiques de production optimisés dans le dossier `/dist`.
+- `npm run preview` : Lance un serveur local pour tester le `/dist` généré avant déploiement.
+
+---
+
+## ☁️ Déploiement en Production
+
+MenuFabrikWeb est configuré pour être déployé sur **Firebase Hosting**.
+
+Vérifiez que vous êtes authentifié sur Firebase CLI :
+```bash
+npx firebase login
+```
+
+Lancez la commande de build combinée au déploiement (Assurez-vous que le projet Firebase visé est correct avec `npx firebase use`) :
+```bash
+npm run build && npx firebase deploy --only hosting
+```
+
+---
+
+## 🏗 Architecture & Codebase
+
+- `/src/models` : Interfaces TypeScript décrivant les entités métiers (`Recipe`, `Meal`, `Participant`...).
+- `/src/stores` : Les Pinia Stores orchestrent l'interaction asynchrone avec Firebase et gèrent le cache local.
+- `/src/composables` : Logique Vue partagée, dont l'important `useFirebaseCollection` pour la synchronisation Firestore RT multi-tenant sans redondance.
+- `/src/views` : Les composants pages "Roots" associés au Vue Router (`MealsView.vue`, `ShoppingListView.vue`...).
+- `/src/components` : Petits composants UI réutilisables ou d'agencement.
+
+*(Voir l'historique d'audit et `MenuFabrikWeb_Concept_Instructions.md` pour les tenants/aboutissants architecturaux approfondis)*.
