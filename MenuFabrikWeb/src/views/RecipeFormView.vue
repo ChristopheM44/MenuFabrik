@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useRecipeStore } from '../stores/recipeStore';
 import { useAllergenStore } from '../stores/allergenStore';
 import { useSideDishStore } from '../stores/sideDishStore';
+import { GeminiService } from '../services/GeminiService';
 import type { Recipe, RecipeCategory } from '../models/Recipe';
 import { MealType } from '../models/Recipe';
 import InputText from 'primevue/inputtext';
@@ -67,111 +68,35 @@ const removeIngredient = (index: number) => {
 const isAnalyzing = ref(false);
 
 const analyzeWithAI = async () => {
-    if (!recipeForm.value.instructions && !recipeForm.value.sourceURL) {
-        formError.value = "Veuillez fournir des instructions ou un lien web (URL) plus haut pour lancer l'analyse IA.";
-        return;
-    }
-
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!apiKey) {
-        formError.value = "La clé d'API Gemini est manquante. Veuillez ajouter VITE_GEMINI_API_KEY dans le fichier .env.local et relancer le serveur.";
-        return;
-    }
-
     isAnalyzing.value = true;
     formError.value = '';
 
     try {
-        let promptText = "";
-        if (recipeForm.value.sourceURL) {
-            promptText += `Analyse la recette contenue à cette URL (${recipeForm.value.sourceURL}). `;
-        }
-        if (recipeForm.value.instructions) {
-            promptText += `Analyse également ces instructions/notes : ${recipeForm.value.instructions}. `;
-        }
-
-        const availableSides = sideDishStore.sideDishes.map(s => s.name).join(", ");
-
-        promptText += `
-**CONSIGNES STRICTES :**
-1. Tu es un extracteur de données. Tu DOIS extraire EXACTEMENT les ingrédients présents dans le texte ou la page web, sans rien inventer.
-2. Structure la liste des ingrédients de manière précise. Si le texte dit "oignon - 200 g d'oignon émincés", extrait: name="Oignon", quantity=200, unit="g". 
-3. Déduis l'unité si elle est absente mais implicite. Par exemple, "1 reblochon" devient quantity=1, unit="pièce".
-4. Extrais les instructions étape par étape.
-5. Suggère 1 à 3 accompagnements appropriés pour ce plat, choisis **UNIQUEMENT** parmi cette liste stricte : [${availableSides}]. S'il s'agit d'un plat complet (ex: Tartiflette), laisse le tableau vide.
-
-Réponds UNIQUEMENT avec un objet JSON strictement formaté (sans bloc markdown \`\`\`json) :
-{
-  "name": "Nom du plat trouvé",
-  "instructions": "1. Faire chauffer...\\n2. Ajouter...",
-  "category": "Viandes"|"Poissons"|"Végétarien"|"Rapide"|"Au Four"|"Pâtes"|"Soupes"|"Salades"|"Fast Food"|"Autre",
-  "prepTime": 30,
-  "ingredients": [
-    {"name": "Reblochon", "quantity": 1, "unit": "pièce(s)"},
-    {"name": "Pomme de terre", "quantity": 1, "unit": "kg"}
-  ],
-  "allergens": ["Gluten"],
-  "sideDishes": ["Salade verte", "Pain"]
-}`;
-
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: promptText }] }]
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`Erreur réseau: ${response.statusText}`);
-        }
-
-        const resData = await response.json();
-        const responseText = resData.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-        
-        // Nettoyage strict du markdown
-        const cleanJsonStr = responseText.replace(/```json/gi, "").replace(/```/g, "").trim();
-        const aiData = JSON.parse(cleanJsonStr);
+        const aiData = await GeminiService.analyzeRecipe(
+            recipeForm.value.sourceURL || '',
+            recipeForm.value.instructions || '',
+            sideDishStore.sideDishes
+        );
         
         if (aiData.name && !recipeForm.value.name) recipeForm.value.name = aiData.name;
         if (aiData.instructions && !recipeForm.value.instructions) recipeForm.value.instructions = aiData.instructions;
         if (aiData.category) recipeForm.value.category = aiData.category as RecipeCategory;
         if (aiData.prepTime) recipeForm.value.prepTime = aiData.prepTime;
         if (aiData.ingredients && Array.isArray(aiData.ingredients)) {
-            recipeForm.value.ingredients = aiData.ingredients;
+            recipeForm.value.ingredients = aiData.ingredients as any;
         }
         
-        // Match allergens based on string list
-        if (aiData.allergens && Array.isArray(aiData.allergens)) {
-            const matchedIds: string[] = [];
-            for (const aiAllergen of aiData.allergens) {
-                const found = allergenStore.allergens.find(a => a.name.toLowerCase() === aiAllergen.toLowerCase());
-                if (found && found.id) {
-                    matchedIds.push(found.id);
-                }
-            }
-            recipeForm.value.allergenIds = [...new Set([...(recipeForm.value.allergenIds || []), ...matchedIds])];
-        }
+        // Map allergens match
+        const matchedAllergenIds = GeminiService.mapAllergens(aiData.allergens, allergenStore.allergens);
+        recipeForm.value.allergenIds = [...new Set([...(recipeForm.value.allergenIds || []), ...matchedAllergenIds])];
 
-        // Match suggested side dishes
-        if (aiData.sideDishes && Array.isArray(aiData.sideDishes)) {
-            const matchedSideIds: string[] = [];
-            for (const aiSide of aiData.sideDishes) {
-                // Fuzzy matching for sides (e.g. "Salade verte" matching "Salade")
-                const found = sideDishStore.sideDishes.find(s => 
-                    s.name.toLowerCase().includes(aiSide.toLowerCase()) || 
-                    aiSide.toLowerCase().includes(s.name.toLowerCase())
-                );
-                if (found && found.id) {
-                    matchedSideIds.push(found.id);
-                }
-            }
-            recipeForm.value.suggestedSideIds = [...new Set([...(recipeForm.value.suggestedSideIds || []), ...matchedSideIds])];
-        }
+        // Map side dishes match
+        const matchedSideIds = GeminiService.mapSideDishes(aiData.sideDishes, sideDishStore.sideDishes);
+        recipeForm.value.suggestedSideIds = [...new Set([...(recipeForm.value.suggestedSideIds || []), ...matchedSideIds])];
 
     } catch (e: any) {
-        formError.value = "Erreur lors de l'analyse IA. Vérifiez votre clé API ou votre URL. " + e.message;
-        console.error("Gemini Error:", e);
+        formError.value = "Erreur IA : " + e.message;
+        console.error("Gemini AI Analysis Error:", e);
     } finally {
         isAnalyzing.value = false;
     }

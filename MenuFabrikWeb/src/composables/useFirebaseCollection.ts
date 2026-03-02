@@ -58,7 +58,17 @@ export function useFirebaseCollection<T extends { id?: string }>(collectionName:
                     const index = items.value.findIndex(item => item.id === change.doc.id)
                     if (index !== -1) {
                         const itemToUpdate = items.value[index]
-                        if (itemToUpdate) Object.assign(itemToUpdate, change.doc.data())
+                        if (itemToUpdate) {
+                            const newData = change.doc.data();
+                            // Handle deleted fields: first clear all keys on itemToUpdate except 'id'
+                            Object.keys(itemToUpdate).forEach(key => {
+                                if (key !== 'id') {
+                                    delete (itemToUpdate as any)[key]
+                                }
+                            });
+                            // Then apply the new ones
+                            Object.assign(itemToUpdate, newData);
+                        }
                     }
                 }
                 if (change.type === 'removed') {

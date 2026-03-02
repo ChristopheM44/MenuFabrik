@@ -144,7 +144,7 @@ const replaceRecipe = async (recipe: Recipe) => {
 
 const editRecipe = (recipeId?: string) => {
     if (recipeId) {
-        router.push(`/recipes/edit/${recipeId}`);
+        router.push(`/recipes/${recipeId}`);
     }
 };
 

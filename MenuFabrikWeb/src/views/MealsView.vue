@@ -11,37 +11,37 @@ import { MealStatus, MealTime } from '../models/Meal';
 import MealCardView from '../components/MealCardView.vue';
 import PlanMealDialog from '../components/planning/PlanMealDialog.vue';
 
+import { useConfirm } from 'primevue/useconfirm';
+
 // PrimeVue
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import ProgressSpinner from 'primevue/progressspinner';
 import InputText from 'primevue/inputtext';
+import ConfirmDialog from 'primevue/confirmdialog';
 
 const mealStore = useMealStore();
 const recipeStore = useRecipeStore();
 const participantStore = useParticipantStore();
 const sideDishStore = useSideDishStore();
 const router = useRouter();
+const confirm = useConfirm();
 
 const isDataReady = computed(() => {
     return !recipeStore.isLoading && !participantStore.isLoading && !mealStore.isLoading;
 });
 
-// Helper pour format YYYY-MM-DD local
+// Helper pour format YYYY-MM-DD local plus robuste
 const getLocalISODate = (date: Date): string => {
-    const offset = date.getTimezoneOffset() * 60000;
-    const localISOTime = (new Date(date.getTime() - offset)).toISOString().split('T')[0];
-    return localISOTime as string;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 };
 
 // --- ÉTAT PLANIFICATION ---
 const showPlanDialog = ref(false);
 const isGeneratingGlobal = ref(false);
-
-// --- ÉTAT SUPPRESSION ---
-const showDeleteConfirmDialog = ref(false);
-const deleteTargetType = ref<'meal' | 'day'>('meal');
-const deleteTargetId = ref<string>(''); // id du meal ou dateKey
 
 // --- ÉTAT CHOIX RECETTE MANUEL ---
 const showRecipePicker = ref(false);
@@ -278,37 +278,55 @@ const changeMealStatus = async (meal: Meal, newStatus: MealStatus) => {
     }
 }
 
-// 5. Suppression
+// 5. Suppression via ConfirmDialog PrimeVue
 const confirmDeleteMeal = (meal: Meal) => {
     if (!meal.id) return;
-    deleteTargetType.value = 'meal';
-    deleteTargetId.value = meal.id;
-    showDeleteConfirmDialog.value = true;
+    
+    confirm.require({
+        message: "Êtes-vous sûr de vouloir supprimer ce repas de l'agenda ?",
+        header: 'Confirmation de suppression',
+        icon: 'pi pi-exclamation-triangle text-red-500',
+        rejectProps: {
+            label: 'Annuler',
+            severity: 'secondary',
+            outlined: true
+        },
+        acceptProps: {
+            label: 'Supprimer',
+            severity: 'danger'
+        },
+        accept: async () => {
+            if (meal.id) await mealStore.deleteMeal(meal.id);
+        }
+    });
 };
 
 const confirmDeleteDay = (dateKey: string) => {
-    deleteTargetType.value = 'day';
-    deleteTargetId.value = dateKey;
-    showDeleteConfirmDialog.value = true;
-};
-
-const executeDelete = async () => {
-    showDeleteConfirmDialog.value = false;
-    
-    if (deleteTargetType.value === 'meal') {
-        await mealStore.deleteMeal(deleteTargetId.value);
-    } 
-    else if (deleteTargetType.value === 'day') {
-        const mealsToDelete = mealStore.meals.filter(m => {
-            const mdObj = new Date(m.date);
-            if (isNaN(mdObj.getTime())) return false;
-            return getLocalISODate(mdObj) === deleteTargetId.value;
-        });
-        
-        for (const m of mealsToDelete) {
-            if (m.id) await mealStore.deleteMeal(m.id);
+    confirm.require({
+        message: "Êtes-vous sûr de vouloir vider tous les repas de cette journée ?",
+        header: 'Vider la journée',
+        icon: 'pi pi-exclamation-triangle text-red-500',
+        rejectProps: {
+            label: 'Annuler',
+            severity: 'secondary',
+            outlined: true
+        },
+        acceptProps: {
+            label: 'Vider',
+            severity: 'danger'
+        },
+        accept: async () => {
+            const mealsToDelete = mealStore.meals.filter(m => {
+                const mdObj = new Date(m.date);
+                if (isNaN(mdObj.getTime())) return false;
+                return getLocalISODate(mdObj) === dateKey;
+            });
+            
+            for (const m of mealsToDelete) {
+                if (m.id) await mealStore.deleteMeal(m.id);
+            }
         }
-    }
+    });
 };
 
 const handleMealClick = (meal: Meal) => {
@@ -427,21 +445,8 @@ const handleMealClick = (meal: Meal) => {
                 </div>
             </div>
         </Dialog>
-
-        <!-- Dialog de Confirmation de Suppression -->
-        <Dialog v-model:visible="showDeleteConfirmDialog" modal header="Confirmation" :style="{ width: '90vw', maxWidth: '400px' }">
-            <div class="flex items-center gap-4 py-4">
-                <i class="pi pi-exclamation-triangle text-red-500 text-4xl"></i>
-                <p class="text-surface-700 dark:text-surface-300">
-                    <span v-if="deleteTargetType === 'meal'">Êtes-vous sûr de vouloir supprimer ce repas de l'agenda ?</span>
-                    <span v-else>Êtes-vous sûr de vouloir vider tous les repas de cette journée ?</span>
-                </p>
-            </div>
-            <template #footer>
-                <Button label="Annuler" icon="pi pi-times" text severity="secondary" @click="showDeleteConfirmDialog = false" />
-                <Button label="Supprimer" icon="pi pi-trash" severity="danger" @click="executeDelete" />
-            </template>
-        </Dialog>
+        
+        <ConfirmDialog></ConfirmDialog>
 
     </div>
 </template>

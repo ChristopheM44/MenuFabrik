@@ -16,20 +16,18 @@ export const useMealStore = defineStore('meal', () => {
 
             for (const meal of mealsToSave) {
                 // Créer une copie nettoyée sans les propriétés relationnelles injectées
-                const mealData = { ...meal }
-                delete mealData.recipe
-                delete mealData.attendees
-                delete mealData.selectedSideDishes
+                // en utilisant la déstructuration explicite pour la sécurité TypeScript
+                const { recipe, attendees, selectedSideDishes, ...cleanMealData } = meal;
 
-                if (meal.id) {
+                if (cleanMealData.id) {
                     // Update
-                    const docRef = doc(db, 'users', authStore.user.uid, 'meals', meal.id)
-                    batch.update(docRef, mealData as any)
+                    const docRef = doc(db, 'users', authStore.user.uid, 'meals', cleanMealData.id);
+                    batch.update(docRef, cleanMealData as any);
                 } else {
                     // Insert
-                    const collectionRef = collection(db, 'users', authStore.user.uid, 'meals')
-                    const mealRef = doc(collectionRef)
-                    batch.set(mealRef, mealData)
+                    const collectionRef = collection(db, 'users', authStore.user.uid, 'meals');
+                    const mealRef = doc(collectionRef);
+                    batch.set(mealRef, cleanMealData);
                 }
             }
 
