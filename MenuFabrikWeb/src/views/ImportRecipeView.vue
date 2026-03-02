@@ -195,12 +195,12 @@ const goBackToHome = () => {
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                     <div v-if="decodedRecipe.ing && decodedRecipe.ing.length > 0" class="bg-surface-50 dark:bg-surface-800/50 p-4 rounded-xl border border-surface-200 dark:border-surface-700">
-                        <h3 class="font-bold flex items-center gap-2 mb-3"><i class="pi pi-shopping-bag text-primary-500"></i> {{ decodedRecipe.ing.length }} Ingrédients</h3>
-                        <div class="flex flex-wrap gap-2 text-sm text-surface-600">
+                        <h3 class="font-bold flex items-center gap-2 mb-3 text-surface-900 dark:text-surface-0"><i class="pi pi-shopping-bag text-primary-500"></i> {{ decodedRecipe.ing.length }} Ingrédients</h3>
+                        <div class="flex flex-wrap gap-2 text-sm text-surface-600 dark:text-surface-300">
                             <span v-for="(ing, i) in decodedRecipe.ing.slice(0, 5)" :key="i" class="bg-surface-200 dark:bg-surface-700 px-2 py-1 rounded">
                                 {{ ing.n }}
                             </span>
-                            <span v-if="decodedRecipe.ing.length > 5" class="italic text-surface-400">
+                            <span v-if="decodedRecipe.ing.length > 5" class="italic text-surface-400 dark:text-surface-500">
                                 + {{ decodedRecipe.ing.length - 5 }} autres...
                             </span>
                         </div>

@@ -21,6 +21,7 @@ declare module 'vue' {
     Password: typeof import('primevue/password')['default']
     PlanMealDialog: typeof import('./src/components/planning/PlanMealDialog.vue')['default']
     RecipeSourceLinkButton: typeof import('./src/components/recipes/RecipeSourceLinkButton.vue')['default']
+    ReloadPrompt: typeof import('./src/components/layout/ReloadPrompt.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SettingsAdminZone: typeof import('./src/components/settings/SettingsAdminZone.vue')['default']

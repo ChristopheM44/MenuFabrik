@@ -262,7 +262,7 @@ const copyToClipboard = async () => {
                             :class="{'opacity-40 line-through': item.checked}"
                         >
                             <span class="font-semibold text-surface-900 dark:text-surface-0">{{ item.name }}</span>
-                            <span v-if="item.details" class="text-sm text-primary-600 dark:text-primary-300 font-medium sm:ml-4 bg-primary-50 dark:bg-primary-900/30 px-2 py-0.5 rounded-md inline-block w-fit mt-1 sm:mt-0">
+                            <span v-if="item.details" class="text-sm text-primary-700 dark:text-primary-200 font-medium sm:ml-4 bg-primary-100 dark:bg-primary-900/50 border border-primary-200 dark:border-primary-800 px-2 py-0.5 rounded-md inline-block w-fit mt-1 sm:mt-0">
                                 {{ item.details }}
                             </span>
                         </label>

@@ -3,6 +3,7 @@ import AppLayout from './components/layout/AppLayout.vue'
 import { useAuthStore } from './stores/authStore'
 import ProgressSpinner from 'primevue/progressspinner'
 import Toast from 'primevue/toast'
+import ReloadPrompt from './components/layout/ReloadPrompt.vue'
 
 const authStore = useAuthStore()
 authStore.setupAuthListener()
@@ -34,6 +35,9 @@ authStore.setupAuthListener()
 
   <!-- Global Toast Component -->
   <Toast />
+
+  <!-- PWA Update Prompt -->
+  <ReloadPrompt />
 </template>
 
 <style scoped>

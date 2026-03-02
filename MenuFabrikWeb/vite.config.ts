@@ -14,7 +14,7 @@ export default defineConfig({
       ]
     }),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: ['favicon.png', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
         name: 'MenuFabrik',
