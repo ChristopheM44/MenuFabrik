@@ -240,9 +240,12 @@ const copyToClipboard = async () => {
 
             <!-- LA LISTE -->
             <div v-else class="bg-surface-0 dark:bg-surface-900 p-2 sm:p-5 rounded-xl shadow-sm border border-surface-200 dark:border-surface-700">
-                <div class="flex justify-between items-center mb-4 px-3 border-b border-surface-100 dark:border-surface-800 pb-3">
-                    <span class="font-bold text-lg">{{ shoppingList.length }} Articles</span>
-                    <span class="text-sm text-surface-500">{{ shoppingList.filter(i => i.checked).length }} dans le caddie</span>
+                <div class="flex flex-col gap-1 mb-4 px-3 border-b border-surface-100 dark:border-surface-800 pb-3">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-lg">Articles à acheter ({{ shoppingList.length - shoppingList.filter(i => i.checked).length }})</span>
+                        <span class="text-sm text-surface-500">{{ shoppingList.filter(i => i.checked).length }} possédé(s) / ignoré(s)</span>
+                    </div>
+                    <p class="text-sm text-surface-500 mt-1">Cochez les éléments que vous avez déjà dans vos placards. Le bouton « Copier » ignorera ces articles.</p>
                 </div>
 
                 <div class="flex flex-col gap-1">
