@@ -142,6 +142,12 @@ const replaceRecipe = async (recipe: Recipe) => {
     }
 };
 
+const editRecipe = (recipeId?: string) => {
+    if (recipeId) {
+        router.push(`/recipes/edit/${recipeId}`);
+    }
+};
+
 const updateSideDishes = async () => {
     if (!mealId) return;
     try {
@@ -220,7 +226,10 @@ const getCategoryColor = (category?: string) => {
                                     <h3 class="text-2xl font-bold text-surface-900 dark:text-surface-0 leading-tight">{{ hydratedMeal.recipe.name }}</h3>
                                     <Rating v-if="hydratedMeal.recipe.rating && hydratedMeal.recipe.rating > 0" :modelValue="hydratedMeal.recipe.rating" readonly :cancel="false" class="mt-2 text-sm" />
                                 </div>
-                                <Button icon="pi pi-pencil" label="Changer" size="small" outlined @click="openRecipeDialog" />
+                                <div class="flex items-center gap-2">
+                                    <Button icon="pi pi-file-edit" aria-label="Modifier" v-tooltip.top="'Modifier la recette'" size="small" text severity="secondary" @click="editRecipe(hydratedMeal.recipe.id)" />
+                                    <Button icon="pi pi-pencil" label="Changer de plat" size="small" outlined @click="openRecipeDialog" />
+                                </div>
                             </div>
 
                             <!-- Méta informations -->
@@ -230,11 +239,24 @@ const getCategoryColor = (category?: string) => {
                             </div>
                             
                             <!-- Allergènes si présents -->
-                            <div v-if="hydratedMeal.recipe.allergenIds && hydratedMeal.recipe.allergenIds.length > 0" class="mt-2">
+                            <div v-if="hydratedMeal.recipe.allergenIds && hydratedMeal.recipe.allergenIds.length > 0" class="mt-2 text-sm">
                                 <div class="text-xs text-surface-500 mb-1 font-semibold uppercase">Allergènes potentiels</div>
                                 <div class="flex flex-wrap gap-1">
                                     <Badge value="⚠️ Attention: Vérifier allergènes" severity="warning" />
                                 </div>
+                            </div>
+                            
+                            <!-- Ingrédients structurés -->
+                            <div v-if="hydratedMeal.recipe.ingredients && hydratedMeal.recipe.ingredients.length > 0" class="mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+                                <h4 class="font-semibold mb-2 flex items-center gap-2"><i class="pi pi-shopping-bag text-primary-500"></i> Ingrédients</h4>
+                                <ul class="list-disc pl-5 text-surface-700 dark:text-surface-300 text-sm space-y-1">
+                                    <li v-for="(ing, idx) in hydratedMeal.recipe.ingredients" :key="idx">
+                                        <span class="font-medium">{{ ing.name }}</span>
+                                        <span v-if="ing.quantity || ing.unit" class="text-surface-500 ml-1">
+                                            - {{ ing.quantity }} {{ ing.unit }}
+                                        </span>
+                                    </li>
+                                </ul>
                             </div>
                             
                             <!-- Instructions complètes si requises -->

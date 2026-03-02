@@ -20,6 +20,13 @@ export const RecipeCategory = {
 } as const;
 export type RecipeCategory = typeof RecipeCategory[keyof typeof RecipeCategory];
 
+export interface Ingredient {
+    name: string;
+    quantity?: number;
+    unit?: string;
+    department?: string; // Optionnel : Rayon (Fruits/Légumes, Épicerie...) pour le tri futur
+}
+
 export interface Recipe {
     id?: string;
     name: string;
@@ -35,6 +42,7 @@ export interface Recipe {
     allergens?: Allergen[];
     suggestedSides?: SideDish[];
 
+    ingredients?: Ingredient[]; // Nouveau champ structuré
     instructions?: string;
     rating?: number; // De 0 à 5 étoiles
 

@@ -28,4 +28,7 @@ declare module 'vue' {
     SettingsParticipantsTab: typeof import('./src/components/settings/SettingsParticipantsTab.vue')['default']
     SettingsSideDishesTab: typeof import('./src/components/settings/SettingsSideDishesTab.vue')['default']
   }
+  export interface GlobalDirectives {
+    Tooltip: typeof import('primevue/tooltip')['default']
+  }
 }

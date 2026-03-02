@@ -6,6 +6,7 @@ const route = useRoute()
 
 const navItems = [
   { name: 'Agenda', path: '/meals', icon: 'pi pi-calendar' },
+  { name: 'Courses', path: '/shopping-list', icon: 'pi pi-shopping-cart' },
   { name: 'Recettes', path: '/recipes', icon: 'pi pi-book' },
   { name: 'Paramètres', path: '/settings', icon: 'pi pi-cog' }
 ]

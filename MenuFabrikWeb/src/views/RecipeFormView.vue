@@ -13,6 +13,7 @@ import Select from 'primevue/select';
 import MultiSelect from 'primevue/multiselect';
 import ToggleSwitch from 'primevue/toggleswitch';
 import Rating from 'primevue/rating';
+import Textarea from 'primevue/textarea';
 
 const route = useRoute();
 const router = useRouter();
@@ -47,8 +48,134 @@ const recipeForm = ref<Partial<Recipe>>({
     rating: 0,
     allergenIds: [],
     suggestedSideIds: [],
-    sourceURL: ''
+    sourceURL: '',
+    instructions: '',
+    ingredients: []
 });
+
+const addIngredient = () => {
+    if (!recipeForm.value.ingredients) {
+        recipeForm.value.ingredients = [];
+    }
+    recipeForm.value.ingredients.push({ name: '', quantity: undefined, unit: '' });
+};
+
+const removeIngredient = (index: number) => {
+    recipeForm.value.ingredients?.splice(index, 1);
+};
+
+const isAnalyzing = ref(false);
+
+const analyzeWithAI = async () => {
+    if (!recipeForm.value.instructions && !recipeForm.value.sourceURL) {
+        formError.value = "Veuillez fournir des instructions ou un lien web (URL) plus haut pour lancer l'analyse IA.";
+        return;
+    }
+
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) {
+        formError.value = "La clé d'API Gemini est manquante. Veuillez ajouter VITE_GEMINI_API_KEY dans le fichier .env.local et relancer le serveur.";
+        return;
+    }
+
+    isAnalyzing.value = true;
+    formError.value = '';
+
+    try {
+        let promptText = "";
+        if (recipeForm.value.sourceURL) {
+            promptText += `Analyse la recette contenue à cette URL (${recipeForm.value.sourceURL}). `;
+        }
+        if (recipeForm.value.instructions) {
+            promptText += `Analyse également ces instructions/notes : ${recipeForm.value.instructions}. `;
+        }
+
+        const availableSides = sideDishStore.sideDishes.map(s => s.name).join(", ");
+
+        promptText += `
+**CONSIGNES STRICTES :**
+1. Tu es un extracteur de données. Tu DOIS extraire EXACTEMENT les ingrédients présents dans le texte ou la page web, sans rien inventer.
+2. Structure la liste des ingrédients de manière précise. Si le texte dit "oignon - 200 g d'oignon émincés", extrait: name="Oignon", quantity=200, unit="g". 
+3. Déduis l'unité si elle est absente mais implicite. Par exemple, "1 reblochon" devient quantity=1, unit="pièce".
+4. Extrais les instructions étape par étape.
+5. Suggère 1 à 3 accompagnements appropriés pour ce plat, choisis **UNIQUEMENT** parmi cette liste stricte : [${availableSides}]. S'il s'agit d'un plat complet (ex: Tartiflette), laisse le tableau vide.
+
+Réponds UNIQUEMENT avec un objet JSON strictement formaté (sans bloc markdown \`\`\`json) :
+{
+  "name": "Nom du plat trouvé",
+  "instructions": "1. Faire chauffer...\\n2. Ajouter...",
+  "category": "Viandes"|"Poissons"|"Végétarien"|"Rapide"|"Au Four"|"Pâtes"|"Soupes"|"Salades"|"Fast Food"|"Autre",
+  "prepTime": 30,
+  "ingredients": [
+    {"name": "Reblochon", "quantity": 1, "unit": "pièce(s)"},
+    {"name": "Pomme de terre", "quantity": 1, "unit": "kg"}
+  ],
+  "allergens": ["Gluten"],
+  "sideDishes": ["Salade verte", "Pain"]
+}`;
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: promptText }] }]
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Erreur réseau: ${response.statusText}`);
+        }
+
+        const resData = await response.json();
+        const responseText = resData.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+        
+        // Nettoyage strict du markdown
+        const cleanJsonStr = responseText.replace(/```json/gi, "").replace(/```/g, "").trim();
+        const aiData = JSON.parse(cleanJsonStr);
+        
+        if (aiData.name && !recipeForm.value.name) recipeForm.value.name = aiData.name;
+        if (aiData.instructions && !recipeForm.value.instructions) recipeForm.value.instructions = aiData.instructions;
+        if (aiData.category) recipeForm.value.category = aiData.category as RecipeCategory;
+        if (aiData.prepTime) recipeForm.value.prepTime = aiData.prepTime;
+        if (aiData.ingredients && Array.isArray(aiData.ingredients)) {
+            recipeForm.value.ingredients = aiData.ingredients;
+        }
+        
+        // Match allergens based on string list
+        if (aiData.allergens && Array.isArray(aiData.allergens)) {
+            const matchedIds: string[] = [];
+            for (const aiAllergen of aiData.allergens) {
+                const found = allergenStore.allergens.find(a => a.name.toLowerCase() === aiAllergen.toLowerCase());
+                if (found && found.id) {
+                    matchedIds.push(found.id);
+                }
+            }
+            recipeForm.value.allergenIds = [...new Set([...(recipeForm.value.allergenIds || []), ...matchedIds])];
+        }
+
+        // Match suggested side dishes
+        if (aiData.sideDishes && Array.isArray(aiData.sideDishes)) {
+            const matchedSideIds: string[] = [];
+            for (const aiSide of aiData.sideDishes) {
+                // Fuzzy matching for sides (e.g. "Salade verte" matching "Salade")
+                const found = sideDishStore.sideDishes.find(s => 
+                    s.name.toLowerCase().includes(aiSide.toLowerCase()) || 
+                    aiSide.toLowerCase().includes(s.name.toLowerCase())
+                );
+                if (found && found.id) {
+                    matchedSideIds.push(found.id);
+                }
+            }
+            recipeForm.value.suggestedSideIds = [...new Set([...(recipeForm.value.suggestedSideIds || []), ...matchedSideIds])];
+        }
+
+    } catch (e: any) {
+        formError.value = "Erreur lors de l'analyse IA. Vérifiez votre clé API ou votre URL. " + e.message;
+        console.error("Gemini Error:", e);
+    } finally {
+        isAnalyzing.value = false;
+    }
+};
 
 const sortedSideDishes = computed(() => {
     return [...sideDishStore.sideDishes].sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
@@ -96,7 +223,9 @@ const saveRecipe = async () => {
                 requiresFreeTime: recipeForm.value.requiresFreeTime || false,
                 allergenIds: recipeForm.value.allergenIds || [],
                 suggestedSideIds: recipeForm.value.suggestedSideIds || [],
-                sourceURL: recipeForm.value.sourceURL || ''
+                sourceURL: recipeForm.value.sourceURL || '',
+                instructions: recipeForm.value.instructions || '',
+                ingredients: (recipeForm.value.ingredients || []).filter(i => i.name && i.name.trim() !== '')
             };
             await recipeStore.addRecipe(newRecipe);
         }
@@ -164,6 +293,40 @@ const cancel = () => {
 
             <hr class="border-surface-200 dark:border-surface-700 my-2" />
 
+            <hr class="border-surface-200 dark:border-surface-700 my-2" />
+
+            <!-- NOUVELLE SECTION: INSTRUCTIONS ET INGRÉDIENTS (Optionnels / Prêts pour l'IA) -->
+            <div class="flex flex-col gap-2">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                    <label for="instructions" class="font-semibold">Instructions & Déroulé</label>
+                    <Button icon="pi pi-sparkles" label="Autocompléter avec l'IA" size="small" severity="help" @click="analyzeWithAI" :loading="isAnalyzing" outlined class="w-full sm:w-auto text-xs sm:text-sm" />
+                </div>
+                <Textarea id="instructions" v-model="recipeForm.instructions" rows="5" placeholder="Saisir la recette, coller le texte depuis un blog..." class="w-full" autoResize />
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <div class="flex justify-between items-center">
+                    <label class="font-semibold">Ingrédients</label>
+                    <Button icon="pi pi-plus" label="Ajouter" size="small" text @click="addIngredient" />
+                </div>
+                
+                <div v-if="recipeForm.ingredients && recipeForm.ingredients.length > 0" class="flex flex-col gap-3">
+                    <div v-for="(ingredient, index) in recipeForm.ingredients" :key="index" class="flex flex-row flex-wrap sm:flex-nowrap items-center gap-2 bg-surface-50 dark:bg-surface-800/50 p-2 rounded-lg border border-surface-200 dark:border-surface-700">
+                        <InputText v-model="ingredient.name" placeholder="Nom (ex: Farine)" class="w-full sm:flex-1 min-w-[120px]" />
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <input v-model.number="ingredient.quantity" type="number" step="any" placeholder="Qté" class="p-inputtext p-component w-24 flex-shrink-0" />
+                            <InputText v-model="ingredient.unit" placeholder="Unité (g, ml...)" class="w-24 flex-shrink-0" />
+                            <Button icon="pi pi-trash" severity="danger" text rounded @click="removeIngredient(index)" tabindex="-1" class="ml-auto sm:ml-0" aria-label="Supprimer cet ingrédient" />
+                        </div>
+                    </div>
+                </div>
+                <div v-else class="text-sm text-surface-500 italic p-4 text-center border border-dashed rounded-lg border-surface-200 dark:border-surface-700">
+                    Aucun ingrédient détaillé. (Vous pourrez utiliser l'assistant IA pour les extraire automatiquement plus tard !)
+                </div>
+            </div>
+
+            <hr class="border-surface-200 dark:border-surface-700 my-2" />
+
             <div class="flex flex-col gap-2">
                 <label class="font-semibold text-surface-900 dark:text-surface-0">Appréciation globale (Optionnel)</label>
                 <div class="flex items-center gap-3">
@@ -200,7 +363,7 @@ const cancel = () => {
                     optionValue="id" 
                     display="chip"
                     placeholder="Suggestions d'accompagnements"
-                    :maxSelectedLabels="4" 
+                    :maxSelectedLabels="20"
                     class="w-full" 
                     filter
                     :loading="sideDishStore.isLoading"

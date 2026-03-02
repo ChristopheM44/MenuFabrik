@@ -22,6 +22,12 @@ const router = createRouter({
             meta: { title: 'Agenda', requiresAuth: true }
         },
         {
+            path: '/shopping-list',
+            name: 'shopping-list',
+            component: () => import('../views/ShoppingListView.vue'),
+            meta: { title: 'Liste de Courses', requiresAuth: true }
+        },
+        {
             path: '/meals/:id',
             name: 'meal-detail',
             component: () => import('../views/MealDetailView.vue'),
