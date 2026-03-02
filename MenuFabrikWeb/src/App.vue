@@ -2,6 +2,7 @@
 import AppLayout from './components/layout/AppLayout.vue'
 import { useAuthStore } from './stores/authStore'
 import ProgressSpinner from 'primevue/progressspinner'
+import Toast from 'primevue/toast'
 
 const authStore = useAuthStore()
 authStore.setupAuthListener()
@@ -30,6 +31,9 @@ authStore.setupAuthListener()
   <div v-else class="min-h-screen bg-surface-50 dark:bg-surface-950 flex items-center justify-center">
       <ProgressSpinner strokeWidth="4" />
   </div>
+
+  <!-- Global Toast Component -->
+  <Toast />
 </template>
 
 <style scoped>

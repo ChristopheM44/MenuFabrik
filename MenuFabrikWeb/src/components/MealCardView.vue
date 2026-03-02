@@ -56,15 +56,14 @@ const categoryColorClass = computed(() => {
     if (cat === 'Viandes') return 'border-red-500/50';
     if (cat === 'Poissons') return 'border-cyan-500/50';
     if (cat === 'Végétarien') return 'border-green-500/50';
-    return 'border-surface-300 dark:border-surface-600';
+    return 'border-surface-300';
 });
 </script>
 
 <template>
     <div 
         class="meal-card flex flex-col gap-2 p-3 rounded-xl border transition-all overflow-hidden relative"
-        :class="[categoryColorClass, {'pb-2': hasRecipe}]"
-        :style="hasRecipe ? 'background-color: var(--p-surface-0); dark:background-color: var(--p-surface-900);' : 'background-color: transparent;'"
+        :class="[categoryColorClass, hasRecipe ? 'pb-2 bg-surface-0 dark:bg-surface-900' : 'bg-transparent']"
     >
         <!-- Barre de couleur type de repas pour égayer le design -->
         <div class="absolute left-0 top-0 bottom-0 w-1.5" :class="categoryColorClass" v-if="hasRecipe"></div>
@@ -137,13 +136,13 @@ const categoryColorClass = computed(() => {
                 <!-- Action Générer (majoritaire) -->
                 <div class="flex-1 flex justify-center items-center p-2 border-2 border-dashed border-surface-200 dark:border-surface-700 rounded-lg bg-surface-50/50 dark:bg-surface-800/50 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer" @click.stop="emit('generate')">
                     <div class="flex items-center gap-2">
-                        <i class="pi pi-sparkles text-surface-400 dark:text-surface-500 text-lg"></i>
-                        <span class="text-sm font-medium text-surface-500 dark:text-surface-400">Générer</span>
+                        <i class="pi pi-sparkles text-surface-400 text-lg"></i>
+                        <span class="text-sm font-medium text-surface-500">Générer</span>
                     </div>
                 </div>
                 <!-- Action Choisir manuellement -->
                 <div class="flex items-center justify-center p-2 border-2 border-dashed border-surface-200 dark:border-surface-700 rounded-lg bg-surface-50/50 dark:bg-surface-800/50 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer" @click.stop="emit('choose-recipe')" title="Choisir une recette manuellement">
-                    <i class="pi pi-search text-surface-400 dark:text-surface-500 text-lg"></i>
+                    <i class="pi pi-search text-surface-400 text-lg"></i>
                 </div>
             </div>
 
@@ -159,13 +158,6 @@ const categoryColorClass = computed(() => {
 </template>
 
 <style scoped>
-.meal-card {
-    background-color: var(--p-surface-0);
-}
-.dark .meal-card {
-    background-color: var(--p-surface-900);
-}
-
 .meal-card:hover {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }

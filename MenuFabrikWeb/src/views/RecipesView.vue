@@ -8,9 +8,12 @@ import InputText from 'primevue/inputtext';
 import Tag from 'primevue/tag';
 import Rating from 'primevue/rating';
 import { MealType } from '../models/Recipe';
+import { RecipeShareService } from '../services/RecipeShareService';
+import { useToast } from 'primevue/usetoast';
 
 const recipeStore = useRecipeStore();
 const searchQuery = ref('');
+const toast = useToast();
 
 onMounted(async () => {
     // Dans le monde réel, on ajouterait une vérification côté store 
@@ -47,6 +50,13 @@ const formatTime = (minutes: number) => {
     const m = minutes % 60;
     return m > 0 ? `${h}h${m}` : `${h}h`;
 };
+
+const shareRecipe = async (recipe: any) => {
+    const result = await RecipeShareService.shareOrCopy(recipe);
+    if (result.copied) {
+        toast.add({ severity: 'success', summary: 'Lien copié', detail: 'Le lien de partage a été copié dans le presse-papier.', life: 3000 });
+    }
+};
 </script>
 
 <template>
@@ -54,7 +64,7 @@ const formatTime = (minutes: number) => {
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0 border-l-4 pl-3 border-primary-500">Carnet de Recettes</h1>
-                <p class="text-surface-500 dark:text-surface-400 mt-1 pl-3">{{ recipeStore.recipes.length }} recettes disponibles</p>
+                <p class="text-surface-500 mt-1 pl-3">{{ recipeStore.recipes.length }} recettes disponibles</p>
             </div>
             
             <div class="flex w-full md:w-auto gap-3">
@@ -66,7 +76,7 @@ const formatTime = (minutes: number) => {
             </div>
         </div>
 
-        <div class="card p-0 md:p-4 rounded-xl md:shadow-sm md:bg-white md:dark:bg-surface-900">
+        <div class="card p-0 md:p-4 rounded-xl md:shadow-sm md:bg-surface-0 dark:md:bg-surface-900">
             <DataTable 
                 :value="filteredRecipes" 
                 :loading="recipeStore.isLoading"
@@ -119,7 +129,7 @@ const formatTime = (minutes: number) => {
 
                 <Column field="prepTime" header="Temps" :sortable="true" class="hidden sm:table-cell">
                     <template #body="{ data }">
-                        <div class="flex items-center gap-2 text-surface-600 dark:text-surface-400">
+                        <div class="flex items-center gap-2 text-surface-600">
                             <i class="pi pi-clock"></i>
                             <span>{{ formatTime(data.prepTime) }}</span>
                         </div>
@@ -135,8 +145,9 @@ const formatTime = (minutes: number) => {
                 <Column :exportable="false" bodyStyle="white-space: nowrap; text-align: right;">
                     <template #body="{ data }">
                         <div class="flex gap-2 justify-end">
-                            <Button icon="pi pi-pencil" outlined rounded severity="secondary" aria-label="Éditer" @click="$router.push(`/recipes/${data.id}`)" />
-                            <Button icon="pi pi-trash" outlined rounded severity="danger" aria-label="Supprimer" @click="recipeStore.deleteRecipe(data.id)" />
+                            <Button icon="pi pi-share-alt" outlined rounded severity="info" aria-label="Partager" v-tooltip.top="'Partager'" @click="shareRecipe(data)" />
+                            <Button icon="pi pi-pencil" outlined rounded severity="secondary" aria-label="Éditer" v-tooltip.top="'Modifier'" @click="$router.push(`/recipes/${data.id}`)" />
+                            <Button icon="pi pi-trash" outlined rounded severity="danger" aria-label="Supprimer" v-tooltip.top="'Supprimer'" @click="recipeStore.deleteRecipe(data.id)" />
                         </div>
                     </template>
                 </Column>

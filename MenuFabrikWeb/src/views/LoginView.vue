@@ -19,11 +19,11 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-    <div class="flex items-center justify-center min-h-screen px-4 py-8 relative">
+    <div class="flex items-center justify-center min-h-screen px-4 py-8 relative bg-surface-50 dark:bg-surface-950">
         <Card class="w-full max-w-md shadow-lg border border-surface-200 dark:border-surface-700">
             <template #title>
                 <div class="text-center text-2xl font-bold text-primary mb-2">MenuFabrik</div>
-                <div class="text-center text-sm font-normal text-surface-500">
+                <div class="text-center text-sm font-normal text-surface-500 dark:text-surface-400">
                     {{ isRegistering ? 'Créez votre espace foyer' : 'Connectez-vous à votre foyer' }}
                 </div>
             </template>

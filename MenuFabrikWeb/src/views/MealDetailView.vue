@@ -7,6 +7,8 @@ import { useParticipantStore } from '../stores/participantStore';
 import { useSideDishStore } from '../stores/sideDishStore';
 import type { Meal } from '../models/Meal';
 import type { Recipe } from '../models/Recipe';
+import { RecipeShareService } from '../services/RecipeShareService';
+import { useToast } from 'primevue/usetoast';
 
 // PrimeVue Components
 import Button from 'primevue/button';
@@ -22,6 +24,7 @@ import Rating from 'primevue/rating';
 
 const route = useRoute();
 const router = useRouter();
+const toast = useToast();
 
 const mealStore = useMealStore();
 const recipeStore = useRecipeStore();
@@ -148,6 +151,15 @@ const editRecipe = (recipeId?: string) => {
     }
 };
 
+const shareCurrentRecipe = async () => {
+    if (hydratedMeal.value?.recipe) {
+        const result = await RecipeShareService.shareOrCopy(hydratedMeal.value.recipe);
+        if (result.copied) {
+            toast.add({ severity: 'success', summary: 'Lien copié', detail: 'Le lien de partage a été copié dans le presse-papier.', life: 3000 });
+        }
+    }
+};
+
 const updateSideDishes = async () => {
     if (!mealId) return;
     try {
@@ -160,10 +172,10 @@ const updateSideDishes = async () => {
 };
 
 const getCategoryColor = (category?: string) => {
-    if (category === 'Viandes') return 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300';
-    if (category === 'Poissons') return 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/40 dark:text-cyan-300';
-    if (category === 'Végétarien') return 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300';
-    return 'bg-surface-100 text-surface-800 dark:bg-surface-800 dark:text-surface-300';
+    if (category === 'Viandes') return 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300';
+    if (category === 'Poissons') return 'bg-cyan-100 dark:bg-cyan-900/40 text-cyan-800 dark:text-cyan-300';
+    if (category === 'Végétarien') return 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300';
+    return 'bg-surface-100 dark:bg-surface-800 text-surface-800 dark:text-surface-300';
 };
 </script>
 
@@ -201,7 +213,7 @@ const getCategoryColor = (category?: string) => {
                             :key="p.id" 
                             :label="p.name.charAt(0).toUpperCase()" 
                             shape="circle" 
-                            class="bg-primary-100 text-primary-900 font-bold text-sm border-2 border-white dark:border-surface-900"
+                            class="bg-primary-100 text-primary-900 font-bold text-sm border-2 border-surface-0 dark:border-surface-900"
                             title="p.name"
                         />
                     </AvatarGroup>
@@ -227,6 +239,7 @@ const getCategoryColor = (category?: string) => {
                                     <Rating v-if="hydratedMeal.recipe.rating && hydratedMeal.recipe.rating > 0" :modelValue="hydratedMeal.recipe.rating" readonly :cancel="false" class="mt-2 text-sm" />
                                 </div>
                                 <div class="flex items-center gap-2">
+                                    <Button icon="pi pi-share-alt" aria-label="Partager" v-tooltip.top="'Partager la recette'" size="small" text severity="info" @click="shareCurrentRecipe" />
                                     <Button icon="pi pi-file-edit" aria-label="Modifier" v-tooltip.top="'Modifier la recette'" size="small" text severity="secondary" @click="editRecipe(hydratedMeal.recipe.id)" />
                                     <Button icon="pi pi-pencil" label="Changer de plat" size="small" outlined @click="openRecipeDialog" />
                                 </div>
@@ -325,12 +338,12 @@ const getCategoryColor = (category?: string) => {
                     <div 
                         v-for="recipe in filteredRecipes" 
                         :key="recipe.id"
-                        class="p-3 border rounded-lg cursor-pointer hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors flex items-center justify-between group"
-                        :class="hydratedMeal?.recipeId === recipe.id ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-surface-200 dark:border-surface-700'"
+                        class="p-3 border rounded-lg cursor-pointer hover:bg-surface-50 transition-colors flex items-center justify-between group"
+                        :class="hydratedMeal?.recipeId === recipe.id ? 'border-primary-500 bg-primary-50' : 'border-surface-200'"
                         @click="replaceRecipe(recipe)"
                     >
                         <div class="flex flex-col">
-                            <span class="font-bold text-surface-900 dark:text-surface-0 group-hover:text-primary-600 transition-colors flex items-center gap-2">
+                            <span class="font-bold text-surface-900 group-hover:text-primary-600 transition-colors flex items-center gap-2">
                                 {{ recipe.name }}
                             </span>
                             <div class="flex items-center gap-2 text-xs text-surface-500 mt-1">

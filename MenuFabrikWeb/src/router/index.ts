@@ -56,6 +56,12 @@ const router = createRouter({
             name: 'settings',
             component: () => import('../views/SettingsView.vue'),
             meta: { title: 'Paramètres', requiresAuth: true }
+        },
+        {
+            path: '/import',
+            name: 'import',
+            component: () => import('../views/ImportRecipeView.vue'),
+            meta: { title: 'Importer une Recette', requiresAuth: true }
         }
     ]
 })
