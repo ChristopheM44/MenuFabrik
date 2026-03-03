@@ -4,6 +4,8 @@ import type { Recipe } from '../../models/Recipe';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
 
 const props = defineProps<{
     visible: boolean;
@@ -52,26 +54,29 @@ const close = () => {
         @hide="recipeSearchQuery = ''"
     >
         <div class="flex flex-col gap-4 py-2 h-[60vh]">
-            <span class="p-input-icon-left w-full">
-                <i class="pi pi-search z-10" />
+            <!-- Champ de recherche — pattern PrimeVue 4 -->
+            <IconField>
+                <InputIcon class="pi pi-search" />
                 <InputText
                     v-model="recipeSearchQuery"
                     placeholder="Rechercher un plat..."
                     class="w-full"
                 />
-            </span>
+            </IconField>
+
+            <!-- Liste des recettes -->
             <div class="flex-1 overflow-y-auto pr-2 flex flex-col gap-2">
                 <div
                     v-for="recipe in filteredRecipes"
                     :key="recipe.id"
-                    class="p-3 border border-surface-200 dark:border-surface-700 rounded-lg cursor-pointer hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors flex items-center justify-between group"
+                    class="p-3 border border-surface-200 dark:border-surface-700 rounded-lg cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors flex items-center justify-between group"
                     @click="selectRecipe(recipe)"
                 >
                     <div class="flex flex-col">
-                        <span class="font-bold text-surface-900 dark:text-surface-0 group-hover:text-primary-600 transition-colors flex items-center gap-2">
+                        <span class="font-bold text-surface-900 dark:text-surface-0 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors flex items-center gap-2">
                             {{ recipe.name }}
                         </span>
-                        <div class="flex items-center gap-2 text-xs text-surface-500 mt-1">
+                        <div class="flex items-center gap-2 text-xs text-surface-500 dark:text-surface-400 mt-1">
                             <span v-if="recipe.rating && recipe.rating > 0" class="text-primary-500 flex items-center gap-1">
                                 <i class="pi pi-star-fill text-[10px]"></i> {{ recipe.rating }}
                             </span>
@@ -82,7 +87,7 @@ const close = () => {
                     <Button icon="pi pi-chevron-right" severity="secondary" text rounded />
                 </div>
 
-                <div v-if="filteredRecipes.length === 0" class="text-center p-8 text-surface-500">
+                <div v-if="filteredRecipes.length === 0" class="text-center p-8 text-surface-500 dark:text-surface-400">
                     Aucune recette trouvée.
                 </div>
             </div>
