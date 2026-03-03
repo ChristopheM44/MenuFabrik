@@ -12,6 +12,8 @@ import { watch } from 'vue';
 
 const props = defineProps<{
     meal: Meal;
+    isFirst?: boolean;
+    isLast?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -23,6 +25,8 @@ const emit = defineEmits<{
     (e: 'change-status', payload: MealStatus): void;
     (e: 'edit-attendees'): void;
     (e: 'update-note', payload: string): void;
+    (e: 'move-up'): void;
+    (e: 'move-down'): void;
 }>();
 
 const menu = ref();
@@ -93,14 +97,31 @@ watch(() => props.meal.noteText, (newVal) => {
     >
         <template v-if="meal.format === 'note'">
             <!-- Note UI Minimaliste -->
-             <div class="flex items-start gap-2 w-full py-1">
-                <i class="pi pi-file-edit text-primary-400 mt-3 ml-2"></i>
+             <div class="flex items-center gap-1 w-full py-1">
+                <i class="pi pi-file-edit text-primary-400 mt-0.5 ml-2"></i>
                 <div class="flex-1">
                     <InputText 
                         v-model="localNote" 
                         @input="onNoteChange(($event.target as HTMLInputElement).value)" 
                         placeholder="Une idée, un reste, une note..." 
                         class="w-full border-none bg-transparent shadow-none px-2 py-2 text-surface-700 dark:text-surface-300 focus:ring-0" 
+                    />
+                </div>
+                <!-- Boutons de réordonnancement -->
+                <div class="flex flex-col">
+                    <Button 
+                        v-if="!isFirst"
+                        icon="pi pi-chevron-up" text rounded severity="secondary" size="small"
+                        style="width: 1.6rem; height: 1.6rem; padding: 0;"
+                        @click.stop="emit('move-up')"
+                        title="Monter"
+                    />
+                    <Button 
+                        v-if="!isLast"
+                        icon="pi pi-chevron-down" text rounded severity="secondary" size="small"
+                        style="width: 1.6rem; height: 1.6rem; padding: 0;"
+                        @click.stop="emit('move-down')"
+                        title="Descendre"
                     />
                 </div>
                 <Button icon="pi pi-trash" text rounded severity="secondary" size="small" class="opacity-50 hover:opacity-100" style="width: 2rem; height: 2rem; padding: 0;" @click.stop="emit('delete')" title="Supprimer la note" />
@@ -121,6 +142,9 @@ watch(() => props.meal.noteText, (newVal) => {
                     
                     <!-- Actions (Refresh / Corbeille) placés à côté de Midi/Soir -->
                     <div class="flex items-center ml-1">
+                        <!-- Boutons déplacement haut/bas -->
+                        <Button v-if="!isFirst" icon="pi pi-chevron-up" text rounded severity="secondary" size="small" style="width: 2rem; height: 2rem; padding: 0;" @click.stop="emit('move-up')" aria-label="Monter" title="Remonter ce repas" />
+                        <Button v-if="!isLast" icon="pi pi-chevron-down" text rounded severity="secondary" size="small" style="width: 2rem; height: 2rem; padding: 0;" @click.stop="emit('move-down')" aria-label="Descendre" title="Descendre ce repas" />
                         <!-- Permuter: Visible sur les repas générés (hasRecipe) ou sur les status spéciaux (pas en mode skeleton vide) -->
                         <Button v-if="(hasRecipe && isPlanned) || (!isPlanned)" icon="pi pi-sync" text rounded severity="secondary" size="small" style="width: 2rem; height: 2rem; padding: 0;" @click.stop="emit('swap')" aria-label="Permuter" title="Permuter avec l'autre repas de la journée" />
                         <Button v-if="hasRecipe && isPlanned" icon="pi pi-refresh" text rounded severity="secondary" size="small" style="width: 2rem; height: 2rem; padding: 0;" @click.stop="emit('generate')" aria-label="Alternative" title="Proposer une alternative" />
