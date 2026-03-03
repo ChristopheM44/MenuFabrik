@@ -15,6 +15,8 @@ import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import MultiSelect from 'primevue/multiselect';
 import InputText from 'primevue/inputtext';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
 import RecipeSourceLinkButton from '../components/recipes/RecipeSourceLinkButton.vue';
 import Avatar from 'primevue/avatar';
 import AvatarGroup from 'primevue/avatargroup';
@@ -328,25 +330,27 @@ const getCategoryColor = (category?: string) => {
         <Dialog v-model:visible="showRecipeDialog" modal header="Choisir une autre recette" :style="{ width: '90vw', maxWidth: '600px' }">
             <div class="flex flex-col gap-4 py-2 h-[60vh]">
                 <!-- Recherche -->
-                <span class="p-input-icon-left w-full">
-                    <i class="pi pi-search" />
+                <IconField>
+                    <InputIcon class="pi pi-search" />
                     <InputText v-model="recipeSearchQuery" placeholder="Rechercher un plat..." class="w-full" />
-                </span>
+                </IconField>
                 
                 <!-- Liste des recettes -->
                 <div class="flex-1 overflow-y-auto pr-2 flex flex-col gap-2">
                     <div 
                         v-for="recipe in filteredRecipes" 
                         :key="recipe.id"
-                        class="p-3 border rounded-lg cursor-pointer hover:bg-surface-50 transition-colors flex items-center justify-between group"
-                        :class="hydratedMeal?.recipeId === recipe.id ? 'border-primary-500 bg-primary-50' : 'border-surface-200'"
+                        class="p-3 border rounded-lg cursor-pointer transition-colors flex items-center justify-between group"
+                        :class="hydratedMeal?.recipeId === recipe.id 
+                            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30' 
+                            : 'border-surface-200 dark:border-surface-700 hover:bg-surface-100 dark:hover:bg-surface-700'"
                         @click="replaceRecipe(recipe)"
                     >
                         <div class="flex flex-col">
-                            <span class="font-bold text-surface-900 group-hover:text-primary-600 transition-colors flex items-center gap-2">
+                            <span class="font-bold text-surface-900 dark:text-surface-0 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors flex items-center gap-2">
                                 {{ recipe.name }}
                             </span>
-                            <div class="flex items-center gap-2 text-xs text-surface-500 mt-1">
+                            <div class="flex items-center gap-2 text-xs text-surface-500 dark:text-surface-400 mt-1">
                                 <span v-if="recipe.rating && recipe.rating > 0" class="text-primary-500 flex items-center gap-1">
                                     <i class="pi pi-star-fill text-[10px]"></i> {{ recipe.rating }}
                                 </span>
@@ -361,7 +365,7 @@ const getCategoryColor = (category?: string) => {
                         />
                     </div>
                     
-                    <div v-if="filteredRecipes.length === 0" class="text-center p-8 text-surface-500">
+                    <div v-if="filteredRecipes.length === 0" class="text-center p-8 text-surface-500 dark:text-surface-400">
                         Aucune recette trouvée pour "{{ recipeSearchQuery }}".
                     </div>
                 </div>
@@ -378,10 +382,5 @@ const getCategoryColor = (category?: string) => {
 @keyframes fadein {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
-}
-
-/* Fix pour InputText avec icône (PrimeVue) */
-.p-input-icon-left > i {
-    z-index: 10;
 }
 </style>
