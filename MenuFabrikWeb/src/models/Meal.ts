@@ -43,4 +43,7 @@ export interface Meal {
 
     attendeeIds: string[];
     attendees?: Participant[]; // Résolu via l'ID
+
+    // Ordre d'affichage dans la journée (pour permettre le déplacement manuel)
+    order?: number;
 }

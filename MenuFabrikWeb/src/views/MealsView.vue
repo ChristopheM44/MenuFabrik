@@ -82,14 +82,22 @@ const toggleAddMealMenu = (event: Event, dateKey: string) => {
 
 const addNewMeal = async (dateKey: string, format: 'standard' | 'note') => {
     try {
+        // Calcule l'order max pour cette journée afin d'insérer à la fin
+        const mealsForDay = mealStore.meals.filter(m => {
+            const d = new Date(m.date);
+            return !isNaN(d.getTime()) && getLocalISODate(d) === dateKey;
+        });
+        const maxOrder = mealsForDay.reduce((max, m) => Math.max(max, m.order ?? 0), -1);
+
         const newMeal: Meal = {
             date: dateKey,
-            type: MealTime.OTHER, // Types autres : s'ajoute à la fin
+            type: MealTime.OTHER,
             status: MealStatus.PLANNED,
             format: format,
             noteText: '',
             attendeeIds: [],
-            selectedSideDishIds: []
+            selectedSideDishIds: [],
+            order: maxOrder + 1
         };
         await mealStore.addMeal(newMeal);
     } catch (e) {
@@ -117,6 +125,13 @@ const getHydratedMeals = computed(() => {
     });
 });
 
+// Priorité de tri par type quand `order` n'est pas défini
+const typeSortPriority = (type: string): number => {
+    if (type === MealTime.LUNCH) return 0;
+    if (type === MealTime.DINNER) return 1;
+    return 2;
+};
+
 const mealsByDate = computed(() => {
     const groups: Record<string, Meal[]> = {};
     
@@ -134,10 +149,13 @@ const mealsByDate = computed(() => {
     
     return sortedKeys.map(key => {
         const mealsForDay = groups[key] || [];
-        const sortedMealsDay = mealsForDay.sort((a, b) => {
-            if (a.type === MealTime.LUNCH && b.type === MealTime.DINNER) return -1;
-            if (a.type === MealTime.DINNER && b.type === MealTime.LUNCH) return 1;
-            return 0;
+        const sortedMealsDay = [...mealsForDay].sort((a, b) => {
+            // Si les deux ont un order explicite, l'utiliser
+            const aHasOrder = a.order !== undefined && a.order !== null;
+            const bHasOrder = b.order !== undefined && b.order !== null;
+            if (aHasOrder && bHasOrder) return (a.order as number) - (b.order as number);
+            // Fallback: ordre par type (Midi, Soir, puis le reste)
+            return typeSortPriority(a.type) - typeSortPriority(b.type);
         });
 
         const parts = key.split('-');
@@ -260,37 +278,82 @@ const chooseRecipeForTarget = async (recipe: any) => {
     }
 };
 
+// Helper : retire les champs undefined pour éviter
+// FirebaseError: "Unsupported field value: undefined"
+const cleanForFirestore = (obj: Record<string, unknown>): Record<string, unknown> =>
+    Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined));
+
 // 3.6 Permuter Midi / Soir
+// Les étiquettes "Midi" / "Soir" restent fixes.
+// Seul le CONTENU (recette, statut, sides) voyage d'un créneau à l'autre.
+// Si aucun repas opposé n'existe → on bascule juste le type (dépl. vers l'autre créneau).
 const swapMeals = async (meal: Meal, dateMeals: Meal[]) => {
     if (!meal.id) return;
+
+    // Seulement pertinent pour Midi et Soir
+    if (meal.type !== MealTime.LUNCH && meal.type !== MealTime.DINNER) return;
+
     const targetType = meal.type === MealTime.LUNCH ? MealTime.DINNER : MealTime.LUNCH;
-    const otherMeal = dateMeals.find(m => m.type === targetType);
-    
-    if (!otherMeal || !otherMeal.id) {
-        alert(`Aucun repas du ${targetType.toLowerCase()} n'est planifié pour cette journée.`);
-        return;
-    }
+    const otherMeal  = dateMeals.find(m => m.type === targetType && m.id);
 
     try {
-        const meal1Updates = { 
-            status: otherMeal.status || MealStatus.PLANNED,
-            recipeId: otherMeal.recipeId || '', 
-            selectedSideDishIds: otherMeal.selectedSideDishIds || [] 
-        };
-        const meal2Updates = { 
-            status: meal.status || MealStatus.PLANNED,
-            recipeId: meal.recipeId || '', 
-            selectedSideDishIds: meal.selectedSideDishIds || [] 
-        };
-        
-        // Exécution en parallèle
-        await Promise.all([
-            mealStore.updateMeal(meal.id, meal1Updates),
-            mealStore.updateMeal(otherMeal.id, meal2Updates)
-        ]);
+        if (otherMeal && otherMeal.id) {
+            // Snapshot de toutes les valeurs AVANT les appels async
+            const mealId      = meal.id;
+            const otherMealId = otherMeal.id;
+
+            // Le document "Midi" garde son type "Midi" mais reçoit le contenu du "Soir"
+            const meal1Updates = cleanForFirestore({
+                status:              otherMeal.status || MealStatus.PLANNED,
+                recipeId:            otherMeal.recipeId ?? '',
+                selectedSideDishIds: otherMeal.selectedSideDishIds ?? [],
+            });
+            // Le document "Soir" garde son type "Soir" mais reçoit le contenu du "Midi"
+            const meal2Updates = cleanForFirestore({
+                status:              meal.status || MealStatus.PLANNED,
+                recipeId:            meal.recipeId ?? '',
+                selectedSideDishIds: meal.selectedSideDishIds ?? [],
+            });
+
+            await Promise.all([
+                mealStore.updateMeal(mealId,      meal1Updates as Partial<Meal>),
+                mealStore.updateMeal(otherMealId, meal2Updates as Partial<Meal>)
+            ]);
+        } else {
+            // Pas de repas opposé → déplace le repas vers l'autre créneau
+            await mealStore.updateMeal(meal.id, { type: targetType });
+        }
     } catch (e) {
         console.error("Erreur de permutation:", e);
         alert("Une erreur est survenue lors de la permutation.");
+    }
+};
+
+// 3.7 Déplacer vers le haut / vers le bas (via le champ order)
+const moveMeal = async (meal: Meal, direction: 'up' | 'down', dateMeals: Meal[]) => {
+    if (!meal.id) return;
+    const idx = dateMeals.findIndex(m => m.id === meal.id);
+    if (idx === -1) return;
+
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= dateMeals.length) return;
+
+    const neighbor = dateMeals[swapIdx];
+    if (!neighbor || !neighbor.id) return;
+
+    // Assurer que chaque repas a un order numérique
+    const orderA = meal.order ?? idx;
+    const orderB = neighbor.order ?? swapIdx;
+    const mealId = meal.id;
+    const neighborId = neighbor.id;
+
+    try {
+        await Promise.all([
+            mealStore.updateMeal(mealId, { order: orderB }),
+            mealStore.updateMeal(neighborId, { order: orderA })
+        ]);
+    } catch (e) {
+        console.error('Erreur de déplacement:', e);
     }
 };
 
@@ -481,6 +544,8 @@ const saveAttendees = async () => {
                         v-for="meal in day.meals" 
                         :key="meal.id || meal.type+day.dateKey" 
                         :meal="meal"
+                        :is-first="meal.id === day.meals[0]?.id"
+                        :is-last="meal.id === day.meals[day.meals.length - 1]?.id"
                         @generate="generateSingleMeal(meal)"
                         @choose-recipe="openRecipePicker(meal)"
                         @swap="swapMeals(meal, day.meals)"
@@ -489,6 +554,8 @@ const saveAttendees = async () => {
                         @change-status="changeMealStatus(meal, $event)"
                         @edit-attendees="openAttendeesDialog(meal)"
                         @update-note="handleUpdateNote(meal, $event)"
+                        @move-up="moveMeal(meal, 'up', day.meals)"
+                        @move-down="moveMeal(meal, 'down', day.meals)"
                     />
                 </div>
             </div>

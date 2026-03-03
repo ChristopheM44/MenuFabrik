@@ -1,0 +1,63 @@
+2. Le Mode "Assistant de Cuisson" Pas-à-Pas (façon Cookidoo)
+La vue détail de la recette actuelle (
+
+MealDetailView.vue
+) est très bien pour lire globalement le plat, mais elle n'est pas optimisée pour le moment où l'on a "les mains dans la farine".
+
+La Feature : Un bouton "Cuisiner" qui passe l'application en plein écran (empêche la mise en veille du téléphone/tablette). Il n'affiche qu'une étape à la fois en gros caractères, rappelle les quantités uniquement pour cette étape, et intègre des minuteurs (ex: "Mijoter 15 min" devient un vrai bouton sur lequel on peut cliquer pour lancer le chrono).
+L'Inspiration : Cookidoo (Thermomix) qui guide l'utilisateur pour qu'il soit impossible de se tromper.
+La Valeur : Un confort d'utilisation incroyable en cuisine, ce n'est plus juste un gestionnaire, c'est un vrai commis de cuisine interactif.
+3. Le Module de "Batch Cooking" Intelligent
+Le système actuel génère les repas jour par jour (chaque soir on cuisine pour le soir).
+
+La Feature : Une vue "Préparation du Dimanche". L'algorithme analyserait le menu de la semaine et fusionnerait les tâches communes : "Épluchez et coupez 4 oignons d'un coup (2 pour la recette de lundi, 2 pour celle de jeudi)" ou "Faites cuire 500g de riz d'avance".
+L'Inspiration : Les livres et applications dédiées au Batch Cooking (Jow commence à le faire aussi).
+La Valeur : Une promesse de gain de temps énorme la semaine. On passe 2h le dimanche, et on assemble le soir en 10 minutes.
+4. La gestion du Garde-manger et l'Anti-Gaspillage ("Zéro Déchet")
+La liste de courses actuelle est un agrégat de recettes, mais elle ne sait pas ce que vous avez déjà dans vos placards.
+
+La Feature :
+Un système de "Garde-manger" des essentiels (farine, huile, sel) pour qu'ils ne s'ajoutent pas par défaut dans la liste de courses.
+Surtout : un mode "Que me reste-t-il ?" où l'utilisateur dit : "Il me reste 3 courgettes et du fromage de chèvre". Le 
+
+MenuGeneratorEngine
+ construirait le planning de la semaine en priorisant absolument les recettes utilisant ces restes avant qu'ils ne périment.
+L'Inspiration : FrigoMagic ou SuperCook.
+La Valeur : Économies d'argent substantielles et réduction du gaspillage alimentaire.
+5. L'Export Direct vers le Drive (Supermarchés)
+Votre liste de courses est copiable (ce qui est déjà super pratique !), mais elle demande encore à l'utilisateur d'aller chercher ses produits un par un sur le site de son supermarché.
+
+La Feature : Transformer la liste d'ingrédients MenuFabrik en un panier e-commerce prêt à la commande chez Carrefour, Leclerc, Auchan ou Chronodrive via API. Si un ingrédient n'est pas "matché", l'app propose des alternatives (ex: Pâtes Barilla vs Pâtes Eco+).
+L'Inspiration : C'est le cœur absolu du business model de JOW.
+La Valeur : C'est la fonctionnalité "Wouh" par excellence. L'expérience complète, de "Je ne sais pas quoi manger" à "Mes courses sont prépayées et m'attendent au drive".
+Toutes ces propositions sont réalisables avec les technologies que nous utilisons déjà (Vue 3, Firebase). Y en a-t-il une parmi cette liste qui vous attire particulièrement pour la suite du projet ?
+
+Je note plein de chose super interessantes. Par contre dans un précedent chat j'ai essayer de voir avec toi comment implementer la Feature L'Export Direct vers le Drive et notamment Leclerc et ta réponse etait sans appel, impossible. J'aimerais que tu me detail un peu comment tu proposes de le faire fonctionner
+Je me souviens très bien de nos échanges ! Historiquement, intégrer directement le panier du supermarché (Leclerc, Carrefour...) était extrêmement complexe pour de petites applications car les grandes surfaces ne proposaient pas d'API publique ouverte aux développeurs indépendants. C'était "impossible" sans recourir à du scraping sauvage (qui casse à la moindre mise à jour du site de Leclerc) ou sans avoir un partenariat direct (ce que Jow a mis des années à négocier).
+
+Cependant, les choses ont évolué et il y a aujourd'hui deux approches réalistes pour implémenter cette feature dans MenuFabrik, de la plus simple à la plus ambitieuse :
+
+Approche 1 : L'Export via extension de navigateur (La méthode maline)
+Plutôt que d'essayer de forcer MenuFabrik à parler directement à Leclerc (géré par des tokens, des sessions complexes de login, etc.), on utilise le navigateur de l'utilisateur comme pont.
+
+Le fonctionnement : Sur MenuFabrik, au lieu de cliquer sur "Copier", on clique sur "Envoyer au Drive".
+Le pont : Cela génère un fichier JSON (votre liste de courses structurée) ou transmet les données à une Extension Chrome MenuFabrik.
+L'action : L'utilisateur clique sur l'extension lorsqu'il est sur la page LeclercDrive.fr (où il est déjà connecté avec son compte). L'extension exécute un script Javascript directement sur la page de Leclerc qui tape dans la barre de recherche, trouve le premier produit, et clique sur "Ajouter au panier", produit après produit.
+Avantage : 100% faisable, pas de partenariat requis.
+Inconvénient : Ne marche que sur ordinateur (Chrome/Firefox), pas depuis l'application mobile.
+Approche 2 : Utiliser un Agrégateur Tiers (La méthode moderne)
+Depuis peu, le marché de l'Open Banking (API de banques) a fait des émules dans le retail. Des entreprises spécialisées comme MiAM (miam.tech) ou Flint (aux US) proposent des "API as a Service" pour connecter les apps de recettes aux supermarchés.
+
+Le fonctionnement : MenuFabrik envoie la liste d'ingrédients à l'API de MiAM.
+La magie : MiAM possède les accords et les ponts de connexion avec Carrefour, Auchan, Systéme U, Leclerc, etc. Ils se chargent de faire correspondre "200g de gruyère râpé" avec le produit exact "Gruyère Râpé Président 200g" disponible dans le magasin Leclerc sélectionné par l'utilisateur.
+Le retour : L'API MiAM renvoie un widget (ou une URL) qui affiche le panier "prêt à être validé" chez Leclerc.
+Avantage : Parfaitement intégré, fonctionne sur mobile et ordinateur. Gère les ruptures de stock intelligemment.
+Inconvénient : C'est un service B2B payant (généralement via une commission sur le panier) ou nécessite d'avoir le statut d'entreprise pour s'y inscrire.
+Ce qui est "impossible" (et qu'il ne faut pas essayer de faire soi-même)
+Ce que j'avais sans doute souligné avant, c'est la méthode DIY pure (Faire du scraping serveur). Si vous codez un Bot en Node.js sur votre serveur Firebase pour aller sur LeclercDrive.fr :
+
+Le bot sera bloqué par Cloudflare ou le système anti-bot de Leclerc (Datadome).
+S'il passe, il devra gérer les mots de passe des utilisateurs de MenuFabrik (énorme risque de sécurité de stocker les identifiants Leclerc de vos utilisateurs en clair pour les jouer via votre bot).
+À chaque fois que Leclerc modifie la couleur de son bouton "Ajouter", le code de MenuFabrik crashe.
+En résumé pour votre application : Aujourd'hui, si nous voulions construire ce "Export Drive", la solution la plus pérenne serait de réaliser une Extension Chrome compagnon (pour la version desktop de MenuFabrik), ou de se renseigner sur l'intégration d'un widget MiAM si l'objectif est de monétiser MenuFabrik un jour !
+
