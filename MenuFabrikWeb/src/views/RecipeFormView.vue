@@ -214,23 +214,23 @@ const cancel = () => {
             <hr class="border-surface-200 my-2" />
 
             <!-- SECTION EXTRACTION IA -->
-            <div class="bg-primary-50 dark:bg-primary-900/20 p-5 rounded-xl border border-primary-200 dark:border-primary-800 flex flex-col gap-5 relative overflow-hidden shadow-sm">
+            <div class="bg-primary-50 dark:bg-primary-900/30 p-5 rounded-xl border border-primary-200 dark:border-primary-800 flex flex-col gap-5 relative overflow-hidden shadow-sm">
                 <!-- Décoration de fond -->
                 <i class="pi pi-sparkles absolute -right-6 -top-6 text-9xl text-primary-500/5 rotate-12 pointer-events-none"></i>
                 
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 relative z-10">
                     <div>
-                        <h3 class="font-bold text-lg text-primary-900 dark:text-primary-100 flex items-center gap-2">
+                        <h3 class="font-bold text-lg text-primary-900 dark:text-primary-500 flex items-center gap-2">
                             <i class="pi pi-bolt text-primary-500"></i>
                             Assistant d'Importation IA
                         </h3>
-                        <p class="text-sm text-primary-700/80 dark:text-primary-200/80 mt-1">Fournissez un lien web ou collez le texte brut, l'IA complètera les ingrédients et les infos de la recette.</p>
+                        <p class="text-sm text-primary-700 dark:text-primary-400 mt-1">Fournissez un lien web ou collez le texte brut, l'IA complètera les ingrédients et les infos de la recette.</p>
                     </div>
                 </div>
 
                 <div class="flex flex-col gap-4 relative z-10">
                     <div class="flex flex-col gap-2">
-                        <label for="sourceURL" class="font-semibold text-sm text-primary-900 dark:text-primary-100">1. Lien Web de la recette (URL)</label>
+                        <label for="sourceURL" class="font-semibold text-sm text-primary-900 dark:text-primary-400">1. Lien Web de la recette (URL)</label>
                         <div class="flex items-stretch rounded-md overflow-hidden bg-surface-0 dark:bg-surface-900 border border-surface-300 dark:border-surface-600 focus-within:ring-1 focus-within:ring-primary-500 w-full">
                             <span class="flex items-center justify-center px-3 text-surface-500 border-r border-surface-300 dark:border-surface-600 bg-surface-50 dark:bg-surface-800"><i class="pi pi-link"></i></span>
                             <InputText id="sourceURL" v-model="recipeForm.sourceURL" placeholder="Ex: https://cookidoo.fr/..." class="w-full font-mono text-sm border-none shadow-none ring-0 focus:ring-0" />
@@ -238,7 +238,7 @@ const cancel = () => {
                     </div>
 
                     <div class="flex flex-col gap-2">
-                        <label for="instructions" class="font-semibold text-sm text-primary-900 dark:text-primary-100">2. Et / Ou Instructions et texte détaillé</label>
+                        <label for="instructions" class="font-semibold text-sm text-primary-900 dark:text-primary-400">2. Et / Ou Instructions et texte détaillé</label>
                         <Textarea id="instructions" v-model="recipeForm.instructions" rows="4" placeholder="Saisir la recette, coller le texte depuis un blog..." class="w-full" autoResize />
                     </div>
                 </div>

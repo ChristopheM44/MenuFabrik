@@ -10,6 +10,8 @@ import InputIcon from 'primevue/inputicon';
 const props = defineProps<{
     visible: boolean;
     recipes: Recipe[];
+    selectedRecipeId?: string;
+    header?: string;
 }>();
 
 const emit = defineEmits<{
@@ -49,7 +51,7 @@ const close = () => {
         :visible="props.visible"
         @update:visible="emit('update:visible', $event)"
         modal
-        header="Choisir une recette"
+        :header="props.header ?? 'Choisir une recette'"
         :style="{ width: '90vw', maxWidth: '600px' }"
         @hide="recipeSearchQuery = ''"
     >
@@ -69,11 +71,19 @@ const close = () => {
                 <div
                     v-for="recipe in filteredRecipes"
                     :key="recipe.id"
-                    class="p-3 border border-surface-200 dark:border-surface-700 rounded-lg cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors flex items-center justify-between group"
+                    class="p-3 border rounded-lg cursor-pointer transition-colors flex items-center justify-between group"
+                    :class="props.selectedRecipeId === recipe.id
+                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-800/50 dark:border-primary-400'
+                        : 'border-surface-200 dark:border-surface-700 hover:bg-surface-100 dark:hover:bg-surface-700'"
                     @click="selectRecipe(recipe)"
                 >
                     <div class="flex flex-col">
-                        <span class="font-bold text-surface-900 dark:text-surface-0 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors flex items-center gap-2">
+                        <span
+                            class="font-bold transition-colors flex items-center gap-2"
+                            :class="props.selectedRecipeId === recipe.id
+                                ? 'text-primary-700 dark:text-primary-500'
+                                : 'text-surface-900 dark:text-surface-0 group-hover:text-primary-600 dark:group-hover:text-primary-300'"
+                        >
                             {{ recipe.name }}
                         </span>
                         <div class="flex items-center gap-2 text-xs text-surface-500 dark:text-surface-400 mt-1">
@@ -84,11 +94,15 @@ const close = () => {
                             <span><i class="pi pi-tag"></i> {{ recipe.category }}</span>
                         </div>
                     </div>
-                    <Button icon="pi pi-chevron-right" severity="secondary" text rounded />
+                    <Button
+                        :icon="props.selectedRecipeId === recipe.id ? 'pi pi-check' : 'pi pi-chevron-right'"
+                        :severity="props.selectedRecipeId === recipe.id ? 'success' : 'secondary'"
+                        text rounded
+                    />
                 </div>
 
                 <div v-if="filteredRecipes.length === 0" class="text-center p-8 text-surface-500 dark:text-surface-400">
-                    Aucune recette trouvée.
+                    Aucune recette trouvée<span v-if="recipeSearchQuery"> pour "{{ recipeSearchQuery }}"</span>.
                 </div>
             </div>
         </div>
