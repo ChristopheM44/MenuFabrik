@@ -19,6 +19,7 @@ import Dialog from 'primevue/dialog';
 import ProgressSpinner from 'primevue/progressspinner';
 import InputText from 'primevue/inputtext';
 import MultiSelect from 'primevue/multiselect';
+import Menu from 'primevue/menu';
 
 const mealStore = useMealStore();
 const recipeStore = useRecipeStore();
@@ -52,6 +53,49 @@ const selectedAttendees = ref<string[]>([]);
 const showRecipePicker = ref(false);
 const recipeSearchQuery = ref('');
 const targetMealIdForPicker = ref<string>('');
+
+// --- ÉTAT AJOUT LIBRE ---
+const addMealMenu = ref();
+const selectedDateKeyForAdd = ref<string>('');
+
+const addMealMenuItems = computed(() => [
+    {
+        label: 'Ajouter un repas',
+        icon: 'pi pi-calendar-plus',
+        actionFormat: 'standard'
+    },
+    {
+        label: 'Ajouter une note',
+        icon: 'pi pi-file-edit',
+        actionFormat: 'note'
+    }
+].map(item => ({
+    label: item.label,
+    icon: item.icon,
+    command: () => addNewMeal(selectedDateKeyForAdd.value, item.actionFormat as 'standard' | 'note')
+})));
+
+const toggleAddMealMenu = (event: Event, dateKey: string) => {
+    selectedDateKeyForAdd.value = dateKey;
+    addMealMenu.value.toggle(event);
+};
+
+const addNewMeal = async (dateKey: string, format: 'standard' | 'note') => {
+    try {
+        const newMeal: Meal = {
+            date: dateKey,
+            type: MealTime.OTHER, // Types autres : s'ajoute à la fin
+            status: MealStatus.PLANNED,
+            format: format,
+            noteText: '',
+            attendeeIds: [],
+            selectedSideDishIds: []
+        };
+        await mealStore.addMeal(newMeal);
+    } catch (e) {
+        console.error("Erreur lors de l'ajout libre:", e);
+    }
+};
 
 onMounted(async () => {
     if (recipeStore.recipes.length === 0) await recipeStore.fetchRecipes();
@@ -260,28 +304,20 @@ const changeMealStatus = async (meal: Meal, newStatus: MealStatus) => {
             updateData.selectedSideDishIds = [];
         }
         await mealStore.updateMeal(meal.id, updateData);
-        
-        // Si on repasse en PLANNED et qu'on n'avait pas de recette,
-        // on pourrait déclencher la génération ici (comportement iPad).
-        if (newStatus === MealStatus.PLANNED && !meal.recipeId) {
-            // on déclenche silencieusement une génération pour ce repas
-            const mealToUpdate = { ...meal, status: MealStatus.PLANNED, recipeId: '', selectedSideDishIds: [] };
-             MenuGeneratorEngine.generateMenu(
-                [mealToUpdate], 
-                recipeStore.recipes, 
-                participantStore.participants
-            );
-            if (mealToUpdate.recipeId) {
-                await mealStore.updateMeal(meal.id, {
-                    recipeId: mealToUpdate.recipeId,
-                    selectedSideDishIds: mealToUpdate.selectedSideDishIds
-                });
-            }
-        }
     } catch (e) {
         console.error("Erreur lors du changement de statut:", e);
     }
 }
+
+// 4.5 Mise à jour de la note text
+const handleUpdateNote = async (meal: Meal, noteText: string) => {
+    if (!meal.id) return;
+    try {
+        await mealStore.updateMeal(meal.id, { noteText });
+    } catch (e) {
+        console.error("Erreur lors de la mise à jour de la note:", e);
+    }
+};
 
 // 5. Suppression via ConfirmDialog PrimeVue
 const confirmDeleteMeal = (meal: Meal) => {
@@ -406,8 +442,32 @@ const saveAttendees = async () => {
                     <div class="sticky top-20 flex flex-col items-center md:items-start text-center md:text-left">
                         <span class="text-xl font-bold text-surface-900 dark:text-surface-100 flex items-center justify-center md:justify-start gap-2">
                             {{ day.label.split(' ')[0] }}
-                            <!-- Action supprimer par jour: toujours visible mais subtile (texte neutre au lieu de danger vif) -->
-                            <Button icon="pi pi-trash" class="opacity-50 hover:opacity-100" text rounded severity="secondary" size="small" @click="confirmDeleteDay(day.dateKey)" title="Vider toute la journée" style="width:2rem;height:2rem;padding:0;" />
+                            
+                            <div class="flex items-center">
+                                <!-- Bouton Ajouter libre -->
+                                <Button 
+                                    icon="pi pi-plus" 
+                                    text 
+                                    rounded 
+                                    severity="primary" 
+                                    size="small" 
+                                    class="w-8 h-8 p-0"
+                                    @click="toggleAddMealMenu($event, day.dateKey)"
+                                    title="Ajouter un repas ou une note"
+                                />
+                                <!-- Action supprimer par jour -->
+                                <Button 
+                                    icon="pi pi-trash" 
+                                    class="opacity-50 hover:opacity-100" 
+                                    text 
+                                    rounded 
+                                    severity="secondary" 
+                                    size="small" 
+                                    @click="confirmDeleteDay(day.dateKey)" 
+                                    title="Vider toute la journée" 
+                                    style="width:2rem;height:2rem;padding:0;" 
+                                />
+                            </div>
                         </span>
                         <span class="text-sm font-medium text-surface-500 flex items-center gap-2">
                             {{ day.label.replace(day.label.split(' ')[0] + ' ', '') }}
@@ -428,12 +488,14 @@ const saveAttendees = async () => {
                         @delete="confirmDeleteMeal(meal)"
                         @change-status="changeMealStatus(meal, $event)"
                         @edit-attendees="openAttendeesDialog(meal)"
+                        @update-note="handleUpdateNote(meal, $event)"
                     />
                 </div>
             </div>
             
         </div>
 
+        <Menu ref="addMealMenu" :model="addMealMenuItems" :popup="true" />
         <PlanMealDialog v-model:visible="showPlanDialog" />
         
         <!-- EDIT ATTENDEES MODAL -->
