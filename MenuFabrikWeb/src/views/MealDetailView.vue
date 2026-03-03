@@ -12,12 +12,9 @@ import { useToast } from 'primevue/usetoast';
 
 // PrimeVue Components
 import Button from 'primevue/button';
-import Dialog from 'primevue/dialog';
 import MultiSelect from 'primevue/multiselect';
-import InputText from 'primevue/inputtext';
-import IconField from 'primevue/iconfield';
-import InputIcon from 'primevue/inputicon';
 import RecipeSourceLinkButton from '../components/recipes/RecipeSourceLinkButton.vue';
+import RecipePickerDialog from '../components/planning/RecipePickerDialog.vue';
 import Avatar from 'primevue/avatar';
 import AvatarGroup from 'primevue/avatargroup';
 import Badge from 'primevue/badge';
@@ -38,7 +35,6 @@ const mealId = route.params.id as string;
 // State local pour les sélections
 const selectedSideDishIds = ref<string[]>([]);
 const showRecipeDialog = ref(false);
-const recipeSearchQuery = ref('');
 const isSaving = ref(false);
 
 const isDataReady = computed(() => {
@@ -102,19 +98,6 @@ const formattedDate = computed(() => {
     return label.charAt(0).toUpperCase() + label.slice(1);
 });
 
-// Filtrage et tri des recettes pour la modale
-const filteredRecipes = computed(() => {
-    let recipes = [...recipeStore.recipes];
-    if (recipeSearchQuery.value) {
-        const query = recipeSearchQuery.value.toLowerCase();
-        recipes = recipes.filter(r => 
-            r.name.toLowerCase().includes(query) || 
-            (r.category && r.category.toLowerCase().includes(query))
-        );
-    }
-    // Tri alphabétique
-    return recipes.sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
-});
 
 const sortedSideDishes = computed(() => {
     return [...sideDishStore.sideDishes].sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
@@ -126,7 +109,6 @@ const goBack = () => {
 };
 
 const openRecipeDialog = () => {
-    recipeSearchQuery.value = '';
     showRecipeDialog.value = true;
 };
 
@@ -327,50 +309,13 @@ const getCategoryColor = (category?: string) => {
         </div>
 
         <!-- MODAL CHANGEMENT DE RECETTE -->
-        <Dialog v-model:visible="showRecipeDialog" modal header="Choisir une autre recette" :style="{ width: '90vw', maxWidth: '600px' }">
-            <div class="flex flex-col gap-4 py-2 h-[60vh]">
-                <!-- Recherche -->
-                <IconField>
-                    <InputIcon class="pi pi-search" />
-                    <InputText v-model="recipeSearchQuery" placeholder="Rechercher un plat..." class="w-full" />
-                </IconField>
-                
-                <!-- Liste des recettes -->
-                <div class="flex-1 overflow-y-auto pr-2 flex flex-col gap-2">
-                    <div 
-                        v-for="recipe in filteredRecipes" 
-                        :key="recipe.id"
-                        class="p-3 border rounded-lg cursor-pointer transition-colors flex items-center justify-between group"
-                        :class="hydratedMeal?.recipeId === recipe.id 
-                            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30' 
-                            : 'border-surface-200 dark:border-surface-700 hover:bg-surface-100 dark:hover:bg-surface-700'"
-                        @click="replaceRecipe(recipe)"
-                    >
-                        <div class="flex flex-col">
-                            <span class="font-bold text-surface-900 dark:text-surface-0 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors flex items-center gap-2">
-                                {{ recipe.name }}
-                            </span>
-                            <div class="flex items-center gap-2 text-xs text-surface-500 dark:text-surface-400 mt-1">
-                                <span v-if="recipe.rating && recipe.rating > 0" class="text-primary-500 flex items-center gap-1">
-                                    <i class="pi pi-star-fill text-[10px]"></i> {{ recipe.rating }}
-                                </span>
-                                <span><i class="pi pi-clock text-[10px]"></i> {{ recipe.prepTime }} min</span>
-                                <span><i class="pi pi-tag"></i> {{ recipe.category }}</span>
-                            </div>
-                        </div>
-                        <Button 
-                            :icon="hydratedMeal?.recipeId === recipe.id ? 'pi pi-check' : 'pi pi-chevron-right'" 
-                            :severity="hydratedMeal?.recipeId === recipe.id ? 'success' : 'secondary'" 
-                            text rounded 
-                        />
-                    </div>
-                    
-                    <div v-if="filteredRecipes.length === 0" class="text-center p-8 text-surface-500 dark:text-surface-400">
-                        Aucune recette trouvée pour "{{ recipeSearchQuery }}".
-                    </div>
-                </div>
-            </div>
-        </Dialog>
+        <RecipePickerDialog
+            v-model:visible="showRecipeDialog"
+            :recipes="recipeStore.recipes"
+            :selectedRecipeId="hydratedMeal?.recipeId"
+            header="Choisir une autre recette"
+            @recipe-selected="replaceRecipe"
+        />
 
     </div>
 </template>
