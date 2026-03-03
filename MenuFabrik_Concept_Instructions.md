@@ -18,11 +18,14 @@ L'application est fondamentalement **Multiplateforme Apple (iOS, iPadOS, macOS)*
 - `Recipe` : Une recette. Nom, temps de préparation, moment (Midi/Soir), catégorie (Pâtes, Viande, etc.), une note sur 5, et des allergènes.
   - **Intelligence (`requiresFreeTime`)** : Tag boolean signalant un plat de Week-end/Vacances vs plat de semaine.
   - **Accompagnements (`suggestedSides`)** : Liste d'accompagnements possibles pour ce plat.
-- `Meal` : Un repas unique généré, inséré dans l'**Agenda Continu**.
+- `Meal` : Un repas unique généré, inséré dans l'**Agenda Continu**. Le système évolue vers l'ajout de **"Cartes Repas à la demande"** (Ad-hoc) pour une journée donnée (au-delà des stricts Midi/Soir).
+  - `format` : **Standard** (recherche de recette, génération, accompagnements) ou **Simple Note** (champ texte libre interactif pour petit-déjeuner, goûter ou information diverse).
+  - `type` (`MealTime`) : Midi, Soir, Petit-déjeuner, Collation ou Autre/Note.
   - `status` (`MealStatus`) : Prévu, Restaurant, Au Travail, Absent.
-  - `recipe` : Référence optionnelle vers la Recette choisie.
-  - `selectedSideDishes` : Liste d'accompagnements tirés au sort pour ce repas.
-  - `attendees` : Liste des participants prévus pour ce repas précis. L'intelligence du générateur se base sur ces présences pour proposer des plats compatibles (gestion fine des allergies à l'échelle du repas).
+  - `recipe` : Référence optionnelle vers la Recette choisie (format Standard).
+  - `note` : Champ texte libre (utilisé principalement pour le format Simple Note).
+  - `selectedSideDishes` : Liste d'accompagnements (format Standard).
+  - `attendees` : Liste des participants prévus pour ce repas.
 
 ## 🔐 Authentification & Multi-Comptes (Multi-tenant & Sécurité)
 - L'application Web (Vue.js + Firebase) gère l'**Authentification** (e-mail/mot de passe ou SSO Google).
