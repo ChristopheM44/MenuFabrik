@@ -24,7 +24,6 @@ declare module 'vue' {
     ReloadPrompt: typeof import('./src/components/layout/ReloadPrompt.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    SettingsAdminZone: typeof import('./src/components/settings/SettingsAdminZone.vue')['default']
     SettingsAllergensTab: typeof import('./src/components/settings/SettingsAllergensTab.vue')['default']
     SettingsParticipantsTab: typeof import('./src/components/settings/SettingsParticipantsTab.vue')['default']
     SettingsSideDishesTab: typeof import('./src/components/settings/SettingsSideDishesTab.vue')['default']

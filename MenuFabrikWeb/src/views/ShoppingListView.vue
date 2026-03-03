@@ -184,7 +184,7 @@ const copyToClipboard = async () => {
 </script>
 
 <template>
-    <div class="shopping-list-view max-w-3xl mx-auto p-4 animate-fadein pb-24">
+    <div class="shopping-list-view max-w-3xl mx-auto p-4 animate-fadein pb-8">
         
         <div class="mb-6">
             <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0 flex items-center gap-3">

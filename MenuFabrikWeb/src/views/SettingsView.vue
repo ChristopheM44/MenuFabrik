@@ -8,7 +8,6 @@ import { useAllergenStore } from '../stores/allergenStore';
 import SettingsParticipantsTab from '../components/settings/SettingsParticipantsTab.vue';
 import SettingsSideDishesTab from '../components/settings/SettingsSideDishesTab.vue';
 import SettingsAllergensTab from '../components/settings/SettingsAllergensTab.vue';
-import SettingsAdminZone from '../components/settings/SettingsAdminZone.vue';
 
 // PrimeVue
 import Tabs from 'primevue/tabs';
@@ -34,7 +33,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="settings-view w-full max-w-5xl mx-auto p-4 animate-fadein pb-24">
+  <div class="settings-view w-full max-w-5xl mx-auto p-4 animate-fadein pb-8">
       <div class="flex items-center justify-between mb-6">
           <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0 border-l-4 pl-3 border-primary-500">Paramètres de la famille</h1>
       </div>
@@ -69,10 +68,6 @@ onMounted(async () => {
                   </TabPanel>
               </TabPanels>
           </Tabs>
-
-          <!-- Zone Administrateur -->
-          <SettingsAdminZone />
-
       </div>
 
   </div>

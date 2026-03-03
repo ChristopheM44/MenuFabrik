@@ -363,7 +363,7 @@ const saveAttendees = async () => {
 </script>
 
 <template>
-    <div class="meals-agenda w-full max-w-5xl mx-auto p-4 animate-fadein pb-24">
+    <div class="meals-agenda w-full max-w-5xl mx-auto p-4 animate-fadein pb-8">
         
         <!-- Header -->
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">

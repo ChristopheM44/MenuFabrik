@@ -2,9 +2,15 @@
 import { useRoute } from 'vue-router'
 import ConfirmDialog from 'primevue/confirmdialog'
 import { useTheme } from '../../composables/useTheme'
+import { useAuthStore } from '../../stores/authStore'
 
 const route = useRoute()
 const { isDark, toggleTheme } = useTheme()
+const authStore = useAuthStore()
+
+const logout = async () => {
+    await authStore.logout()
+}
 
 const navItems = [
   { name: 'Agenda', path: '/meals', icon: 'pi pi-calendar' },
@@ -20,9 +26,14 @@ const navItems = [
     <!-- Mobile Header -->
     <header class="md:hidden bg-surface-0 dark:bg-surface-900 border-b border-surface-200 dark:border-surface-700 p-4 sticky top-0 z-20 flex justify-between items-center shadow-sm">
       <h1 class="text-xl font-bold text-primary">{{ route.meta.title || 'MenuFabrik' }}</h1>
-      <button @click="toggleTheme" class="p-2 rounded-full hover:bg-surface-100 transition-colors text-surface-600 focus:outline-none" aria-label="Basculer le thème">
-          <i :class="isDark ? 'pi pi-moon' : 'pi pi-sun'" class="text-xl"></i>
-      </button>
+      <div class="flex items-center gap-2">
+        <button @click="toggleTheme" class="p-2 rounded-full hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors text-surface-600 dark:text-surface-400 focus:outline-none" aria-label="Basculer le thème">
+            <i :class="isDark ? 'pi pi-moon' : 'pi pi-sun'" class="text-xl"></i>
+        </button>
+        <button v-if="authStore.user" @click="logout" :title="`Connecté en tant que: ${authStore.user.email}`" class="p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-surface-600 dark:text-surface-400 hover:text-red-600 dark:hover:text-red-400 focus:outline-none" aria-label="Se déconnecter">
+            <i class="pi pi-sign-out text-xl"></i>
+        </button>
+      </div>
     </header>
 
     <!-- Desktop Sidebar Navigation -->
@@ -31,9 +42,14 @@ const navItems = [
         <h1 class="text-2xl font-bold text-primary flex items-center gap-2">
           <i class="pi pi-sparkles text-xl"></i> MenuFabrik
         </h1>
-        <button @click="toggleTheme" class="p-2 rounded-full hover:bg-surface-100 transition-colors text-surface-600 focus:outline-none" aria-label="Basculer le thème">
-            <i :class="isDark ? 'pi pi-moon text-primary-400' : 'pi pi-sun text-orange-500'" class="text-lg"></i>
-        </button>
+        <div class="flex items-center gap-1">
+          <button @click="toggleTheme" class="p-2 rounded-full hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors focus:outline-none" aria-label="Basculer le thème">
+              <i :class="isDark ? 'pi pi-moon text-primary-400' : 'pi pi-sun text-orange-500'" class="text-lg"></i>
+          </button>
+          <button v-if="authStore.user" @click="logout" :title="`Connecté en tant que: ${authStore.user.email}`" class="p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-surface-400 hover:text-red-600 dark:hover:text-red-400 focus:outline-none" aria-label="Se déconnecter">
+              <i class="pi pi-sign-out text-lg"></i>
+          </button>
+        </div>
       </div>
       
       <div class="flex-1 px-4 flex flex-col gap-2">
@@ -51,8 +67,8 @@ const navItems = [
     </nav>
 
     <!-- Main Content Area -->
-    <main class="flex-1 overflow-x-hidden min-h-[calc(100vh-4rem)] md:min-h-screen">
-      <div class="max-w-5xl mx-auto w-full relative">
+    <main class="flex-1 overflow-x-hidden flex flex-col relative w-full pt-4 md:pt-6">
+      <div class="max-w-5xl mx-auto w-full px-4 flex-1">
         <router-view v-slot="{ Component }">
           <transition 
             name="fade" 

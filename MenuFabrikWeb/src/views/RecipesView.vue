@@ -60,7 +60,7 @@ const shareRecipe = async (recipe: any) => {
 </script>
 
 <template>
-    <div class="recipes-view w-full max-w-5xl mx-auto p-4 animate-fadein pb-24">
+    <div class="recipes-view w-full max-w-5xl mx-auto p-4 animate-fadein pb-8">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0 border-l-4 pl-3 border-primary-500">Carnet de Recettes</h1>
