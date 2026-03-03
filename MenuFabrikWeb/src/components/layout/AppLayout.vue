@@ -58,7 +58,7 @@ const navItems = [
           :key="item.path"
           :to="item.path"
           class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800"
-          active-class="bg-primary-50 text-primary-600"
+          active-class="bg-primary-50 dark:bg-primary-900/40 text-primary-600 dark:text-primary-900"
         >
           <i :class="item.icon" class="text-lg"></i>
           {{ item.name }}
@@ -87,9 +87,9 @@ const navItems = [
         :key="item.path"
         :to="item.path"
         class="flex flex-col items-center justify-center w-full h-full text-surface-500 transition-colors"
-        active-class="text-primary-600 font-medium"
+        active-class="text-primary-600 dark:text-primary-300 font-medium"
       >
-        <i :class="[item.icon, route.path === item.path ? 'scale-110 bg-primary-50' : '']" class="text-xl mb-1 flex items-center justify-center p-1 rounded-full transition-transform"></i>
+        <i :class="[item.icon, route.path === item.path ? 'scale-110 bg-primary-50 dark:bg-primary-900/40' : '']" class="text-xl mb-1 flex items-center justify-center p-1 rounded-full transition-transform"></i>
         <span class="text-[10px]">{{ item.name }}</span>
       </router-link>
     </nav>
