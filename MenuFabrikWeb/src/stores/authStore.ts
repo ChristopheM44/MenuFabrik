@@ -9,8 +9,7 @@ import {
     onAuthStateChanged,
     type User
 } from 'firebase/auth'
-import { doc, getDoc, collection, getDocs, writeBatch, serverTimestamp } from 'firebase/firestore'
-// We might need router to redirect after login/logout, but router can be accessed from inside the store or from components.
+import { collection, doc, getDoc, getDocs, serverTimestamp, writeBatch } from 'firebase/firestore'
 import router from '../router'
 
 export const useAuthStore = defineStore('auth', () => {

@@ -1,30 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { seedDatabase } from '../../services/DataSeeder';
 import { useAuthStore } from '../../stores/authStore';
 import Card from 'primevue/card';
 import Button from 'primevue/button';
 
 const authStore = useAuthStore();
-const isSeeding = ref(false);
-const seedMessage = ref('');
-const isError = ref(false);
-
-const runSeeder = async () => {
-    isSeeding.value = true;
-    seedMessage.value = '';
-    isError.value = false;
-    
-    try {
-        await seedDatabase();
-        seedMessage.value = "Données injectées avec succès !";
-    } catch (e: any) {
-        isError.value = true;
-        seedMessage.value = "Erreur lors de l'injection : " + e.message;
-    } finally {
-        isSeeding.value = false;
-    }
-};
 
 const logout = async () => {
     await authStore.logout();
@@ -55,26 +34,7 @@ const logout = async () => {
                   <div class="text-sm text-surface-500">
                       Connecté en tant que : <strong>{{ authStore.user?.email || 'Inconnu' }}</strong>
                   </div>
-              </div>
-
-              <hr class="border-red-200 dark:border-red-800 my-2" />
-
-              <div class="flex items-center gap-4">
-                  <Button 
-                      label="Injecter les données par défaut (Globales)" 
-                      icon="pi pi-database" 
-                      severity="danger"
-                      outlined
-                      size="small"
-                      :loading="isSeeding"
-                      @click="runSeeder"
-                  />
-                  <div v-if="seedMessage" class="text-sm font-medium" :class="isError ? 'text-red-600' : 'text-green-600'">
-                      <i :class="isError ? 'pi pi-times-circle' : 'pi pi-check-circle'" class="mr-1"></i>
-                      {{ seedMessage }}
-                  </div>
-              </div>
-          </div>
+              </div>          </div>
       </template>
   </Card>
 </template>

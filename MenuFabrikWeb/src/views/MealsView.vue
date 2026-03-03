@@ -18,7 +18,7 @@ import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import ProgressSpinner from 'primevue/progressspinner';
 import InputText from 'primevue/inputtext';
-import ConfirmDialog from 'primevue/confirmdialog';
+import MultiSelect from 'primevue/multiselect';
 
 const mealStore = useMealStore();
 const recipeStore = useRecipeStore();
@@ -42,6 +42,11 @@ const getLocalISODate = (date: Date): string => {
 // --- ÉTAT PLANIFICATION ---
 const showPlanDialog = ref(false);
 const isGeneratingGlobal = ref(false);
+
+// --- ÉTAT MODIFICATION PARTICIPANTS ---
+const showAttendeesDialog = ref(false);
+const targetMealIdForAttendees = ref<string>('');
+const selectedAttendees = ref<string[]>([]);
 
 // --- ÉTAT CHOIX RECETTE MANUEL ---
 const showRecipePicker = ref(false);
@@ -335,6 +340,26 @@ const handleMealClick = (meal: Meal) => {
     }
 };
 
+// 6. Modification Participants
+const openAttendeesDialog = (meal: Meal) => {
+    if (!meal.id) return;
+    targetMealIdForAttendees.value = meal.id;
+    selectedAttendees.value = [...(meal.attendeeIds || [])];
+    showAttendeesDialog.value = true;
+};
+
+const saveAttendees = async () => {
+    if (!targetMealIdForAttendees.value) return;
+    try {
+        await mealStore.updateMeal(targetMealIdForAttendees.value, {
+            attendeeIds: selectedAttendees.value
+        });
+        showAttendeesDialog.value = false;
+    } catch (e) {
+        console.error("Erreur lors de la modification des participants:", e);
+    }
+};
+
 </script>
 
 <template>
@@ -402,6 +427,7 @@ const handleMealClick = (meal: Meal) => {
                         @click="handleMealClick(meal)"
                         @delete="confirmDeleteMeal(meal)"
                         @change-status="changeMealStatus(meal, $event)"
+                        @edit-attendees="openAttendeesDialog(meal)"
                     />
                 </div>
             </div>
@@ -410,6 +436,31 @@ const handleMealClick = (meal: Meal) => {
 
         <PlanMealDialog v-model:visible="showPlanDialog" />
         
+        <!-- EDIT ATTENDEES MODAL -->
+        <Dialog v-model:visible="showAttendeesDialog" modal header="Modifier les participants" :style="{ width: '90vw', maxWidth: '400px' }">
+            <div class="flex flex-col gap-4 py-4 pt-2">
+                <p class="text-surface-600 dark:text-surface-400 text-sm mb-2">
+                    Sélectionnez les personnes présentes pour ce repas.
+                </p>
+                <div class="flex flex-col gap-2">
+                    <label class="font-semibold text-sm">Participants</label>
+                    <MultiSelect 
+                        v-model="selectedAttendees" 
+                        :options="participantStore.participants" 
+                        optionLabel="name" 
+                        optionValue="id"
+                        placeholder="Sélectionner les convives"
+                        class="w-full" 
+                        display="chip"
+                    />
+                </div>
+            </div>
+            <template #footer>
+                <Button label="Annuler" icon="pi pi-times" text severity="secondary" @click="showAttendeesDialog = false" />
+                <Button label="Enregistrer" icon="pi pi-check" @click="saveAttendees" />
+            </template>
+        </Dialog>
+
         <!-- RECIPE PICKER MODAL -->
         <Dialog v-model:visible="showRecipePicker" modal header="Choisir une recette" :style="{ width: '90vw', maxWidth: '600px' }">
             <div class="flex flex-col gap-4 py-2 h-[60vh]">
@@ -445,8 +496,6 @@ const handleMealClick = (meal: Meal) => {
                 </div>
             </div>
         </Dialog>
-        
-        <ConfirmDialog></ConfirmDialog>
 
     </div>
 </template>

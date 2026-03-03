@@ -62,6 +62,12 @@ const router = createRouter({
             name: 'import',
             component: () => import('../views/ImportRecipeView.vue'),
             meta: { title: 'Importer une Recette', requiresAuth: true }
+        },
+        {
+            path: '/admin',
+            name: 'admin',
+            component: () => import('../views/AdminView.vue'),
+            meta: { title: 'Administration Globale', requiresAuth: true, requiresAdmin: true }
         }
     ]
 })
@@ -82,12 +88,15 @@ router.beforeEach(async (to, _from, next) => {
     }
 
     const requiresAuth = to.meta.requiresAuth !== false
+    const requiresAdmin = to.meta.requiresAdmin === true
     const isAuthenticated = !!authStore.user
 
     if (requiresAuth && !isAuthenticated) {
         next({ name: 'login' })
     } else if (to.name === 'login' && isAuthenticated) {
         next({ name: 'meals' })
+    } else if (requiresAdmin && authStore.user?.email !== import.meta.env.VITE_ADMIN_EMAIL) {
+        next({ name: 'meals' }) // Redirect non-admins trying to access /admin
     } else {
         next()
     }

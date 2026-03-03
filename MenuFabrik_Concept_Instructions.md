@@ -37,3 +37,77 @@ L'application est fondamentalement **Multiplateforme Apple (iOS, iPadOS, macOS)*
 4. **Résilience et Sécurité** : Les opérations de génération ne doivent pas bloquer le thread principal (`@MainActor` / `async`) si cela devient lourd. Toujours gérer les cas où aucune recette n'est disponible.
 5. **Fixtures et Mocking** : Toujours maintenir le `DataSeeder` à jour avec le modèle pour faciliter l'onboarding et les tests manuels.
 6. **Thématisation & Dark Mode (Vue Web)** : Pour les composants PrimeVue, l'application utilise le système de design et les variables sémantiques primitives (Aura). Cependant, pour les balises HTML standards et conteneurs n'appartenant pas à PrimeVue, les variables `surface-*` ne s'inversent **pas** automatiquement dans Tailwind. Par conséquent, **il est obligatoire** d'utiliser les modificateurs Tailwind `dark:` de façon explicite (ex: `bg-surface-0 dark:bg-surface-900 text-surface-900 dark:text-surface-0`). Lorsque vous créez de nouvelles vues à l'avenir, n'hésitez pas à envelopper les parties non-gérées par PrimeVue avec une déclaration type : `bg-surface-0 dark:bg-surface-900 text-surface-900 dark:text-surface-0`.
+
+## 🗂 Structure du Projet Web (Vue 3 + Firebase)
+
+Le projet web est situé dans `MenuFabrikWeb/`. La racine applicative est `src/`.
+
+```
+MenuFabrikWeb/
+├── src/
+│   ├── models/            # Types TypeScript purs (interfaces)
+│   │   ├── Meal.ts        # Meal, MealStatus (PLANNED, RESTAURANT, ABSENT…), MealTime
+│   │   ├── Recipe.ts      # Recipe avec category, allergens, prepTime, rating…
+│   │   ├── Participant.ts # Participant avec isActive, allergenIds
+│   │   ├── Allergen.ts
+│   │   └── SideDish.ts
+│   │
+│   ├── stores/            # Pinia stores — consomment useFirebaseCollection
+│   │   ├── authStore.ts   # Auth Firebase, setupAuthListener, isUserDbInitialized
+│   │   ├── mealStore.ts   # meals + saveMealsBatch (opération batch Firestore)
+│   │   ├── recipeStore.ts
+│   │   ├── participantStore.ts
+│   │   ├── allergenStore.ts
+│   │   └── sideDishStore.ts
+│   │
+│   ├── composables/
+│   │   ├── useFirebaseCollection.ts  # Composable générique CRUD + onSnapshot (DRY)
+│   │   └── useTheme.ts               # Toggle dark/light mode
+│   │
+│   ├── services/
+│   │   ├── MenuGeneratorEngine.ts    # Algorithme de génération (logique pure, sans dépendance Firebase)
+│   │   ├── GeminiService.ts          # Intégration IA Gemini (import de recettes, liste de courses)
+│   │   ├── RecipeShareService.ts     # Partage/import de recettes via URL
+│   │   └── DataSeeder.ts             # Peuplement initial Firestore à la création d'un compte
+│   │
+│   ├── views/             # Pages principales (une URL = une vue)
+│   │   ├── MealsView.vue         # Agenda & Menu — vue principale /meals
+│   │   ├── MealDetailView.vue    # Détail d'un repas /meals/:id
+│   │   ├── RecipesView.vue       # Liste des recettes /recipes
+│   │   ├── RecipeFormView.vue    # Création/édition d'une recette /recipes/new|:id
+│   │   ├── ImportRecipeView.vue  # Import de recette via IA /recipes/import
+│   │   ├── ShoppingListView.vue  # Liste de courses /shopping-list
+│   │   ├── SettingsView.vue      # Paramètres (participants, allergènes, accompagnements) /settings
+│   │   └── LoginView.vue         # Authentification /login
+│   │
+│   ├── components/
+│   │   ├── MealCardView.vue           # Carte repas dans l'agenda (squelette, planifié, statut)
+│   │   ├── layout/
+│   │   │   ├── AppLayout.vue          # Layout global (sidebar desktop + nav mobile, ConfirmDialog global)
+│   │   │   └── ReloadPrompt.vue       # PWA update prompt
+│   │   ├── planning/
+│   │   │   └── PlanMealDialog.vue     # Dialog planification (date, durée, participants)
+│   │   ├── recipes/
+│   │   │   └── RecipeCard.vue
+│   │   └── settings/
+│   │       ├── SettingsParticipantsTab.vue
+│   │       ├── SettingsAllergensTab.vue
+│   │       └── SettingsSideDishesTab.vue
+│   │
+│   ├── firebase/
+│   │   └── config.ts      # Init Firebase app + Firestore db
+│   └── router/
+│       └── index.ts       # Routes Vue Router (toutes protégées par guard auth sauf /login)
+│
+├── functions/             # Cloud Functions Firebase (si utilisées)
+├── firestore.rules        # Règles de sécurité Firestore (verrouillage par isOwner)
+├── .agents/workflows/     # Workflows Antigravity (/dev, /deploy, /new-view, /new-store)
+└── package.json           # Scripts : dev, build, deploy (= build + firebase deploy hosting+firestore)
+```
+
+### Conventions importantes
+
+- Toutes les vues utilisent `<script setup lang="ts">` (Composition API).
+- Les composants PrimeVue (Button, Dialog, etc.) sont importés **manuellement** dans chaque fichier (pas d'auto-import global).
+- Le `<ConfirmDialog>` est instancié **une seule fois** globalement dans `AppLayout.vue` — ne pas l'ajouter dans les vues individuelles.
+- La collection Firestore de chaque store est sous `users/{uid}/{collection}` — géré automatiquement par `useFirebaseCollection`.

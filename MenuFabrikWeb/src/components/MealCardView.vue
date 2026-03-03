@@ -19,6 +19,7 @@ const emit = defineEmits<{
     (e: 'click'): void;
     (e: 'delete'): void;
     (e: 'change-status', payload: MealStatus): void;
+    (e: 'edit-attendees'): void;
 }>();
 
 const menu = ref();
@@ -90,23 +91,36 @@ const categoryColorClass = computed(() => {
                 </div>
                 
                 <!-- Participants (Avatars) -->
-                <AvatarGroup v-if="meal.attendees && meal.attendees.length > 0">
+                <div 
+                    class="cursor-pointer hover:opacity-80 transition-all flex items-center justify-center border border-transparent hover:border-surface-300 dark:hover:border-surface-600 rounded-full p-0.5"
+                    @click.stop="emit('edit-attendees')"
+                    title="Modifier les participants"
+                >
+                    <AvatarGroup v-if="meal.attendees && meal.attendees.length > 0">
+                        <Avatar 
+                            v-for="p in meal.attendees.slice(0, 3)" 
+                            :key="p.id" 
+                            :label="p.name.charAt(0).toUpperCase()" 
+                            shape="circle" 
+                            size="small"
+                            class="bg-primary-100 text-primary-900 font-bold text-xs"
+                        />
+                        <Avatar 
+                            v-if="meal.attendees.length > 3" 
+                            :label="`+${meal.attendees.length - 3}`" 
+                            shape="circle" 
+                            size="small"
+                            class="bg-surface-100 text-surface-600 font-bold text-xs"
+                        />
+                    </AvatarGroup>
                     <Avatar 
-                        v-for="p in meal.attendees.slice(0, 3)" 
-                        :key="p.id" 
-                        :label="p.name.charAt(0).toUpperCase()" 
+                        v-else
+                        icon="pi pi-user-plus" 
                         shape="circle" 
                         size="small"
-                        class="bg-primary-100 text-primary-900 font-bold text-xs"
+                        class="bg-surface-100 dark:bg-surface-800 text-surface-500 border border-dashed border-surface-300 dark:border-surface-600"
                     />
-                    <Avatar 
-                        v-if="meal.attendees.length > 3" 
-                        :label="`+${meal.attendees.length - 3}`" 
-                        shape="circle" 
-                        size="small"
-                        class="bg-surface-100 text-surface-600 font-bold text-xs"
-                    />
-                </AvatarGroup>
+                </div>
             </div>
 
             <!-- Body: Recette ou Placeholder -->
