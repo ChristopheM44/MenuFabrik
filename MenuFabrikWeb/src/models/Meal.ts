@@ -3,8 +3,11 @@ import type { Recipe } from './Recipe';
 import type { SideDish } from './SideDish';
 
 export const MealTime = {
+    BREAKFAST: "Petit-déjeuner",
     LUNCH: "Midi",
-    DINNER: "Soir"
+    SNACK: "Collation",
+    DINNER: "Soir",
+    OTHER: "Autre"
 } as const;
 export type MealTime = typeof MealTime[keyof typeof MealTime];
 
@@ -24,6 +27,10 @@ export interface Meal {
     date: Date | string; // Firebase utilise des Timestamp, mais souvent on manipule des string ISO "2024-03-01T12:00:00Z"
     type: MealTime;
     status: MealStatus;
+
+    // Pour différencier un repas contenant potentiellement une recette d'une simple note libre
+    format?: 'standard' | 'note';
+    noteText?: string;
 
     // Pour des questions de facilité avec Firestore en NoSQL, il est souvent préférable
     // d'embarquer (embed) une vue simplifiée de la recette ou juste son ID. 

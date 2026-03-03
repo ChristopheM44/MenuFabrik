@@ -7,6 +7,8 @@ import Button from 'primevue/button';
 import Avatar from 'primevue/avatar';
 import AvatarGroup from 'primevue/avatargroup';
 import Menu from 'primevue/menu';
+import InputText from 'primevue/inputtext';
+import { watch } from 'vue';
 
 const props = defineProps<{
     meal: Meal;
@@ -20,6 +22,7 @@ const emit = defineEmits<{
     (e: 'delete'): void;
     (e: 'change-status', payload: MealStatus): void;
     (e: 'edit-attendees'): void;
+    (e: 'update-note', payload: string): void;
 }>();
 
 const menu = ref();
@@ -52,6 +55,7 @@ const statusMenuItems = computed(() => {
 const isPlanned = computed(() => props.meal.status === MealStatus.PLANNED);
 const hasRecipe = computed(() => !!props.meal.recipe);
 const categoryColorClass = computed(() => {
+    if (props.meal.format === 'note') return 'border-primary-200 dark:border-primary-800';
     if (!hasRecipe.value) return 'border-surface-200 dark:border-surface-700';
     const cat = props.meal.recipe?.category;
     if (cat === 'Viandes') return 'border-red-500/50';
@@ -59,18 +63,56 @@ const categoryColorClass = computed(() => {
     if (cat === 'Végétarien') return 'border-green-500/50';
     return 'border-surface-300';
 });
+
+// --- Gestion des Notes ---
+const localNote = ref(props.meal.noteText || '');
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+const onNoteChange = (val: string) => {
+    localNote.value = val;
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+        emit('update-note', localNote.value);
+    }, 500);
+};
+
+watch(() => props.meal.noteText, (newVal) => {
+    if (newVal !== localNote.value) {
+        localNote.value = newVal || '';
+    }
+});
 </script>
 
 <template>
     <div 
         class="meal-card flex flex-col gap-2 p-3 rounded-xl border transition-all overflow-hidden relative"
-        :class="[categoryColorClass, hasRecipe ? 'pb-2 bg-surface-0 dark:bg-surface-900' : 'bg-transparent']"
+        :class="[
+            categoryColorClass, 
+            hasRecipe ? 'pb-2 bg-surface-0 dark:bg-surface-900' : 'bg-transparent',
+            meal.format === 'note' ? 'border-dashed bg-primary-50/30 dark:bg-primary-900/10' : ''
+        ]"
     >
-        <!-- Barre de couleur type de repas pour égayer le design -->
-        <div class="absolute left-0 top-0 bottom-0 w-1.5" :class="categoryColorClass" v-if="hasRecipe"></div>
+        <template v-if="meal.format === 'note'">
+            <!-- Note UI Minimaliste -->
+             <div class="flex items-start gap-2 w-full py-1">
+                <i class="pi pi-file-edit text-primary-400 mt-3 ml-2"></i>
+                <div class="flex-1">
+                    <InputText 
+                        v-model="localNote" 
+                        @input="onNoteChange(($event.target as HTMLInputElement).value)" 
+                        placeholder="Une idée, un reste, une note..." 
+                        class="w-full border-none bg-transparent shadow-none px-2 py-2 text-surface-700 dark:text-surface-300 focus:ring-0" 
+                    />
+                </div>
+                <Button icon="pi pi-trash" text rounded severity="secondary" size="small" class="opacity-50 hover:opacity-100" style="width: 2rem; height: 2rem; padding: 0;" @click.stop="emit('delete')" title="Supprimer la note" />
+             </div>
+        </template>
         
-        <!-- Wrapper du contenu principal -->
-        <div class="flex-1 flex flex-col gap-2" :class="{'pl-3': hasRecipe}">
+        <template v-else>
+            <!-- Barre de couleur type de repas pour égayer le design -->
+            <div class="absolute left-0 top-0 bottom-0 w-1.5" :class="categoryColorClass" v-if="hasRecipe"></div>
+            
+            <!-- Wrapper du contenu principal -->
+            <div class="flex-1 flex flex-col gap-2" :class="{'pl-3': hasRecipe}">
             <!-- Header: Type et statut et boutons d'action -->
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
@@ -168,6 +210,7 @@ const categoryColorClass = computed(() => {
                 </div>
             </div>
         </div>
+        </template>
     </div>
 </template>
 

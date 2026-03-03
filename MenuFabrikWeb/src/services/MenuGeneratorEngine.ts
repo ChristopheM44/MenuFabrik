@@ -25,6 +25,7 @@ export class MenuGeneratorEngine {
         let previousSideDishId: string | null = null;
 
         for (const meal of sortedMeals) {
+            if (meal.format === 'note') continue;
             if (meal.status !== MealStatus.PLANNED) continue;
             if (meal.recipeId) continue;
 
@@ -77,6 +78,7 @@ export class MenuGeneratorEngine {
      * Trouve une recette alternative pour un repas unique
      */
     static generateAlternative(meal: Meal, availableRecipes: Recipe[], participants: Participant[], history: Meal[]): void {
+        if (meal.format === 'note') return;
         if (meal.status !== MealStatus.PLANNED) return;
 
         const safeRecipes = this.getSafeRecipes(meal, availableRecipes, participants);
