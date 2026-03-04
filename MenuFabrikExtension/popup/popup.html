@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MenuFabrik Drive</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">🍽 MenuFabrik Drive</div>
+        </header>
+
+        <main>
+            <div id="status-container" class="status-box">
+                Chargement de la liste...
+            </div>
+
+            <div class="actions-bar">
+                <label class="chk-all-label">
+                    <input type="checkbox" id="chk-all" checked>
+                    Tout
+                </label>
+                <div class="actions-right">
+                    <button id="btn-clear" class="btn outline">🗑 Vider</button>
+                    <button id="btn-start" class="btn success disabled" disabled>🛒 Lancer</button>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <p>ℹ️ <b>Mode Copilote</b> — L'extension cherche chaque produit. Ajoutez-le au panier, elle passe
+                    automatiquement au suivant !</p>
+            </div>
+
+            <div class="list-container">
+                <ul id="shopping-list">
+                    <!-- Javascript content -->
+                </ul>
+            </div>
+
+            <div class="progress-container hidden" id="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="progress-text" id="progress-text">0/0 articles traités</div>
+            </div>
+        </main>
+    </div>
+    <script src="../shared/storage-keys.js"></script>
+    <script src="popup.js"></script>
+</body>
+
+</html>

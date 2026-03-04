@@ -1,0 +1,173 @@
+/* copilot-toolbar.css — Styles de la barre de contrôle du Copilote MenuFabrik */
+/* Injecté via manifest.json sur leclercdrive.fr */
+
+/* --------------------------------------------------------
+   Keyframes
+   -------------------------------------------------------- */
+@keyframes mfPulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes mfSlideDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes mfSlideUp {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+}
+
+/* --------------------------------------------------------
+   Toolbar principale
+   -------------------------------------------------------- */
+#menufabrik-copilot-toolbar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: linear-gradient(135deg, #1e293b, #0f172a) !important;
+    color: white !important;
+    z-index: 2147483647 !important;
+    /* Max z-index */
+    padding: 12px 24px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    font-family: system-ui, -apple-system, sans-serif !important;
+    border-bottom: 3px solid #0ea5e9 !important;
+    transition: border-color 0.3s !important;
+}
+
+#menufabrik-copilot-toolbar.mf-copilot-enter {
+    animation: mfSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+#menufabrik-copilot-toolbar.mf-copilot-exit {
+    animation: mfSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+#menufabrik-copilot-toolbar.mf-state-success {
+    border-bottom-color: #10b981 !important;
+}
+
+/* --------------------------------------------------------
+   Sections gauche / droite
+   -------------------------------------------------------- */
+.mf-copilot-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.mf-copilot-right {
+    display: flex;
+    gap: 12px;
+}
+
+/* --------------------------------------------------------
+   Icône
+   -------------------------------------------------------- */
+.mf-copilot-icon {
+    font-size: 24px;
+    animation: mfPulse 2s infinite;
+}
+
+.mf-copilot-icon--static {
+    animation: none;
+}
+
+/* --------------------------------------------------------
+   Textes
+   -------------------------------------------------------- */
+.mf-copilot-title {
+    font-size: 13px;
+    color: #94a3b8;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.mf-copilot-instruction {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.mf-copilot-success-text {
+    font-size: 16px;
+    font-weight: bold;
+    color: #10b981;
+}
+
+/* --------------------------------------------------------
+   Boutons
+   -------------------------------------------------------- */
+.mf-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+    transition: background 0.2s;
+    border: none;
+}
+
+.mf-btn-pause {
+    background: rgba(251, 191, 36, 0.15);
+    border: 1px solid rgba(251, 191, 36, 0.4);
+    color: #fbbf24;
+}
+
+.mf-btn-pause:hover {
+    background: rgba(251, 191, 36, 0.25);
+}
+
+.mf-btn-skip {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.mf-btn-skip:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.mf-btn-manual-ok {
+    background: rgba(16, 185, 129, 0.2);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #34d399;
+    display: none;
+    /* Affiché via JS après le délai */
+}
+
+.mf-btn-manual-ok:hover {
+    background: rgba(16, 185, 129, 0.3);
+}
