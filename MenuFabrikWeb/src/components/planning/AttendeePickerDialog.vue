@@ -46,8 +46,11 @@ const close = () => {
                 Sélectionnez les personnes présentes pour ce repas.
             </p>
             <div class="flex flex-col gap-2">
-                <label class="font-semibold text-sm">Participants</label>
+                <label for="attendees-select" class="font-semibold text-sm">Participants</label>
                 <MultiSelect
+                    id="attendees-wrapper"
+                    name="attendees-select"
+                    inputId="attendees-select"
                     v-model="selectedAttendees"
                     :options="participantStore.participants"
                     optionLabel="name"
