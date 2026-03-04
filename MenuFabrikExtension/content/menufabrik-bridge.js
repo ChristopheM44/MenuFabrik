@@ -8,7 +8,7 @@ let lastExportState = null;
 // Vérifier toutes les secondes si une nouvelle liste a été exportée
 setInterval(() => {
     try {
-        const dataStr = window.localStorage.getItem('menufabrik_drive_export');
+        const dataStr = window.localStorage.getItem(MF_KEYS.DRIVE_EXPORT);
 
         if (dataStr && dataStr !== lastExportState) {
             // Identifier le changement avant de parser
@@ -25,7 +25,7 @@ setInterval(() => {
                     }
 
                     // Sauvegarder dans le storage de l'extension
-                    chrome.storage.local.set({ 'menufabrik_items': dataObj.items }, () => {
+                    chrome.storage.local.set({ [MF_KEYS.ITEMS]: dataObj.items }, () => {
                         if (chrome.runtime.lastError) {
                             console.error("MenuFabrik Bridge : Erreur de sauvegarde", chrome.runtime.lastError);
                         } else {

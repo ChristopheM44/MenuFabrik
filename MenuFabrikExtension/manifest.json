@@ -25,7 +25,11 @@
                 "https://*.leclercdrive.fr/*"
             ],
             "js": [
+                "shared/storage-keys.js",
                 "content/leclerc-driver.js"
+            ],
+            "css": [
+                "content/copilot-toolbar.css"
             ],
             "run_at": "document_idle"
         },
@@ -36,6 +40,7 @@
                 "https://*.firebaseapp.com/*"
             ],
             "js": [
+                "shared/storage-keys.js",
                 "content/menufabrik-bridge.js"
             ],
             "run_at": "document_idle"

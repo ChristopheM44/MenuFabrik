@@ -1,3 +1,5 @@
+/* popup.css — Styles du popup MenuFabrik Drive */
+
 :root {
     --primary: #10b981;
     --primary-hover: #059669;
@@ -6,9 +8,13 @@
     --text: #0f172a;
     --text-muted: #64748b;
     --border: #e2e8f0;
-    --success: #10b981;
-    --error: #ef4444;
-    --warning: #f59e0b;
+}
+
+html,
+body {
+    height: 560px;
+    /* Hauteur fixe du popup — empêche la scrollbar externe de Chrome */
+    overflow: hidden;
 }
 
 body {
@@ -24,6 +30,7 @@ body {
     display: flex;
     flex-direction: column;
     height: 100%;
+    overflow: hidden;
 }
 
 header {
@@ -43,8 +50,18 @@ header {
 
 main {
     padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* On bloque le débordement ici */
+    min-height: 0;
+    /* Nécessaire pour que flex: 1 fonctionne dans un parent flex */
 }
 
+/* --------------------------------------------------------
+   Status box
+   -------------------------------------------------------- */
 .status-box {
     background-color: var(--surface);
     border: 1px solid var(--border);
@@ -56,31 +73,77 @@ main {
     margin-bottom: 16px;
 }
 
-.actions {
+/* --------------------------------------------------------
+   Barre d'actions (Tout / Vider / Lancer)
+   -------------------------------------------------------- */
+.actions-bar {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
     gap: 8px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
+.chk-all-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.9em;
+    cursor: pointer;
+}
+
+.actions-right {
+    display: flex;
+    gap: 8px;
+}
+
+/* --------------------------------------------------------
+   Boîte d'information Mode Copilote
+   -------------------------------------------------------- */
+.info-box {
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    color: #1e40af;
+    margin-bottom: 12px;
+}
+
+.info-box-title {
+    font-weight: bold;
+    margin: 0 0 4px 0;
+    font-size: 0.85rem;
+}
+
+.info-box p {
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* --------------------------------------------------------
+   Boutons
+   -------------------------------------------------------- */
 .btn {
     border: none;
     border-radius: 6px;
-    padding: 10px 16px;
-    font-size: 0.95rem;
+    padding: 8px 12px;
+    font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
     text-align: center;
 }
 
-.btn.primary {
-    background-color: var(--surface);
+.btn.outline {
+    background-color: transparent;
     border: 1px solid var(--border);
-    color: var(--text);
+    color: var(--text-muted);
+    padding: 6px 10px;
+    font-size: 0.85rem;
 }
 
-.btn.primary:hover:not(.disabled) {
+.btn.outline:hover:not(.disabled) {
     background-color: #f1f5f9;
 }
 
@@ -98,9 +161,16 @@ main {
     cursor: not-allowed;
 }
 
+/* --------------------------------------------------------
+   Liste d'articles
+   -------------------------------------------------------- */
 .list-container {
-    max-height: 250px;
+    flex: 1;
+    /* Prend tout l'espace vertical restant */
+    min-height: 0;
+    /* Indispensable pour que flex+overflow-y fonctionne */
     overflow-y: auto;
+    /* Seule scrollbar autorisée */
     background-color: var(--surface);
     border-radius: 8px;
     border: 1px solid var(--border);
@@ -125,16 +195,44 @@ main {
     border-bottom: none;
 }
 
-.item-name {
-    font-weight: 500;
+.item-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    cursor: pointer;
 }
 
+.item-name {
+    font-weight: 500;
+    flex: 1;
+}
+
+.item-name--done {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+/* Badge de quantité (×3) */
+.item-qty {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #0ea5e9;
+    background: #e0f2fe;
+    border-radius: 10px;
+    padding: 1px 6px;
+}
+
+/* --------------------------------------------------------
+   Badges de statut
+   -------------------------------------------------------- */
 .item-status {
     font-size: 0.75rem;
     padding: 2px 6px;
     border-radius: 12px;
     background: #f1f5f9;
     color: var(--text-muted);
+    white-space: nowrap;
 }
 
 .item-status.ok {
@@ -145,6 +243,7 @@ main {
 .item-status.err {
     background: #fee2e2;
     color: #991b1b;
+    cursor: pointer;
 }
 
 .item-status.doing {
@@ -152,6 +251,16 @@ main {
     color: #854d0e;
 }
 
+.item-status.skipped {
+    background: #f1f5f9;
+    color: #94a3b8;
+    border: 1px solid #cbd5e1;
+    cursor: pointer;
+}
+
+/* --------------------------------------------------------
+   Barre de progression
+   -------------------------------------------------------- */
 .hidden {
     display: none !important;
 }
