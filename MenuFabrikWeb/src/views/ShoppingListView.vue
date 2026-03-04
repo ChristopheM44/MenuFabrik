@@ -206,13 +206,31 @@ const copyToClipboard = async () => {
     }
 };
 
+/**
+ * Extrait le nombre entier de fois qu'il faut ajouter un article au panier.
+ * Règle pragmatique : seuls les articles sans unité (ou en "pièces") peuvent avoir
+ * une quantité > 1, car on ne peut pas demander "3 kg" en un clic sur LeclercDrive.
+ * Pour "3 kg" → 1, pour "4" → 4, pour "" → 1.
+ */
+function extractCartQuantity(_details: string): number {
+    // TODO (Quantités v2) : Activer la logique ci-dessous quand LeclercDrive
+    // supportera les ajouts multiples détectables par le Copilote.
+    // const hasUnit = /\b(kg|g|l|cl|ml|litre|gramme|kilo)\b/i.test(_details);
+    // if (hasUnit || !_details) return 1;
+    // const match = _details.match(/^\d+(?:\.\d+)?/);
+    // if (!match) return 1;
+    // const qty = Math.round(parseFloat(match[0]));
+    // return qty >= 1 ? qty : 1;
+    return 1;
+}
+
 const sendToDrive = () => {
     const itemsToExport = shoppingList.value.filter(i => !i.checked);
     
     // We only send checked items, mapped to a clean structure
     const exportData = {
         source: 'menufabrik',
-        version: 1,
+        version: 2,
         exportedAt: new Date().toISOString(),
         dateRange: {
             from: datesRange.value[0]?.toISOString(),
@@ -220,8 +238,9 @@ const sendToDrive = () => {
         },
         items: itemsToExport.map(item => ({
             name: item.name,
-            searchTerm: item.name.replace(/[^a-zA-Z\sÀ-ÿ]/g, '').trim(), // Clean name for search
-            details: item.details
+            searchTerm: item.name.replace(/[^a-zA-Z\sÀ-ÿ]/g, '').trim(),
+            details: item.details,
+            quantity: extractCartQuantity(item.details) // Nombre d'ajouts attendus dans le panier
         }))
     };
     

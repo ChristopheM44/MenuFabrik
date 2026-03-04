@@ -19,27 +19,20 @@
                 Chargement de la liste...
             </div>
 
-            <div class="actions" style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-                <label style="display: flex; align-items: center; gap: 4px; font-size: 0.9em; cursor: pointer;">
+            <div class="actions-bar">
+                <label class="chk-all-label">
                     <input type="checkbox" id="chk-all" checked>
                     Tout
                 </label>
-                <div style="display: flex; gap: 8px;">
-                    <button id="btn-clear" class="btn outline" style="padding: 6px 10px; font-size: 0.9em;">🗑
-                        Vider</button>
+                <div class="actions-right">
+                    <button id="btn-clear" class="btn outline">🗑 Vider</button>
                     <button id="btn-start" class="btn success disabled" disabled>🛒 Lancer</button>
                 </div>
             </div>
 
-            <div class="info-box mb-4 p-3 bg-blue-50 text-blue-800 rounded-lg text-sm border border-blue-200">
-                <h5 class="font-bold flex items-center gap-2 mb-1">
-                    <i class="pi pi-info-circle"></i> Mode Copilote
-                </h5>
-                <p>1. Cliquez sur Lancer l'import.<br>
-                    2. <b>L'extension cherche chaque produit.</b><br>
-                    3. <b>Une barre de contrôle s'affiche en haut de LeclercDrive</b>.<br>
-                    4. Choisissez le produit que vous préférez et <b>ajoutez-le vous-même au panier</b>. L'extension
-                    passera automatiquement au suivant !</p>
+            <div class="info-box">
+                <p>ℹ️ <b>Mode Copilote</b> — L'extension cherche chaque produit. Ajoutez-le au panier, elle passe
+                    automatiquement au suivant !</p>
             </div>
 
             <div class="list-container">
@@ -56,6 +49,7 @@
             </div>
         </main>
     </div>
+    <script src="../shared/storage-keys.js"></script>
     <script src="popup.js"></script>
 </body>
 
