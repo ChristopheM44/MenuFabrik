@@ -101,6 +101,8 @@ watch(() => props.meal.noteText, (newVal) => {
                 <i class="pi pi-file-edit text-primary-400 mt-0.5 ml-2"></i>
                 <div class="flex-1">
                     <InputText 
+                        :id="'note-' + meal.id"
+                        :name="'note-' + meal.id"
                         v-model="localNote" 
                         @input="onNoteChange(($event.target as HTMLInputElement).value)" 
                         placeholder="Une idée, un reste, une note..." 

@@ -280,12 +280,15 @@ const getCategoryColor = (category?: string) => {
 
                 <!-- COLONNE DROITE : ACCOMPAGNEMENTS -->
                 <div class="flex flex-col gap-4">
-                    <h2 class="text-xl font-semibold flex items-center gap-2"><i class="pi pi-tags text-green-500"></i> Accompagnements</h2>
+                    <h2 class="text-xl font-semibold flex items-center gap-2"><i class="pi pi-tags text-green-500"></i> <label for="side-dishes-select">Accompagnements</label></h2>
                     
                     <div class="bg-surface-0 dark:bg-surface-900 p-5 rounded-xl shadow-sm border border-surface-200 dark:border-surface-700 flex flex-col gap-4">
                         <p class="text-sm text-surface-500">Sélectionnez les accompagnements (légumes, féculents) pour compléter ce plat.</p>
                         
                         <MultiSelect 
+                            id="side-dishes-wrapper"
+                            name="side-dishes-select"
+                            inputId="side-dishes-select"
                             v-model="selectedSideDishIds" 
                             :options="sortedSideDishes" 
                             optionLabel="name" 

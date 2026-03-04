@@ -60,6 +60,8 @@ const close = () => {
             <IconField>
                 <InputIcon class="pi pi-search" />
                 <InputText
+                    id="recipe-search"
+                    name="recipe-search"
                     v-model="recipeSearchQuery"
                     placeholder="Rechercher un plat..."
                     class="w-full"

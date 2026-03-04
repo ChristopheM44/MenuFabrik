@@ -115,18 +115,21 @@ const planEmptyMeals = async () => {
             </p>
 
             <div class="flex flex-col gap-2">
-                <label class="font-semibold text-sm">À partir du</label>
-                <DatePicker v-model="planStartDate" dateFormat="dd/mm/yy" class="w-full" showIcon />
+                <label for="plan-start-date" class="font-semibold text-sm">À partir du</label>
+                <DatePicker id="plan-start-date-wrapper" name="plan-start-date" inputId="plan-start-date" v-model="planStartDate" dateFormat="dd/mm/yy" class="w-full" showIcon />
             </div>
 
             <div class="flex flex-col gap-2">
-                <label class="font-semibold text-sm">Pendant</label>
-                <Select v-model="planNumDays" :options="planDaysOptions" optionLabel="label" optionValue="value" class="w-full" />
+                <label for="plan-days" class="font-semibold text-sm">Pendant</label>
+                <Select id="plan-days-wrapper" name="plan-days" inputId="plan-days" v-model="planNumDays" :options="planDaysOptions" optionLabel="label" optionValue="value" class="w-full" />
             </div>
             
             <div class="flex flex-col gap-2">
-                <label class="font-semibold text-sm">Participants (Général)</label>
+                <label for="plan-attendees" class="font-semibold text-sm">Participants (Général)</label>
                 <MultiSelect 
+                    id="plan-attendees-wrapper"
+                    name="plan-attendees"
+                    inputId="plan-attendees"
                     v-model="planAttendees" 
                     :options="participantStore.participants" 
                     optionLabel="name" 

@@ -144,7 +144,7 @@ const shoppingList = computed<ShoppingItem[]>(() => {
         }
 
         result.push({
-            id: key,
+            id: 'shop-' + key.toLowerCase().replace(/[^a-z0-9]/g, '-'),
             name: formattedName,
             details: combinedItems.join(', '),
             checked: false
@@ -155,29 +155,51 @@ const shoppingList = computed<ShoppingItem[]>(() => {
 });
 
 const copyToClipboard = async () => {
-    let copyText = `🛒 Liste de courses du ${datesRange.value[0]?.toLocaleDateString('fr-FR')} au ${datesRange.value[1]?.toLocaleDateString('fr-FR')}\n\n`;
+    // 1. Version Texte Brut (simple tiret pour compatibilité)
+    let plainText = `🛒 Liste de courses du ${datesRange.value[0]?.toLocaleDateString('fr-FR')} au ${datesRange.value[1]?.toLocaleDateString('fr-FR')}\n\n`;
     
-    // Only copy items that are NOT checked
+    // 2. Version HTML (pour Apple Notes / Mail / etc.)
+    let htmlText = `<h2>🛒 Liste de courses du ${datesRange.value[0]?.toLocaleDateString('fr-FR')} au ${datesRange.value[1]?.toLocaleDateString('fr-FR')}</h2><ul>`;
+
     const itemsToCopy = shoppingList.value.filter(i => !i.checked);
 
     if (itemsToCopy.length === 0) {
-        copyText += "(Tous les articles ont été cochés !)";
+        const emptyMsg = "(Tous les articles ont été cochés !)";
+        plainText += emptyMsg;
+        htmlText += `<li><em>${emptyMsg}</em></li>`;
     } else {
         itemsToCopy.forEach(item => {
-            copyText += `- ${item.name}`;
-            if (item.details) {
-                copyText += ` : ${item.details}`;
-            }
-            copyText += '\n';
+            const itemLine = `${item.name}${item.details ? ` : ${item.details}` : ''}`;
+            plainText += `- ${itemLine}\n`;
+            htmlText += `<li>${itemLine}</li>`;
         });
     }
+    htmlText += '</ul>';
 
     try {
-        await navigator.clipboard.writeText(copyText);
+        // On essaie d'utiliser l'API moderne ClipboardItem pour le Rich Text
+        const blobText = new Blob([plainText], { type: 'text/plain' });
+        const blobHtml = new Blob([htmlText], { type: 'text/html' });
+        
+        await navigator.clipboard.write([
+            new ClipboardItem({
+                'text/plain': blobText,
+                'text/html': blobHtml
+            })
+        ]);
+        
         copySuccess.value = true;
         setTimeout(() => { copySuccess.value = false; }, 3000);
     } catch (err) {
         console.error('Failed to copy text: ', err);
+        // Fallback au texte brut simple si ClipboardItem échoue
+        try {
+            await navigator.clipboard.writeText(plainText);
+            copySuccess.value = true;
+            setTimeout(() => { copySuccess.value = false; }, 3000);
+        } catch (err2) {
+            console.error('Final fallback failed: ', err2);
+        }
     }
 };
 
@@ -203,8 +225,9 @@ const copyToClipboard = async () => {
             <!-- CONTROLS -->
             <div class="bg-surface-0 dark:bg-surface-900 p-5 rounded-xl shadow-sm border border-surface-200 dark:border-surface-700 flex flex-col sm:flex-row gap-4 items-center justify-between">
                 <div class="flex flex-col gap-2 w-full sm:w-auto">
-                    <label class="font-semibold text-sm">Période des courses</label>
+                    <label for="datesRange" class="font-semibold text-sm">Période des courses</label>
                     <DatePicker 
+                        inputId="datesRange"
                         v-model="datesRange" 
                         selectionMode="range" 
                         :manualInput="false" 

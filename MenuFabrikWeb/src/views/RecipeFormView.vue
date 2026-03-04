@@ -187,17 +187,17 @@ const cancel = () => {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="flex flex-col gap-2">
                     <label for="category" class="font-semibold">Catégorie</label>
-                    <Select id="category" v-model="recipeForm.category" :options="categories" optionLabel="label" optionValue="value" class="w-full" />
+                    <Select id="category-wrapper" inputId="category" v-model="recipeForm.category" :options="categories" optionLabel="label" optionValue="value" class="w-full" />
                 </div>
 
                 <div class="flex flex-col gap-2">
                     <label for="mealType" class="font-semibold">Type de Repas idéal</label>
-                    <Select id="mealType" v-model="recipeForm.mealType" :options="mealTypes" optionLabel="label" optionValue="value" class="w-full" />
+                    <Select id="mealType-wrapper" inputId="mealType" v-model="recipeForm.mealType" :options="mealTypes" optionLabel="label" optionValue="value" class="w-full" />
                 </div>
 
                 <div class="flex flex-col gap-2">
                     <label for="prepTime" class="font-semibold">Temps de préparation (min)</label>
-                    <InputNumber id="prepTime" v-model="recipeForm.prepTime" inputId="minmax-buttons" mode="decimal" showButtons :min="5" :max="240" :step="5" class="w-full" />
+                    <InputNumber id="prepTime-wrapper" inputId="prepTime" v-model="recipeForm.prepTime" mode="decimal" showButtons :min="5" :max="240" :step="5" class="w-full" />
                 </div>
                 
                 <div class="flex flex-col justify-center pt-2">
@@ -284,7 +284,8 @@ const cancel = () => {
             <div class="flex flex-col gap-2">
                 <label for="allergens" class="font-semibold">Allergènes Présents</label>
                 <MultiSelect 
-                    id="allergens" 
+                    id="allergens-wrapper" 
+                    inputId="allergens"
                     v-model="recipeForm.allergenIds" 
                     :options="allergenStore.allergens" 
                     optionLabel="name" 
@@ -300,7 +301,8 @@ const cancel = () => {
             <div class="flex flex-col gap-2">
                 <label for="sides" class="font-semibold">Accompagnements Suggérés</label>
                 <MultiSelect 
-                    id="sides" 
+                    id="sides-wrapper" 
+                    inputId="sides"
                     v-model="recipeForm.suggestedSideIds" 
                     :options="sortedSideDishes" 
                     optionLabel="name" 
