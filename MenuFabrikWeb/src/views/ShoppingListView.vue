@@ -9,10 +9,13 @@ import Checkbox from 'primevue/checkbox';
 import Button from 'primevue/button';
 import ProgressSpinner from 'primevue/progressspinner';
 import Message from 'primevue/message';
+import Toast from 'primevue/toast';
+import { useToast } from 'primevue/usetoast';
 
 const mealStore = useMealStore();
 const recipeStore = useRecipeStore();
 const sideDishStore = useSideDishStore();
+const toast = useToast();
 
 const datesRange = ref<Date[]>([]);
 const copySuccess = ref(false);
@@ -203,10 +206,42 @@ const copyToClipboard = async () => {
     }
 };
 
+const sendToDrive = () => {
+    const itemsToExport = shoppingList.value.filter(i => !i.checked);
+    
+    // We only send checked items, mapped to a clean structure
+    const exportData = {
+        source: 'menufabrik',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        dateRange: {
+            from: datesRange.value[0]?.toISOString(),
+            to: datesRange.value[1]?.toISOString()
+        },
+        items: itemsToExport.map(item => ({
+            name: item.name,
+            searchTerm: item.name.replace(/[^a-zA-Z\sÀ-ÿ]/g, '').trim(), // Clean name for search
+            details: item.details
+        }))
+    };
+    
+    // Save to localStorage so the Chrome Extension can read it
+    localStorage.setItem('menufabrik_drive_export', JSON.stringify(exportData));
+    
+    // Show success toast
+    toast.add({ 
+        severity: 'success', 
+        summary: 'Export réussi', 
+        detail: 'Ouvrez leclercdrive.fr et cliquez sur l\'extension MenuFabrik en haut à droite pour ajouter ces articles à votre panier.', 
+        life: 8000 
+    });
+};
+
 </script>
 
 <template>
     <div class="shopping-list-view max-w-3xl mx-auto p-4 animate-fadein pb-8">
+        <Toast />
         
         <div class="mb-6">
             <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0 flex items-center gap-3">
@@ -238,13 +273,21 @@ const copyToClipboard = async () => {
                     />
                 </div>
                 
-                <div class="w-full sm:w-auto pt-5">
+                <div class="w-full sm:w-auto pt-5 flex items-center gap-2">
                     <Button 
                         :icon="copySuccess ? 'pi pi-check' : 'pi pi-copy'" 
                         :label="copySuccess ? 'Copié !' : 'Copier (Drive/Notes)'" 
-                        :severity="copySuccess ? 'success' : 'primary'"
+                        :severity="copySuccess ? 'success' : 'secondary'"
                         @click="copyToClipboard" 
-                        class="w-full"
+                        class="w-full sm:w-auto"
+                        :disabled="shoppingList.length === 0"
+                    />
+                    <Button 
+                        icon="pi pi-send" 
+                        label="Envoyer au Drive" 
+                        severity="primary"
+                        @click="sendToDrive" 
+                        class="w-full sm:w-auto"
                         :disabled="shoppingList.length === 0"
                     />
                 </div>
