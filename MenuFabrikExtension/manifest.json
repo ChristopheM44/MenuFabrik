@@ -1,0 +1,57 @@
+{
+    "manifest_version": 3,
+    "name": "MenuFabrik Drive",
+    "version": "1.0.0",
+    "description": "Envoyez votre liste de courses MenuFabrik directement dans votre panier LeclercDrive.",
+    "permissions": [
+        "activeTab",
+        "storage",
+        "scripting"
+    ],
+    "host_permissions": [
+        "https://*.leclercdrive.fr/*"
+    ],
+    "action": {
+        "default_popup": "popup/popup.html",
+        "default_icon": {
+            "16": "icons/icon16.png",
+            "48": "icons/icon48.png",
+            "128": "icons/icon128.png"
+        }
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://*.leclercdrive.fr/*"
+            ],
+            "js": [
+                "shared/storage-keys.js",
+                "content/leclerc-driver.js"
+            ],
+            "css": [
+                "content/copilot-toolbar.css"
+            ],
+            "run_at": "document_idle"
+        },
+        {
+            "matches": [
+                "http://localhost:*/*",
+                "https://*.web.app/*",
+                "https://*.firebaseapp.com/*"
+            ],
+            "js": [
+                "shared/storage-keys.js",
+                "content/menufabrik-bridge.js"
+            ],
+            "run_at": "document_idle"
+        }
+    ],
+    "background": {
+        "service_worker": "background/service-worker.js"
+    },
+    "icons": {
+        "16": "icons/icon16.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    }
+}
