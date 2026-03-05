@@ -16,6 +16,7 @@ declare module 'vue' {
     Button: typeof import('primevue/button')['default']
     Card: typeof import('primevue/card')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
+    ImportMealsToShoppingModal: typeof import('./src/components/planning/ImportMealsToShoppingModal.vue')['default']
     InputText: typeof import('primevue/inputtext')['default']
     MealCardView: typeof import('./src/components/MealCardView.vue')['default']
     Message: typeof import('primevue/message')['default']
