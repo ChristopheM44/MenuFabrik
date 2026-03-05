@@ -27,8 +27,8 @@ const filteredRecipes = computed(() => {
     let result = recipeStore.recipes;
     if (searchQuery.value) {
         const lowerQuery = searchQuery.value.toLowerCase();
-        result = result.filter(r => 
-            r.name.toLowerCase().includes(lowerQuery) || 
+        result = result.filter(r =>
+            r.name.toLowerCase().includes(lowerQuery) ||
             r.category.toLowerCase().includes(lowerQuery)
         );
     }
@@ -61,34 +61,34 @@ const shareRecipe = async (recipe: any) => {
 
 <template>
     <div class="recipes-view w-full max-w-5xl mx-auto p-4 animate-fadein pb-8">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-2">
             <div>
-                <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0 border-l-4 pl-3 border-primary-500">Carnet de Recettes</h1>
-                <p class="text-surface-500 mt-1 pl-3">{{ recipeStore.recipes.length }} recettes disponibles</p>
+                <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0 flex items-center gap-3">
+                    <i class="pi pi-book text-primary-500"></i>
+                    Carnet de Recettes
+                </h1>
+                <p class="text-surface-500 dark:text-surface-400 mt-2">{{ recipeStore.recipes.length }} recettes
+                    disponibles</p>
             </div>
-            
+
             <div class="flex w-full md:w-auto gap-3">
                 <span class="relative w-full md:w-64">
-                    <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-surface-400"></i>
-                    <InputText v-model="searchQuery" placeholder="Rechercher une recette..." class="w-full" style="padding-left: 2.5rem;" />
+                    <i
+                        class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-surface-400 dark:text-surface-500"></i>
+                    <InputText v-model="searchQuery" placeholder="Rechercher une recette..." class="w-full"
+                        style="padding-left: 2.5rem;" />
                 </span>
-                <Button icon="pi pi-plus" label="Nouvelle" severity="primary" class="shrink-0" @click="$router.push('/recipes/new')" />
+                <Button icon="pi pi-plus" label="Nouvelle" severity="primary" class="shrink-0"
+                    @click="$router.push('/recipes/new')" />
             </div>
         </div>
 
         <div class="card p-0 md:p-4 rounded-xl md:shadow-sm md:bg-surface-0 dark:md:bg-surface-900">
-            <DataTable 
-                :value="filteredRecipes" 
-                :loading="recipeStore.isLoading"
-                stripedRows 
-                paginator 
-                :rows="10" 
-                :rowsPerPageOptions="[5, 10, 20, 50]"
-                class="p-datatable-sm md:p-datatable-lg border-none"
-            >
+            <DataTable :value="filteredRecipes" :loading="recipeStore.isLoading" stripedRows paginator :rows="10"
+                :rowsPerPageOptions="[5, 10, 20, 50]" class="p-datatable-sm md:p-datatable-lg border-none">
                 <template #empty>
-                    <div class="text-center p-8 text-surface-500">
-                        <i class="pi pi-inbox text-4xl mb-4 text-surface-300"></i>
+                    <div class="text-center p-8 text-surface-500 dark:text-surface-400">
+                        <i class="pi pi-inbox text-4xl mb-4 text-surface-300 dark:text-surface-700"></i>
                         <p v-if="recipeStore.isLoading">Chargement des recettes...</p>
                         <p v-else-if="searchQuery">Aucune recette ne correspond à votre recherche.</p>
                         <p v-else>Aucune recette dans votre carnet. Ajoutez-en une !</p>
@@ -102,7 +102,8 @@ const shareRecipe = async (recipe: any) => {
                                 {{ data.name }}
                             </span>
                             <!-- Infos compactes sur mobile -->
-                            <div class="flex sm:hidden items-center gap-2 text-xs text-surface-500">
+                            <div
+                                class="flex sm:hidden items-center gap-2 text-xs text-surface-500 dark:text-surface-400">
                                 <span v-if="data.rating" class="flex items-center gap-1 text-primary-500">
                                     <i class="pi pi-star-fill"></i> {{ data.rating }}
                                 </span>
@@ -117,7 +118,7 @@ const shareRecipe = async (recipe: any) => {
                 <Column field="rating" header="Note" :sortable="true" class="hidden sm:table-cell text-center">
                     <template #body="{ data }">
                         <Rating v-if="data.rating > 0" :modelValue="data.rating" readonly :cancel="false" />
-                        <span v-else class="text-surface-300 italic text-sm">-</span>
+                        <span v-else class="text-surface-300 dark:text-surface-700 italic text-sm">-</span>
                     </template>
                 </Column>
 
@@ -129,7 +130,7 @@ const shareRecipe = async (recipe: any) => {
 
                 <Column field="prepTime" header="Temps" :sortable="true" class="hidden sm:table-cell">
                     <template #body="{ data }">
-                        <div class="flex items-center gap-2 text-surface-600">
+                        <div class="flex items-center gap-2 text-surface-600 dark:text-surface-400">
                             <i class="pi pi-clock"></i>
                             <span>{{ formatTime(data.prepTime) }}</span>
                         </div>
@@ -145,9 +146,12 @@ const shareRecipe = async (recipe: any) => {
                 <Column :exportable="false" bodyStyle="white-space: nowrap; text-align: right;">
                     <template #body="{ data }">
                         <div class="flex gap-2 justify-end">
-                            <Button icon="pi pi-share-alt" outlined rounded severity="info" aria-label="Partager" v-tooltip.top="'Partager'" @click="shareRecipe(data)" />
-                            <Button icon="pi pi-pencil" outlined rounded severity="secondary" aria-label="Éditer" v-tooltip.top="'Modifier'" @click="$router.push(`/recipes/${data.id}`)" />
-                            <Button icon="pi pi-trash" outlined rounded severity="danger" aria-label="Supprimer" v-tooltip.top="'Supprimer'" @click="recipeStore.deleteRecipe(data.id)" />
+                            <Button icon="pi pi-share-alt" outlined rounded severity="info" aria-label="Partager"
+                                v-tooltip.top="'Partager'" @click="shareRecipe(data)" />
+                            <Button icon="pi pi-pencil" outlined rounded severity="secondary" aria-label="Éditer"
+                                v-tooltip.top="'Modifier'" @click="$router.push(`/recipes/${data.id}`)" />
+                            <Button icon="pi pi-trash" outlined rounded severity="danger" aria-label="Supprimer"
+                                v-tooltip.top="'Supprimer'" @click="recipeStore.deleteRecipe(data.id)" />
                         </div>
                     </template>
                 </Column>
@@ -160,9 +164,17 @@ const shareRecipe = async (recipe: any) => {
 .animate-fadein {
     animation: fadein 0.3s ease-out forwards;
 }
+
 @keyframes fadein {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Optimisation Mobile: cacher bordures de datatable sur petits écrans */

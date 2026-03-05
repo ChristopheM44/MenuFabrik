@@ -76,7 +76,7 @@ const getParticipantAllergenNames = (allergyIds: string[]) => {
 <template>
   <div>
     <div class="flex justify-between items-center mb-4">
-        <p class="text-surface-500">Gérez les membres de la famille et leurs spécificités alimentaires.</p>
+        <p class="text-surface-500 dark:text-surface-400">Gérez les membres de la famille et leurs spécificités alimentaires.</p>
         <Button label="Ajouter" icon="pi pi-plus" size="small" @click="openNewParticipant" />
     </div>
     
@@ -114,7 +114,7 @@ const getParticipantAllergenNames = (allergyIds: string[]) => {
                 <label class="font-semibold text-sm">Actif</label>
                 <div class="flex items-center gap-2">
                     <ToggleSwitch v-model="currentParticipant.isActive" />
-                    <span class="text-sm text-surface-600">{{ currentParticipant.isActive ? 'Participe aux repas' : 'Inactif' }}</span>
+                    <span class="text-sm text-surface-600 dark:text-surface-400">{{ currentParticipant.isActive ? 'Participe aux repas' : 'Inactif' }}</span>
                 </div>
             </div>
             <div class="flex flex-col gap-2">

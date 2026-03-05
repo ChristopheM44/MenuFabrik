@@ -4,6 +4,7 @@ import type { Recipe } from '../models/Recipe';
 import { MenuGeneratorEngine } from '../services/MenuGeneratorEngine';
 import { useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
+import { useToast } from 'primevue/usetoast';
 import { cleanForFirestore } from '../utils/mealUtils';
 import type { useMealStore } from '../stores/mealStore';
 import type { useRecipeStore } from '../stores/recipeStore';
@@ -22,6 +23,7 @@ export function useMealActions(
 ) {
     const router = useRouter();
     const confirm = useConfirm();
+    const toast = useToast();
 
     // --- État UI partagé avec les dialogs ---
     const isGeneratingGlobal = ref(false);
@@ -75,7 +77,7 @@ export function useMealActions(
             }
         } catch (e) {
             console.error("Erreur Génération globale:", e);
-            alert("Une erreur est survenue lors de la génération.");
+            toast.add({ severity: 'error', summary: 'Erreur', detail: 'Une erreur est survenue lors de la génération.', life: 3000 });
         } finally {
             isGeneratingGlobal.value = false;
         }
@@ -173,7 +175,7 @@ export function useMealActions(
             }
         } catch (e) {
             console.error("Erreur de permutation:", e);
-            alert("Une erreur est survenue lors de la permutation.");
+            toast.add({ severity: 'error', summary: 'Erreur', detail: 'Une erreur est survenue lors de la permutation.', life: 3000 });
         }
     };
 

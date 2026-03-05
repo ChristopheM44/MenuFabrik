@@ -57,7 +57,7 @@ const deleteSideDish = (id: string) => {
 <template>
   <div>
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
-        <p class="text-surface-500">Personnalisez la liste des accompagnements disponibles pour vos plats.</p>
+        <p class="text-surface-500 dark:text-surface-400">Personnalisez la liste des accompagnements disponibles pour vos plats.</p>
         <div class="flex items-center gap-2">
             <InputText v-model="newSideDishName" placeholder="Nouvel accompagnement..." size="small" @keyup.enter="quickAddSideDish" />
             <Button icon="pi pi-plus" size="small" @click="quickAddSideDish" :loading="isAddingSideDish" :disabled="!newSideDishName" />

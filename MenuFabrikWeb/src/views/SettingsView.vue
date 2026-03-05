@@ -33,42 +33,49 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="settings-view w-full max-w-5xl mx-auto p-4 animate-fadein pb-8">
-      <div class="flex items-center justify-between mb-6">
-          <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0 border-l-4 pl-3 border-primary-500">Paramètres de la famille</h1>
-      </div>
+    <div class="settings-view w-full max-w-5xl mx-auto p-4 animate-fadein pb-8">
+        <div class="flex items-center justify-between mb-6 px-2">
+            <div>
+                <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0 flex items-center gap-3">
+                    <i class="pi pi-cog text-primary-500"></i>
+                    Paramètres de la famille
+                </h1>
+                <p class="text-surface-500 dark:text-surface-400 mt-2">Gérez les préférences de vos convives et du
+                    foyer.</p>
+            </div>
+        </div>
 
-      <div v-if="!isDataReady" class="flex justify-center p-12">
-          <ProgressSpinner strokeWidth="4" />
-      </div>
+        <div v-if="!isDataReady" class="flex justify-center p-12">
+            <ProgressSpinner strokeWidth="4" />
+        </div>
 
-      <div v-else class="flex flex-col gap-8">
-          
-          <Tabs value="0">
-              <TabList>
-                  <Tab value="0"><i class="pi pi-users mr-2"></i> Participants</Tab>
-                  <Tab value="1"><i class="pi pi-tags mr-2"></i> Accompagnements</Tab>
-                  <Tab value="2"><i class="pi pi-exclamation-triangle mr-2"></i> Allergènes</Tab>
-              </TabList>
-              
-              <TabPanels>
-                  <!-- ONGLETS PARTICIPANTS -->
-                  <TabPanel value="0">
-                      <SettingsParticipantsTab />
-                  </TabPanel>
+        <div v-else class="flex flex-col gap-8">
 
-                  <!-- ONGLET ACCOMPAGNEMENTS -->
-                  <TabPanel value="1">
-                      <SettingsSideDishesTab />
-                  </TabPanel>
+            <Tabs value="0">
+                <TabList>
+                    <Tab value="0"><i class="pi pi-users mr-2"></i> Participants</Tab>
+                    <Tab value="1"><i class="pi pi-tags mr-2"></i> Accompagnements</Tab>
+                    <Tab value="2"><i class="pi pi-exclamation-triangle mr-2"></i> Allergènes</Tab>
+                </TabList>
 
-                  <!-- ONGLET ALLERGENES -->
-                  <TabPanel value="2">
-                      <SettingsAllergensTab />
-                  </TabPanel>
-              </TabPanels>
-          </Tabs>
-      </div>
+                <TabPanels>
+                    <!-- ONGLETS PARTICIPANTS -->
+                    <TabPanel value="0">
+                        <SettingsParticipantsTab />
+                    </TabPanel>
 
-  </div>
+                    <!-- ONGLET ACCOMPAGNEMENTS -->
+                    <TabPanel value="1">
+                        <SettingsSideDishesTab />
+                    </TabPanel>
+
+                    <!-- ONGLET ALLERGENES -->
+                    <TabPanel value="2">
+                        <SettingsAllergensTab />
+                    </TabPanel>
+                </TabPanels>
+            </Tabs>
+        </div>
+
+    </div>
 </template>

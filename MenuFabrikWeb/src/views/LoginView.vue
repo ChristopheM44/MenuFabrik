@@ -43,7 +43,7 @@ const handleSubmit = async () => {
                         :loading="authStore.isLoading"
                     />
 
-                    <div class="flex items-center justify-center gap-2 mb-2 text-surface-400">
+                    <div class="flex items-center justify-center gap-2 mb-2 text-surface-400 dark:text-surface-500">
                         <hr class="w-full border-surface-200 dark:border-surface-700" />
                         <span class="text-xs font-semibold">OU</span>
                         <hr class="w-full border-surface-200 dark:border-surface-700" />

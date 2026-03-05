@@ -202,7 +202,7 @@ const close = () => {
 <template>
     <Dialog v-model:visible="visible" modal header="Importer depuis l'Agenda" :style="{ width: '90vw', maxWidth: '600px' }" :closable="!isImporting">
         <div class="flex flex-col gap-4">
-            <p class="text-surface-500 text-sm">Sélectionnez la période pour générer automatiquement la liste des ingrédients. Décochez ceux que vous avez déjà dans vos placards.</p>
+            <p class="text-surface-500 dark:text-surface-400 text-sm">Sélectionnez la période pour générer automatiquement la liste des ingrédients. Décochez ceux que vous avez déjà dans vos placards.</p>
             
             <div class="flex flex-col gap-2">
                 <label for="datesRangeImport" class="font-semibold text-sm">Période des courses</label>
@@ -228,7 +228,7 @@ const close = () => {
                 </Message>
 
                 <div v-else-if="localItems.length === 0" class="text-center p-6 bg-surface-50 dark:bg-surface-800/50 rounded-xl border border-dashed border-surface-200 dark:border-surface-700">
-                    <p class="text-surface-500">Aucun ingrédient requis sur cette période.</p>
+                    <p class="text-surface-500 dark:text-surface-400">Aucun ingrédient requis sur cette période.</p>
                 </div>
 
                 <div v-else class="flex flex-col gap-2 mt-2">

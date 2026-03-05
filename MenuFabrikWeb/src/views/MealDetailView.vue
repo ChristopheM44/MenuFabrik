@@ -190,7 +190,7 @@ const getCategoryColor = (category?: string) => {
                 
                 <!-- Convives -->
                 <div class="hidden sm:flex items-center gap-2">
-                    <span class="text-sm text-surface-500">Convives:</span>
+                    <span class="text-sm text-surface-500 dark:text-surface-400">Convives:</span>
                     <AvatarGroup>
                         <Avatar 
                             v-for="p in hydratedMeal.attendees" 
@@ -237,7 +237,7 @@ const getCategoryColor = (category?: string) => {
                             
                             <!-- Allergènes si présents -->
                             <div v-if="hydratedMeal.recipe.allergenIds && hydratedMeal.recipe.allergenIds.length > 0" class="mt-2 text-sm">
-                                <div class="text-xs text-surface-500 mb-1 font-semibold uppercase">Allergènes potentiels</div>
+                                <div class="text-xs text-surface-500 dark:text-surface-400 mb-1 font-semibold uppercase">Allergènes potentiels</div>
                                 <div class="flex flex-wrap gap-1">
                                     <Badge value="⚠️ Attention: Vérifier allergènes" severity="warning" />
                                 </div>
@@ -249,7 +249,7 @@ const getCategoryColor = (category?: string) => {
                                 <ul class="list-disc pl-5 text-surface-700 dark:text-surface-300 text-sm space-y-1">
                                     <li v-for="(ing, idx) in hydratedMeal.recipe.ingredients" :key="idx">
                                         <span class="font-medium">{{ ing.name }}</span>
-                                        <span v-if="ing.quantity || ing.unit" class="text-surface-500 ml-1">
+                                        <span v-if="ing.quantity || ing.unit" class="text-surface-500 dark:text-surface-400 ml-1">
                                             - {{ ing.quantity }} {{ ing.unit }}
                                         </span>
                                     </li>
@@ -269,7 +269,7 @@ const getCategoryColor = (category?: string) => {
 
                         </div>
                         
-                        <div v-else class="flex flex-col items-center justify-center py-8 text-surface-500">
+                        <div v-else class="flex flex-col items-center justify-center py-8 text-surface-500 dark:text-surface-400">
                             <i class="pi pi-calendar-plus text-4xl mb-3 opacity-50"></i>
                             <p class="mb-4">Aucun plat défini pour ce repas.</p>
                             <Button label="Choisir un plat" icon="pi pi-search" @click="openRecipeDialog" />
@@ -283,7 +283,7 @@ const getCategoryColor = (category?: string) => {
                     <h2 class="text-xl font-semibold flex items-center gap-2"><i class="pi pi-tags text-green-500"></i> <label for="side-dishes-select">Accompagnements</label></h2>
                     
                     <div class="bg-surface-0 dark:bg-surface-900 p-5 rounded-xl shadow-sm border border-surface-200 dark:border-surface-700 flex flex-col gap-4">
-                        <p class="text-sm text-surface-500">Sélectionnez les accompagnements (légumes, féculents) pour compléter ce plat.</p>
+                        <p class="text-sm text-surface-500 dark:text-surface-400">Sélectionnez les accompagnements (légumes, féculents) pour compléter ce plat.</p>
                         
                         <MultiSelect 
                             id="side-dishes-wrapper"
@@ -301,7 +301,7 @@ const getCategoryColor = (category?: string) => {
                             @change="updateSideDishes"
                         />
                         
-                        <div v-if="selectedSideDishIds.length === 0" class="text-sm italic text-surface-400 mt-2 text-center p-4 border border-dashed rounded-lg border-surface-200 dark:border-surface-700">
+                        <div v-if="selectedSideDishIds.length === 0" class="text-sm italic text-surface-400 dark:text-surface-500 mt-2 text-center p-4 border border-dashed rounded-lg border-surface-200 dark:border-surface-700">
                             Aucun accompagnement sélectionné.
                         </div>
                     </div>

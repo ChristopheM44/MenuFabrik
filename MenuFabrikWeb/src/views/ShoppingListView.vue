@@ -323,7 +323,7 @@ const sendToDrive = () => {
                 <i class="pi pi-shopping-cart text-primary-500"></i>
                 Courses & Placards
             </h1>
-            <p class="text-surface-500 mt-2">Gérez votre caddie et vos basiques récurrents de n'importe où.</p>
+            <p class="text-surface-500 dark:text-surface-400 mt-2">Gérez votre caddie et vos basiques récurrents de n'importe où.</p>
         </div>
 
         <Tabs value="0">
@@ -386,9 +386,9 @@ const sendToDrive = () => {
                         <!-- LA LISTE -->
                         <div v-if="shoppingList.length === 0"
                             class="text-center p-12 bg-surface-50 dark:bg-surface-800/50 rounded-xl border border-dashed border-surface-200 dark:border-surface-700">
-                            <i class="pi pi-inbox text-4xl text-surface-400 mb-3 block"></i>
+                            <i class="pi pi-inbox text-4xl text-surface-400 dark:text-surface-500 mb-3 block"></i>
                             <h3 class="font-semibold text-lg">Votre panier est vide</h3>
-                            <p class="text-surface-500 mt-1">Importez vos ingrédients de la semaine ou ajoutez des
+                            <p class="text-surface-500 dark:text-surface-400 mt-1">Importez vos ingrédients de la semaine ou ajoutez des
                                 articles manuellement.</p>
                         </div>
 
@@ -417,7 +417,7 @@ const sendToDrive = () => {
                                             class="flex-1 flex flex-col sm:flex-row sm:items-center sm:justify-between cursor-pointer"
                                             :class="{ 'line-through': item.checked }">
                                             <div class="flex items-center gap-2">
-                                                <i class="text-surface-400 text-xs" :class="{
+                                                <i class="text-surface-400 dark:text-surface-500 text-xs" :class="{
                                                     'pi pi-box': item.source === 'pantry',
                                                     'pi pi-sparkles': item.source === 'recipe',
                                                     'pi pi-pen-to-square': item.source === 'manual' || !item.source
@@ -445,7 +445,7 @@ const sendToDrive = () => {
 
                         <div>
                             <h3 class="font-bold text-lg mb-1">Stock de la maison</h3>
-                            <p class="text-surface-500 text-sm mb-4">Cochez les produits du quotidien qu'il manque dans
+                            <p class="text-surface-500 dark:text-surface-400 text-sm mb-4">Cochez les produits du quotidien qu'il manque dans
                                 vos placards pour les transférer ensuite dans votre panier.</p>
 
                             <form @submit.prevent="addPantryItem" class="flex mb-4">
@@ -459,7 +459,7 @@ const sendToDrive = () => {
 
                         <div v-if="pantryList.length === 0"
                             class="text-center p-6 bg-surface-50 dark:bg-surface-800/50 rounded-xl border border-dashed border-surface-200 dark:border-surface-700">
-                            <p class="text-surface-500">Aucun basique enregistré. Ajoutez-en un au dessus !</p>
+                            <p class="text-surface-500 dark:text-surface-400">Aucun basique enregistré. Ajoutez-en un au dessus !</p>
                         </div>
 
                         <div v-else class="flex flex-col gap-1">

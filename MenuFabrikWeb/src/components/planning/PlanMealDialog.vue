@@ -11,6 +11,7 @@ import Dialog from 'primevue/dialog';
 import DatePicker from 'primevue/datepicker';
 import Select from 'primevue/select';
 import MultiSelect from 'primevue/multiselect';
+import { useToast } from 'primevue/usetoast';
 
 const props = defineProps<{
     visible: boolean;
@@ -22,6 +23,7 @@ const emit = defineEmits<{
 
 const mealStore = useMealStore();
 const participantStore = useParticipantStore();
+const toast = useToast();
 
 // Helper
 const getLocalISODate = (date: Date): string => {
@@ -59,8 +61,8 @@ const planEmptyMeals = async () => {
     try {
         const mealsToProcess: Meal[] = [];
         const start = new Date(planStartDate.value);
-        start.setHours(0,0,0,0);
-        
+        start.setHours(0, 0, 0, 0);
+
         for (let i = 0; i < planNumDays.value; i++) {
             const currentDate = new Date(start);
             currentDate.setDate(start.getDate() + i);
@@ -89,12 +91,12 @@ const planEmptyMeals = async () => {
         if (mealsToProcess.length > 0) {
             await mealStore.saveMealsBatch(mealsToProcess);
         }
-        
+
         closeDialog();
 
     } catch (e) {
         console.error("Erreur Planification:", e);
-        alert("Une erreur est survenue lors de la planification.");
+        toast.add({ severity: 'error', summary: 'Erreur', detail: 'Une erreur est survenue lors de la planification.', life: 3000 });
     } finally {
         isPlanning.value = false;
     }
@@ -102,48 +104,38 @@ const planEmptyMeals = async () => {
 </script>
 
 <template>
-    <Dialog 
-        :visible="visible" 
-        @update:visible="$emit('update:visible', $event)" 
-        modal 
-        header="Planifier les Jours" 
-        :style="{ width: '90vw', maxWidth: '450px' }"
-    >
+    <Dialog :visible="visible" @update:visible="$emit('update:visible', $event)" modal header="Planifier les Jours"
+        :style="{ width: '90vw', maxWidth: '450px' }">
         <div class="flex flex-col gap-4 py-4 pt-2">
             <p class="text-surface-600 dark:text-surface-400 text-sm mb-2">
-                Ajoutez des emplacements vides dans votre agenda. Vous pourrez ensuite générer des recettes selon les personnes présentes.
+                Ajoutez des emplacements vides dans votre agenda. Vous pourrez ensuite générer des recettes selon les
+                personnes présentes.
             </p>
 
             <div class="flex flex-col gap-2">
                 <label for="plan-start-date" class="font-semibold text-sm">À partir du</label>
-                <DatePicker id="plan-start-date-wrapper" name="plan-start-date" inputId="plan-start-date" v-model="planStartDate" dateFormat="dd/mm/yy" class="w-full" showIcon />
+                <DatePicker id="plan-start-date-wrapper" name="plan-start-date" inputId="plan-start-date"
+                    v-model="planStartDate" dateFormat="dd/mm/yy" class="w-full" showIcon />
             </div>
 
             <div class="flex flex-col gap-2">
                 <label for="plan-days" class="font-semibold text-sm">Pendant</label>
-                <Select id="plan-days-wrapper" name="plan-days" inputId="plan-days" v-model="planNumDays" :options="planDaysOptions" optionLabel="label" optionValue="value" class="w-full" />
+                <Select id="plan-days-wrapper" name="plan-days" inputId="plan-days" v-model="planNumDays"
+                    :options="planDaysOptions" optionLabel="label" optionValue="value" class="w-full" />
             </div>
-            
+
             <div class="flex flex-col gap-2">
                 <label for="plan-attendees" class="font-semibold text-sm">Participants (Général)</label>
-                <MultiSelect 
-                    id="plan-attendees-wrapper"
-                    name="plan-attendees"
-                    inputId="plan-attendees"
-                    v-model="planAttendees" 
-                    :options="participantStore.participants" 
-                    optionLabel="name" 
-                    optionValue="id"
-                    placeholder="Sélectionner les convives"
-                    class="w-full" 
-                    display="chip"
-                />
+                <MultiSelect id="plan-attendees-wrapper" name="plan-attendees" inputId="plan-attendees"
+                    v-model="planAttendees" :options="participantStore.participants" optionLabel="name" optionValue="id"
+                    placeholder="Sélectionner les convives" class="w-full" display="chip" />
             </div>
         </div>
-        
+
         <template #footer>
             <Button label="Annuler" icon="pi pi-times" text severity="secondary" @click="closeDialog" />
-            <Button label="Ajouter à l'agenda" icon="pi pi-calendar-plus" @click="planEmptyMeals" :loading="isPlanning" />
+            <Button label="Ajouter à l'agenda" icon="pi pi-calendar-plus" @click="planEmptyMeals"
+                :loading="isPlanning" />
         </template>
     </Dialog>
 </template>

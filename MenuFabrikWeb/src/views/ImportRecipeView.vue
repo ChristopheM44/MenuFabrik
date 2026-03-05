@@ -161,13 +161,13 @@ const goBackToHome = () => {
         <div v-if="isDecodingError" class="text-center bg-surface-0 dark:bg-surface-900 p-8 rounded-2xl shadow-sm border border-surface-200 dark:border-surface-700">
             <i class="pi pi-times-circle text-6xl text-red-500 mb-4"></i>
             <h1 class="text-2xl font-bold mb-2">Lien invalide ou expiré</h1>
-            <p class="text-surface-500 mb-6">Nous n'avons pas pu décoder la recette partagée. Demandez à votre contact de re-générer un lien.</p>
+            <p class="text-surface-500 dark:text-surface-400 mb-6">Nous n'avons pas pu décoder la recette partagée. Demandez à votre contact de re-générer un lien.</p>
             <Button label="Retourner à l'accueil" icon="pi pi-home" severity="secondary" @click="goBackToHome" />
         </div>
 
         <div v-else-if="!decodedRecipe" class="flex flex-col items-center justify-center p-12">
             <ProgressSpinner strokeWidth="4" />
-            <p class="mt-4 text-surface-500 text-sm animate-pulse">Décompression de la recette...</p>
+            <p class="mt-4 text-surface-500 dark:text-surface-400 text-sm animate-pulse">Décompression de la recette...</p>
         </div>
 
         <div v-else class="w-full bg-surface-0 dark:bg-surface-900 rounded-2xl shadow-xl border border-surface-200 dark:border-surface-700 overflow-hidden">
@@ -189,7 +189,7 @@ const goBackToHome = () => {
                 <div class="flex flex-wrap justify-center gap-3">
                     <Tag :value="decodedRecipe.c || 'Autre'" severity="secondary" rounded class="px-3" />
                     <Tag :value="decodedRecipe.m" :severity="getSeverityForMealType(decodedRecipe.m)" rounded class="px-3" />
-                    <Tag icon="pi pi-clock" :value="formatTime(decodedRecipe.p)" severity="secondary" rounded class="px-3 bg-surface-100 text-surface-700" />
+                    <Tag icon="pi pi-clock" :value="formatTime(decodedRecipe.p)" severity="secondary" rounded class="px-3 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300" />
                     <Rating v-if="decodedRecipe.rt && decodedRecipe.rt > 0" :modelValue="decodedRecipe.rt" readonly :cancel="false" />
                 </div>
 

@@ -54,7 +54,7 @@ const deleteAllergen = (id: string) => {
 <template>
   <div>
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
-        <p class="text-surface-500">Gérez le dictionnaire des allergènes de votre base de données.</p>
+        <p class="text-surface-500 dark:text-surface-400">Gérez le dictionnaire des allergènes de votre base de données.</p>
         <div class="flex items-center gap-2">
             <InputText v-model="newAllergenName" placeholder="Nouvel allergène..." size="small" @keyup.enter="quickAddAllergen" />
             <Button icon="pi pi-plus" size="small" @click="quickAddAllergen" :loading="isAddingAllergen" :disabled="!newAllergenName" />

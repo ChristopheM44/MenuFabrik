@@ -46,7 +46,7 @@ const navItems = [
           <button @click="toggleTheme" class="p-2 rounded-full hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors focus:outline-none" aria-label="Basculer le thème">
               <i :class="isDark ? 'pi pi-moon text-primary-400' : 'pi pi-sun text-orange-500'" class="text-lg"></i>
           </button>
-          <button v-if="authStore.user" @click="logout" :title="`Connecté en tant que: ${authStore.user.email}`" class="p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-surface-400 hover:text-red-600 dark:hover:text-red-400 focus:outline-none" aria-label="Se déconnecter">
+          <button v-if="authStore.user" @click="logout" :title="`Connecté en tant que: ${authStore.user.email}`" class="p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-surface-400 dark:text-surface-500 hover:text-red-600 dark:hover:text-red-400 focus:outline-none" aria-label="Se déconnecter">
               <i class="pi pi-sign-out text-lg"></i>
           </button>
         </div>
@@ -86,7 +86,7 @@ const navItems = [
         v-for="item in navItems" 
         :key="item.path"
         :to="item.path"
-        class="flex flex-col items-center justify-center w-full h-full text-surface-500 transition-colors"
+        class="flex flex-col items-center justify-center w-full h-full text-surface-500 dark:text-surface-400 transition-colors"
         active-class="text-primary-600 dark:text-primary-300 font-medium"
       >
         <i :class="[item.icon, route.path === item.path ? 'scale-110 bg-primary-50 dark:bg-primary-900/40' : '']" class="text-xl mb-1 flex items-center justify-center p-1 rounded-full transition-transform"></i>
