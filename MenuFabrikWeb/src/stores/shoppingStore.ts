@@ -48,6 +48,27 @@ export const useShoppingStore = defineStore('shopping', () => {
         }
     }
 
+    const clearAllItems = async () => {
+        if (!authStore.user) throw new Error("Utilisateur non authentifié")
+        try {
+            const batch = writeBatch(db)
+            const collectionRef = collection(db, 'users', authStore.user.uid, 'shoppingItems')
+
+            const allItems = firestoreCollection.items.value
+            for (const item of allItems) {
+                if (item.id) {
+                    const itemRef = doc(collectionRef, item.id);
+                    batch.delete(itemRef);
+                }
+            }
+
+            await batch.commit()
+        } catch (err: any) {
+            firestoreCollection.error.value = "Erreur de réinitialisation: " + err.message
+            throw err
+        }
+    }
+
     return {
         shoppingItems: firestoreCollection.items,
         isLoading: firestoreCollection.isLoading,
@@ -59,6 +80,8 @@ export const useShoppingStore = defineStore('shopping', () => {
         setupRealtimeListener: firestoreCollection.setupRealtimeListener,
         addItemsBatch,
         clearCheckedItems,
+        clearAllItems,
         $reset: firestoreCollection.$reset
     }
 })
+
