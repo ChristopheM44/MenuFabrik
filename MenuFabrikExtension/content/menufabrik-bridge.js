@@ -43,3 +43,13 @@ setInterval(() => {
         console.error("MenuFabrik Bridge Erreur générale d'accès", err);
     }
 }, 1000);
+
+// Listen to feedback from the leclerc-driver script
+document.addEventListener('MF_DRIVE_FEEDBACK', (e) => {
+    try {
+        window.localStorage.setItem(MF_KEYS.DRIVE_FEEDBACK, e.detail);
+        console.log("MenuFabrik Bridge : Feedback sauvegardé dans le localStorage !");
+    } catch (err) {
+        console.error("MenuFabrik Bridge Erreur sauvegarde Feedback:", err);
+    }
+});

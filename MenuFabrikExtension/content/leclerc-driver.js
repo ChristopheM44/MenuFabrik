@@ -74,6 +74,11 @@ async function checkAndProcessCurrentStep(items) {
             console.log("✅ MenuFabrik Copilote : Tous les articles sont traités.");
             sessionStorage.removeItem(MF_KEYS.SEARCH_DONE);
             await chrome.storage.local.set({ [MF_KEYS.PROCESSING]: false });
+
+            // Send feedback back to the web app via CustomEvent (listened by the bridge)
+            document.dispatchEvent(new CustomEvent('MF_DRIVE_FEEDBACK', {
+                detail: JSON.stringify(items)
+            }));
         }
     }
 }

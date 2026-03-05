@@ -51,6 +51,16 @@ service cloud.firestore {
         allow read, delete: if isOwner(userId);
         allow create, update: if isOwner(userId) && isPayloadValid();
       }
+
+      match /shoppingItems/{docId} {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isPayloadValid();
+      }
+
+      match /pantryItems/{docId} {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isPayloadValid();
+      }
       
       match /profile/data {
         allow read, delete: if isOwner(userId);
