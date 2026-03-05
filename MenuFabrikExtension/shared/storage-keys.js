@@ -9,7 +9,9 @@ window.MF_KEYS = Object.freeze({
 
     // Clé localStorage (bridge MenuFabrik Web → Extension)
     DRIVE_EXPORT: 'menufabrik_drive_export',
+    DRIVE_FEEDBACK: 'menufabrik_drive_feedback',
 
     // Clé sessionStorage (état de recherche par onglet)
     SEARCH_DONE: 'mf_search_done_for',
 });
+
