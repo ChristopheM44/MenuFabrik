@@ -37,27 +37,3 @@ Je me souviens très bien de nos échanges ! Historiquement, intégrer directeme
 
 Cependant, les choses ont évolué et il y a aujourd'hui deux approches réalistes pour implémenter cette feature dans MenuFabrik, de la plus simple à la plus ambitieuse :
 
-Approche 1 : L'Export via extension de navigateur (La méthode maline)
-Plutôt que d'essayer de forcer MenuFabrik à parler directement à Leclerc (géré par des tokens, des sessions complexes de login, etc.), on utilise le navigateur de l'utilisateur comme pont.
-
-Le fonctionnement : Sur MenuFabrik, au lieu de cliquer sur "Copier", on clique sur "Envoyer au Drive".
-Le pont : Cela génère un fichier JSON (votre liste de courses structurée) ou transmet les données à une Extension Chrome MenuFabrik.
-L'action : L'utilisateur clique sur l'extension lorsqu'il est sur la page LeclercDrive.fr (où il est déjà connecté avec son compte). L'extension exécute un script Javascript directement sur la page de Leclerc qui tape dans la barre de recherche, trouve le premier produit, et clique sur "Ajouter au panier", produit après produit.
-Avantage : 100% faisable, pas de partenariat requis.
-Inconvénient : Ne marche que sur ordinateur (Chrome/Firefox), pas depuis l'application mobile.
-Approche 2 : Utiliser un Agrégateur Tiers (La méthode moderne)
-Depuis peu, le marché de l'Open Banking (API de banques) a fait des émules dans le retail. Des entreprises spécialisées comme MiAM (miam.tech) ou Flint (aux US) proposent des "API as a Service" pour connecter les apps de recettes aux supermarchés.
-
-Le fonctionnement : MenuFabrik envoie la liste d'ingrédients à l'API de MiAM.
-La magie : MiAM possède les accords et les ponts de connexion avec Carrefour, Auchan, Systéme U, Leclerc, etc. Ils se chargent de faire correspondre "200g de gruyère râpé" avec le produit exact "Gruyère Râpé Président 200g" disponible dans le magasin Leclerc sélectionné par l'utilisateur.
-Le retour : L'API MiAM renvoie un widget (ou une URL) qui affiche le panier "prêt à être validé" chez Leclerc.
-Avantage : Parfaitement intégré, fonctionne sur mobile et ordinateur. Gère les ruptures de stock intelligemment.
-Inconvénient : C'est un service B2B payant (généralement via une commission sur le panier) ou nécessite d'avoir le statut d'entreprise pour s'y inscrire.
-Ce qui est "impossible" (et qu'il ne faut pas essayer de faire soi-même)
-Ce que j'avais sans doute souligné avant, c'est la méthode DIY pure (Faire du scraping serveur). Si vous codez un Bot en Node.js sur votre serveur Firebase pour aller sur LeclercDrive.fr :
-
-Le bot sera bloqué par Cloudflare ou le système anti-bot de Leclerc (Datadome).
-S'il passe, il devra gérer les mots de passe des utilisateurs de MenuFabrik (énorme risque de sécurité de stocker les identifiants Leclerc de vos utilisateurs en clair pour les jouer via votre bot).
-À chaque fois que Leclerc modifie la couleur de son bouton "Ajouter", le code de MenuFabrik crashe.
-En résumé pour votre application : Aujourd'hui, si nous voulions construire ce "Export Drive", la solution la plus pérenne serait de réaliser une Extension Chrome compagnon (pour la version desktop de MenuFabrik), ou de se renseigner sur l'intégration d'un widget MiAM si l'objectif est de monétiser MenuFabrik un jour !
-
