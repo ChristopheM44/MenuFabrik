@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressContainer = document.getElementById('progress-container');
     const progressFill = document.getElementById('progress-fill');
     const progressText = document.getElementById('progress-text');
+    const finishContainer = document.getElementById('finish-container');
+    const btnFinish = document.getElementById('btn-finish');
 
     let currentItems = [];
     let isProcessing = false;
@@ -171,6 +173,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (trueTotal > 0) {
             progressFill.style.width = `${(completed / trueTotal) * 100}%`;
             progressText.innerText = `${completed}/${trueTotal} articles traités`;
+
+            // Show finish button if everything is done and not processing
+            if (completed === trueTotal && !isProcessing && trueTotal > 0) {
+                finishContainer.classList.remove('hidden');
+            } else {
+                finishContainer.classList.add('hidden');
+            }
         }
     }
 
@@ -237,5 +246,65 @@ document.addEventListener('DOMContentLoaded', () => {
             window.close(); // Fermer le popup, le Copilote continue en arrière-plan
         }
     }
+
+    btnFinish.addEventListener('click', () => {
+        console.log("Sync: Bouton Terminer cliqué. Recherche des onglets MenuFabrik...");
+
+        // Broadcast the feedback to the MenuFabrik tab
+        // Being extremely permissive to understand why it fails
+        const urlPatterns = ["*://localhost/*", "*://127.0.0.1/*", "*://*.web.app/*", "*://*.firebaseapp.com/*", "*://menufabrik.com/*", "*://*.menufabrik.com/*"];
+
+        chrome.tabs.query({ url: urlPatterns }, (tabs) => {
+            console.log(`Sync: ${tabs.length} onglets correspondants trouvés.`, tabs.map(t => t.url));
+
+            if (tabs.length === 0) {
+                // Log ALL tabs to the extension console (right click popup -> inspect)
+                chrome.tabs.query({}, (allTabs) => {
+                    const allUrls = allTabs.map(t => t.url);
+                    console.log("Sync DEBUG - Liste de TOUS les onglets ouverts :", allUrls);
+                });
+                alert("Veuillez ouvrir MenuFabrik dans un onglet (ou rafraîchir l'onglet existant) pour synchroniser.\n\nNote: L'extension cherche une URL type localhost ou menufabrik.com.");
+                return;
+            }
+
+            // Clean up items for feedback
+            const feedbackItems = currentItems.map(item => ({
+                id: item.id,
+                name: item.name,
+                status: item._status,
+                requestedQuantity: item.quantity || 1,
+                addedQuantity: item._addedQuantity || 0
+            }));
+
+            console.log("Sync: Envoi du feedback à", tabs.length, "onglets...");
+
+            // Send to all matching tabs
+            tabs.forEach(tab => {
+                chrome.tabs.sendMessage(tab.id, {
+                    type: 'MF_SYNC_FEEDBACK',
+                    items: feedbackItems
+                }, (response) => {
+                    if (chrome.runtime.lastError) {
+                        console.warn(`Sync: Erreur d'envoi à l'onglet ${tab.id}:`, chrome.runtime.lastError.message);
+                    } else {
+                        console.log(`Sync: Réponse reçue de l'onglet ${tab.id}:`, response);
+                    }
+                });
+            });
+
+            // Empty the local list after sync to avoid duplicates? 
+            // Better to keep it until user confirms on site, but let's at least show success.
+            btnFinish.innerText = "✅ Synchronisé !";
+            btnFinish.disabled = true;
+
+            setTimeout(() => {
+                if (confirm("Courses terminées et synchronisées. Vider la liste de l'extension ?")) {
+                    currentItems = [];
+                    saveState();
+                    checkCurrentState();
+                }
+            }, 1000);
+        });
+    });
 
 });

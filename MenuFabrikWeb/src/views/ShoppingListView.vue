@@ -10,6 +10,7 @@ import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
+import InputNumber from 'primevue/inputnumber';
 import Checkbox from 'primevue/checkbox';
 import ProgressSpinner from 'primevue/progressspinner';
 import Toast from 'primevue/toast';
@@ -17,6 +18,7 @@ import { useToast } from 'primevue/usetoast';
 import { useConfirm } from 'primevue/useconfirm';
 
 import ImportMealsToShoppingModal from '../components/planning/ImportMealsToShoppingModal.vue';
+import DriveSyncModal from '../components/planning/DriveSyncModal.vue';
 import type { ShoppingItem } from '../models/ShoppingItem';
 
 const shoppingStore = useShoppingStore();
@@ -24,6 +26,8 @@ const pantryStore = usePantryStore();
 const toast = useToast();
 
 const isImportModalVisible = ref(false);
+const isSyncModalVisible = ref(false);
+const syncFeedbackItems = ref<any[]>([]);
 const newShoppingItemName = ref('');
 const newPantryItemName = ref('');
 const copySuccess = ref(false);
@@ -52,49 +56,49 @@ const pantryList = computed(() => {
     });
 });
 
+const handleSyncReceived = (data: any) => {
+    const feedbackItems = Array.isArray(data) ? data : (data.detail || []);
+    if (feedbackItems && feedbackItems.length > 0) {
+        syncFeedbackItems.value = feedbackItems;
+        isSyncModalVisible.value = true;
+    }
+};
+
 const handleStorageChange = (e: StorageEvent) => {
     if (e.key === 'menufabrik_drive_feedback' && e.newValue) {
         try {
             const feedbackItems = JSON.parse(e.newValue);
-            let updatedCount = 0;
-
-            feedbackItems.forEach((item: any) => {
-                // If Copilot marked it as "ok" (added) or "skipped" (user manually bypassed),
-                // we consider it "done" on our side.
-                if (item.id && (item._status === 'ok' || item._status === 'skipped')) {
-                    const storeItem = shoppingStore.shoppingItems.find(i => i.id === item.id);
-                    if (storeItem && !storeItem.checked) {
-                        shoppingStore.updateShoppingItem(item.id, { checked: true });
-                        updatedCount++;
-                    }
-                }
-            });
-
-            if (updatedCount > 0) {
-                toast.add({
-                    severity: 'success',
-                    summary: 'Drive Synchronisé',
-                    detail: `${updatedCount} article(s) ajouté(s) au Drive ont été cochés.`,
-                    life: 5000
-                });
-            }
-
-            // Clean up the feedback so we don't process it again
-            localStorage.removeItem('menufabrik_drive_feedback');
+            handleSyncReceived(feedbackItems);
         } catch (err) {
             console.error("Erreur de parsing du feedback Drive", err);
         }
     }
 };
 
+const handleCustomSyncEvent = (e: any) => {
+    handleSyncReceived(e.detail);
+};
+
+const onSynced = () => {
+    toast.add({
+        severity: 'success',
+        summary: 'Synchronisation terminée',
+        detail: 'Votre liste de courses a été mise à jour.',
+        life: 3000
+    });
+    localStorage.removeItem('menufabrik_drive_feedback');
+};
+
 onMounted(() => {
     shoppingStore.setupRealtimeListener();
     pantryStore.setupRealtimeListener();
     window.addEventListener('storage', handleStorageChange);
+    document.addEventListener('MF_SYNC_RECEIVED', handleCustomSyncEvent);
 });
 
 onUnmounted(() => {
     window.removeEventListener('storage', handleStorageChange);
+    document.removeEventListener('MF_SYNC_RECEIVED', handleCustomSyncEvent);
 });
 
 // --- SHOPPING LIST ACTIONS ---
@@ -232,6 +236,12 @@ const toggleShoppingCheck = (item: ShoppingItem) => {
     }
 }
 
+const updateShoppingQuantity = (item: ShoppingItem, newQuantity: number | null) => {
+    if (item.id && newQuantity !== null) {
+        shoppingStore.updateShoppingItem(item.id, { customQuantity: newQuantity });
+    }
+}
+
 const togglePantrySelected = (item: any) => {
     if (item.id) {
         pantryStore.updatePantryItem(item.id, { selected: item.selected });
@@ -297,7 +307,8 @@ const sendToDrive = () => {
             name: item.name,
             searchTerm: item.name.replace(/[^a-zA-Z\sÀ-ÿ]/g, '').trim(),
             details: item.details || '',
-            quantity: extractCartQuantity(item.details)
+            recipeNames: item.recipeNames || [],
+            quantity: item.customQuantity !== undefined ? item.customQuantity : extractCartQuantity(item.details)
         }))
     };
 
@@ -408,28 +419,62 @@ const sendToDrive = () => {
                             <div class="flex flex-col gap-1">
                                 <TransitionGroup name="list">
                                     <div v-for="item in shoppingList" :key="item.id"
-                                        class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors cursor-pointer group"
-                                        :class="{ 'opacity-40 bg-surface-50 dark:bg-surface-800/50': item.checked }"
+                                        class="flex flex-col gap-2 p-3 rounded-lg hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors group cursor-pointer"
+                                        :class="{ 'opacity-50 bg-surface-50 dark:bg-surface-800/50': item.checked }"
                                         @click="item.checked = !item.checked; toggleShoppingCheck(item)">
-                                        <Checkbox v-model="item.checked" :binary="true" :inputId="item.id || item.name"
-                                            @change="toggleShoppingCheck(item)" @click.stop />
-                                        <label :for="item.id || item.name"
-                                            class="flex-1 flex flex-col sm:flex-row sm:items-center sm:justify-between cursor-pointer"
-                                            :class="{ 'line-through': item.checked }">
-                                            <div class="flex items-center gap-2">
-                                                <i class="text-surface-400 dark:text-surface-500 text-xs" :class="{
-                                                    'pi pi-box': item.source === 'pantry',
-                                                    'pi pi-sparkles': item.source === 'recipe',
-                                                    'pi pi-pen-to-square': item.source === 'manual' || !item.source
-                                                }"></i>
-                                                <span class="font-semibold text-surface-900 dark:text-surface-0">{{
-                                                    item.name }}</span>
+                                        
+                                        <!-- Top Row: Checkbox, Name, Quantity -->
+                                        <div class="flex items-center justify-between w-full">
+                                            
+                                            <div class="flex items-center gap-3 flex-1 overflow-hidden">
+                                                <Checkbox v-model="item.checked" :binary="true" :inputId="item.id || item.name"
+                                                    @change="toggleShoppingCheck(item)" @click.stop />
+                                                    
+                                                <label :for="item.id || item.name" class="flex items-center gap-2 flex-1 cursor-pointer overflow-hidden" :class="{ 'line-through': item.checked }" @click.prevent>
+                                                    <i class="text-surface-400 dark:text-surface-500 text-xs shrink-0" :class="{
+                                                        'pi pi-box': item.source === 'pantry',
+                                                        'pi pi-sparkles': item.source === 'recipe',
+                                                        'pi pi-pen-to-square': item.source === 'manual' || !item.source
+                                                    }"></i>
+                                                    <span class="font-semibold text-surface-900 dark:text-surface-0 truncate">{{ item.name }}</span>
+                                                </label>
                                             </div>
+
+                                            <div @click.stop.prevent class="shrink-0 ml-3">
+                                                <InputNumber 
+                                                    v-model="item.customQuantity" 
+                                                    inputId="minmax-buttons" 
+                                                    mode="decimal" 
+                                                    showButtons 
+                                                    buttonLayout="stacked"
+                                                    :min="1" 
+                                                    :max="99" 
+                                                    v-tooltip.top="'Quantité'"
+                                                    class="compact-quantity-input w-16"
+                                                    inputClass="w-full text-center p-inputtext-sm font-semibold px-2 py-1"
+                                                    @update:modelValue="updateShoppingQuantity(item, $event)"
+                                                />
+                                            </div>
+
+                                        </div>
+
+                                        <!-- Bottom Row: Recipes and Details (indented) -->
+                                        <div v-if="(item.recipeNames && item.recipeNames.length > 0) || item.details" 
+                                             class="flex flex-wrap items-center justify-between gap-2 pl-9 w-full">
+                                            
+                                            <div v-if="item.recipeNames && item.recipeNames.length > 0" class="flex flex-wrap gap-1 flex-1">
+                                                <span v-for="recipe in item.recipeNames" :key="recipe" :title="recipe" class="text-[0.65rem] sm:text-xs bg-surface-100 dark:bg-surface-800 text-surface-600 dark:text-surface-300 px-1.5 py-0.5 rounded-full border border-surface-200 dark:border-surface-700">
+                                                    {{ recipe.length > 15 ? recipe.substring(0, 15) + '...' : recipe }}
+                                                </span>
+                                            </div>
+                                            <div v-else class="flex-1"></div>
+
                                             <span v-if="item.details"
-                                                class="text-sm text-primary-700 dark:text-primary-700 font-medium sm:ml-4 bg-primary-100 dark:bg-primary-900/50 border border-primary-200 dark:border-primary-800 px-2 py-0.5 rounded-md inline-block w-fit mt-1 sm:mt-0">
+                                                class="shrink-0 text-sm text-surface-600 dark:text-surface-400 font-medium ml-auto">
                                                 {{ item.details }}
                                             </span>
-                                        </label>
+                                        </div>
+
                                     </div>
                                 </TransitionGroup>
                             </div>
@@ -514,6 +559,15 @@ const sendToDrive = () => {
                 </TabPanel>
             </TabPanels>
         </Tabs>
+
+        <!-- Modals -->
+        <ImportMealsToShoppingModal v-model:visible="isImportModalVisible" />
+        
+        <DriveSyncModal 
+            v-model:visible="isSyncModalVisible" 
+            :items="syncFeedbackItems"
+            @synced="onSynced"
+        />
     </div>
 </template>
 
@@ -544,5 +598,21 @@ const sendToDrive = () => {
 .list-leave-to {
     opacity: 0;
     transform: translateX(30px);
+}
+
+/* Custom styles for the compact quantity input on the Shopping List */
+:deep(.compact-quantity-input.p-inputnumber) {
+    /* Stacked layout takes minimal width naturally if overridden */
+    min-width: 4rem; 
+}
+:deep(.compact-quantity-input .p-inputtext) {
+    padding-right: 1.5rem !important; /* Make room for the stacked buttons on the right */
+}
+:deep(.compact-quantity-input .p-button) {
+    padding: 0;
+    width: 1.5rem;
+}
+:deep(.compact-quantity-input .p-button .pi) {
+    font-size: 0.7rem;
 }
 </style>

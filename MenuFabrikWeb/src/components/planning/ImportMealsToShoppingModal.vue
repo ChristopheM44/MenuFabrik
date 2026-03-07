@@ -29,6 +29,7 @@ interface ModalItem {
     name: string;
     details: string;
     selected: boolean; // default true
+    recipeNames?: string[];
 }
 
 const localItems = ref<ModalItem[]>([]);
@@ -86,17 +87,21 @@ watch(datesRange, () => {
         return mealDate >= startObj && mealDate <= endObj;
     });
 
-    const itemsMap = new Map<string, { quantity?: number; unit?: string }[]>();
+    const itemsMap = new Map<string, { quantity?: number; unit?: string; recipeName?: string }[]>();
 
     for (const meal of validMeals) {
+        let mainRecipeName = '';
         if (meal.recipeId) {
             const recipe = recipeStore.recipes.find(r => r.id === meal.recipeId);
-            if (recipe && recipe.ingredients) {
-                for (const ing of recipe.ingredients) {
-                    const key = ing.name.trim().toLowerCase();
-                    const existing = itemsMap.get(key) || [];
-                    existing.push({ quantity: ing.quantity, unit: ing.unit });
-                    itemsMap.set(key, existing);
+            if (recipe) {
+                mainRecipeName = recipe.name;
+                if (recipe.ingredients) {
+                    for (const ing of recipe.ingredients) {
+                        const key = ing.name.trim().toLowerCase();
+                        const existing = itemsMap.get(key) || [];
+                        existing.push({ quantity: ing.quantity, unit: ing.unit, recipeName: mainRecipeName });
+                        itemsMap.set(key, existing);
+                    }
                 }
             }
         }
@@ -107,7 +112,9 @@ watch(datesRange, () => {
                 if (side) {
                     const key = side.name.trim().toLowerCase();
                     const existing = itemsMap.get(key) || [];
-                    existing.push({ quantity: undefined, unit: undefined });
+                    // Use the main recipe name if it exists, otherwise use a fallback
+                    const displayRecipeName = mainRecipeName ? mainRecipeName : side.name;
+                    existing.push({ quantity: undefined, unit: undefined, recipeName: displayRecipeName });
                     itemsMap.set(key, existing);
                 }
             }
@@ -119,6 +126,7 @@ watch(datesRange, () => {
         const formattedName = key.charAt(0).toUpperCase() + key.slice(1);
         
         const unitGroups = new Map<string, number>();
+        const recipeNamesSet = new Set<string>();
         let hasNoQuantities = false;
         
         quantities.forEach(q => {
@@ -130,7 +138,12 @@ watch(datesRange, () => {
             } else {
                 hasNoQuantities = true;
             }
+            if (q.recipeName) {
+                recipeNamesSet.add(q.recipeName);
+            }
         });
+        
+        const recipeNames = Array.from(recipeNamesSet);
 
         const combinedItems: string[] = [];
         unitGroups.forEach((sum, unitKey) => {
@@ -155,7 +168,8 @@ watch(datesRange, () => {
             id,
             name: formattedName,
             details: combinedItems.join(', '),
-            selected: existingItem ? existingItem.selected : true
+            selected: existingItem ? existingItem.selected : true,
+            recipeNames: recipeNames.length > 0 ? recipeNames : undefined
         });
     });
 
@@ -179,6 +193,7 @@ const handleImport = async () => {
         const addedItems = itemsToImport.map(item => ({
             name: item.name,
             details: item.details,
+            recipeNames: item.recipeNames,
             checked: false,
             source: 'recipe' as const,
             addedAt: new Date().toISOString()

@@ -53,14 +53,14 @@ async function checkAndProcessCurrentStep(items) {
             // Si la page a rechargé, le reste de ce script est détruit (ce n'est pas grave,
             // initCopilot() reprendra la main sur la nouvelle page).
             // Si on est toujours là (AJAX pur), on passe manuellement à l'étape 2.
-            const status = await waitForUserActionOrCartMutation(term, item.quantity || 1);
-            await finishItem(items, doingIndex, status);
+            const result = await waitForUserActionOrCartMutation(term, item.details || '', item.quantity || 1, item.recipeNames || []);
+            await finishItem(items, doingIndex, result.status, result.addedQuantity);
 
         } else {
             // Étape 2 : Nous sommes sur la page de résultats (après un rechargement)
             console.log(`🚀 Copilote : Reprise après recherche. Attente ajout pour "${term}"...`);
-            const status = await waitForUserActionOrCartMutation(term, item.quantity || 1);
-            await finishItem(items, doingIndex, status);
+            const result = await waitForUserActionOrCartMutation(term, item.details || '', item.quantity || 1, item.recipeNames || []);
+            await finishItem(items, doingIndex, result.status, result.addedQuantity);
         }
     } else {
         // Personne n'est en "doing", mais on est "processing". Cherchons le prochain.
@@ -76,14 +76,23 @@ async function checkAndProcessCurrentStep(items) {
             await chrome.storage.local.set({ [MF_KEYS.PROCESSING]: false });
 
             // Send feedback back to the web app via CustomEvent (listened by the bridge)
+            // We use the cleaned up format like the popup does
+            const feedbackItems = items.map(item => ({
+                id: item.id,
+                name: item.name,
+                status: item._status,
+                requestedQuantity: item.quantity || 1,
+                addedQuantity: item._addedQuantity || 0
+            }));
+
             document.dispatchEvent(new CustomEvent('MF_DRIVE_FEEDBACK', {
-                detail: JSON.stringify(items)
+                detail: JSON.stringify(feedbackItems)
             }));
         }
     }
 }
 
-async function finishItem(items, index, finalStatus) {
+async function finishItem(items, index, finalStatus, addedQuantity = 0) {
     // Signal spécial : l'utilisateur a mis en pause. On ne change pas le statut (reste 'doing')
     // et on ne passe PAS à l'article suivant. Le popup reprendra depuis ce même article.
     if (finalStatus === '__paused__') {
@@ -92,6 +101,7 @@ async function finishItem(items, index, finalStatus) {
     }
 
     items[index]._status = finalStatus;
+    items[index]._addedQuantity = addedQuantity;
     await chrome.storage.local.set({ [MF_KEYS.ITEMS]: items });
 
     // Attendre un tout petit peu avant d'enchaîner pour la propreté visuelle
@@ -167,10 +177,12 @@ async function waitForSearchInput(timeout = 5000) {
 /**
  * Crée la toolbar copilote et l'insère dans le DOM.
  * @param {string} searchTerm — Le produit en cours de traitement
+ * @param {string} details    — Les détails (ex: "500g")
  * @param {number} quantity   — La quantité à ajouter (>= 1)
+ * @param {string[]} recipeNames — Tableaux des noms des recettes associées
  * @returns {{ toolbar, btnPause, btnPasser, btnManualOk, icon, textDiv }}
  */
-function createCopilotToolbar(searchTerm, quantity) {
+function createCopilotToolbar(searchTerm, details, quantity, recipeNames = []) {
     const toolbar = document.createElement('div');
     toolbar.id = 'menufabrik-copilot-toolbar';
     toolbar.className = 'mf-copilot-enter';
@@ -184,13 +196,23 @@ function createCopilotToolbar(searchTerm, quantity) {
 
     const textDiv = document.createElement('div');
 
+    const termDisplay = details ? `<b>${searchTerm}</b> (<i>${details}</i>)` : `<b>${searchTerm}</b>`;
+
     const quantityText = quantity > 1
-        ? `Ajoutez <b>${quantity} fois</b> votre <b>${searchTerm}</b> au panier`
-        : `Ajoutez votre <b>${searchTerm}</b> au panier`;
+        ? `Ajoutez <b>${quantity} fois</b> : ${termDisplay} au panier`
+        : `Ajoutez ${termDisplay} au panier`;
+
+    let recipesHtml = '';
+    if (recipeNames && recipeNames.length > 0) {
+        recipesHtml = `<div class="mf-copilot-recipes" style="font-size: 0.85em; opacity: 0.9; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
+            📌 <i>Pour : ${recipeNames.join(', ')}</i>
+        </div>`;
+    }
 
     textDiv.innerHTML = `
         <div class="mf-copilot-title">MenuFabrik Copilote</div>
         <div class="mf-copilot-instruction">${quantityText}</div>
+        ${recipesHtml}
     `;
 
     leftContent.appendChild(icon);
@@ -234,11 +256,11 @@ function createCopilotToolbar(searchTerm, quantity) {
  * @param {number} expectedDelta     — Le nombre d'ajouts attendus (quantity)
  * @returns {Promise<(resolveWith: string) => void>} resolve — Fonction à appeler pour stopper l'observation
  */
-function createCartObserver(initialValue, expectedDelta, onDetected) {
+function createCartObserver(initialValue, onUpdate) {
     const cartCounterSelector = '.spanWCRS381_Notification, .badge-panier, [aria-label*="produits dans votre panier"]';
     const initialNumericValue = parseInt(initialValue, 10) || 0;
 
-    console.log(`Copilote v2: Observation du panier démarrée. Compteur actuel: ${initialValue || '0'}, δ attendu: ${expectedDelta}`);
+    console.log(`Copilote v2: Observation du panier démarrée. Compteur actuel: ${initialValue || '0'}`);
 
     const observerCallback = function (mutationsList, observer) {
         const currentCounterEl = document.querySelector(cartCounterSelector);
@@ -250,12 +272,8 @@ function createCartObserver(initialValue, expectedDelta, onDetected) {
         const currentNumericValue = parseInt(currentValue, 10);
         if (isNaN(currentNumericValue)) return;
 
-        // On vérifie que le compteur a atteint la valeur cible
-        if (currentNumericValue >= initialNumericValue + expectedDelta) {
-            console.log(`✅ MenuFabrik: Changement panier détecté ! (${initialValue || '0'} → ${currentValue}, δ=${expectedDelta})`);
-            observer.disconnect();
-            onDetected();
-        }
+        // On notifie chaque changement
+        onUpdate(currentNumericValue);
     };
 
     const targetNode = document.body;
@@ -273,14 +291,18 @@ function createCartObserver(initialValue, expectedDelta, onDetected) {
 /**
  * Affiche la toolbar copilote et attend l'action de l'utilisateur ou la détection du panier.
  * @param {string} searchTerm — L'article en cours de traitement
+ * @param {string} details    — La quantité réelle (ex: "500g")
  * @param {number} quantity   — Le nombre d'ajouts attendus
+ * @param {string[]} recipeNames — Tableaux des noms des recettes associées
  * @returns {Promise<string>} — Statut final : 'ok', 'skipped', 'err', '__paused__'
  */
-async function waitForUserActionOrCartMutation(searchTerm, quantity = 1) {
+async function waitForUserActionOrCartMutation(searchTerm, details = '', quantity = 1, recipeNames = []) {
     console.log(`🚀 Copilote v2: Attente de l'ajout par l'utilisateur pour '${searchTerm}' (×${quantity})...`);
 
     return new Promise((resolve) => {
-        const { toolbar, btnPause, btnPasser, btnManualOk, icon, textDiv } = createCopilotToolbar(searchTerm, quantity);
+        const { toolbar, btnPause, btnPasser, btnManualOk, icon, textDiv } = createCopilotToolbar(searchTerm, details, quantity, recipeNames);
+
+        let currentAddedQuantity = 0;
 
         // Afficher le bouton de secours manuel après 4 secondes si rien ne se passe
         const manualTimeoutId = setTimeout(() => {
@@ -290,7 +312,7 @@ async function waitForUserActionOrCartMutation(searchTerm, quantity = 1) {
         let isResolved = false;
         let cartObserver = null;
 
-        const cleanupAndResolve = (result) => {
+        const cleanupAndResolve = (status, added) => {
             if (isResolved) return;
             isResolved = true;
 
@@ -305,7 +327,7 @@ async function waitForUserActionOrCartMutation(searchTerm, quantity = 1) {
 
             setTimeout(() => {
                 toolbar.remove();
-                setTimeout(() => resolve(result), 500); // Petit délai avant le produit suivant
+                setTimeout(() => resolve({ status, addedQuantity: added }), 500); // Petit délai avant le produit suivant
             }, 300);
         };
 
@@ -313,37 +335,46 @@ async function waitForUserActionOrCartMutation(searchTerm, quantity = 1) {
         const cartCounterSelector = '.spanWCRS381_Notification, .badge-panier, [aria-label*="produits dans votre panier"]';
         const initialCounterEl = document.querySelector(cartCounterSelector);
         const initialCartValue = initialCounterEl ? initialCounterEl.textContent.trim() : null;
+        const initialNumericValue = parseInt(initialCartValue, 10) || 0;
 
-        // Démarrer l'observateur de panier
-        cartObserver = createCartObserver(initialCartValue, quantity, () => {
+        // Démarrer l'observateur de panier (notifie à chaque changement)
+        cartObserver = createCartObserver(initialCartValue, (finalNumericValue) => {
             if (isResolved) return;
 
-            // Mise à jour UI : succès détecté
-            icon.innerText = '✅';
-            icon.className = 'mf-copilot-icon mf-copilot-icon--static';
-            textDiv.innerHTML = '<div class="mf-copilot-success-text">Ajout au panier détecté ! Passage au produit suivant...</div>';
-            btnPasser.style.display = 'none';
-            btnManualOk.style.display = 'none';
-            toolbar.classList.add('mf-state-success');
+            const realDelta = finalNumericValue - initialNumericValue;
+            currentAddedQuantity = realDelta;
+            console.log(`Copilote: Panier mis à jour. Delta actuel: ${currentAddedQuantity}/${quantity}`);
 
-            setTimeout(() => cleanupAndResolve('ok'), 1500);
+            // Si on a atteint ou dépassé la cible, on valide automatiquement
+            if (currentAddedQuantity >= quantity) {
+                // Mise à jour UI : succès détecté
+                icon.innerText = '✅';
+                icon.className = 'mf-copilot-icon mf-copilot-icon--static';
+                textDiv.innerHTML = '<div class="mf-copilot-success-text">Ajout au panier détecté ! Passage au produit suivant...</div>';
+                btnPasser.style.display = 'none';
+                btnManualOk.style.display = 'none';
+                toolbar.classList.add('mf-state-success');
+
+                setTimeout(() => cleanupAndResolve('ok', currentAddedQuantity), 1500);
+            }
         });
 
         // Actions manuelles
         btnPause.onclick = async () => {
             console.log("Copilote: Mise en pause demandée.");
             await chrome.storage.local.set({ [MF_KEYS.PROCESSING]: false });
-            cleanupAndResolve('__paused__');
+            cleanupAndResolve('__paused__', currentAddedQuantity);
         };
 
         btnPasser.onclick = () => {
             console.log("Copilote: Article ignoré manuellement.");
-            cleanupAndResolve('skipped');
+            cleanupAndResolve('skipped', currentAddedQuantity);
         };
 
         btnManualOk.onclick = () => {
             console.log("Copilote: Validation forcée manuellement.");
-            cleanupAndResolve('ok');
+            // On fait le pari que si l'utilisateur appuie, il a bien mis la quantité voulue
+            cleanupAndResolve('ok', quantity);
         };
     });
 }

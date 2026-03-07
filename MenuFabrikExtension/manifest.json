@@ -1,15 +1,17 @@
 {
     "manifest_version": 3,
     "name": "MenuFabrik Drive",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Envoyez votre liste de courses MenuFabrik directement dans votre panier LeclercDrive.",
     "permissions": [
         "activeTab",
         "storage",
-        "scripting"
+        "tabs"
     ],
     "host_permissions": [
-        "https://*.leclercdrive.fr/*"
+        "https://*.leclercdrive.fr/*",
+        "https://*.web.app/*",
+        "https://*.firebaseapp.com/*"
     ],
     "action": {
         "default_popup": "popup/popup.html",
@@ -35,7 +37,6 @@
         },
         {
             "matches": [
-                "http://localhost:*/*",
                 "https://*.web.app/*",
                 "https://*.firebaseapp.com/*"
             ],

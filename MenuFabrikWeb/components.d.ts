@@ -15,6 +15,7 @@ declare module 'vue' {
     AttendeePickerDialog: typeof import('./src/components/planning/AttendeePickerDialog.vue')['default']
     Button: typeof import('primevue/button')['default']
     Card: typeof import('primevue/card')['default']
+    DriveSyncModal: typeof import('./src/components/planning/DriveSyncModal.vue')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     ImportMealsToShoppingModal: typeof import('./src/components/planning/ImportMealsToShoppingModal.vue')['default']
     InputText: typeof import('primevue/inputtext')['default']
