@@ -15,6 +15,7 @@ import MultiSelect from 'primevue/multiselect';
 import ToggleSwitch from 'primevue/toggleswitch';
 import Rating from 'primevue/rating';
 import Textarea from 'primevue/textarea';
+import Panel from 'primevue/panel';
 
 const route = useRoute();
 const router = useRouter();
@@ -54,6 +55,9 @@ const recipeForm = ref<Partial<Recipe>>({
     ingredients: []
 });
 
+const aiPromptText = ref('');
+const preparationSteps = ref<string[]>([]);
+
 const addIngredient = () => {
     if (!recipeForm.value.ingredients) {
         recipeForm.value.ingredients = [];
@@ -65,6 +69,14 @@ const removeIngredient = (index: number) => {
     recipeForm.value.ingredients?.splice(index, 1);
 };
 
+const addPreparationStep = () => {
+    preparationSteps.value.push('');
+};
+
+const removePreparationStep = (index: number) => {
+    preparationSteps.value.splice(index, 1);
+};
+
 const isAnalyzing = ref(false);
 
 const analyzeWithAI = async () => {
@@ -74,12 +86,22 @@ const analyzeWithAI = async () => {
     try {
         const aiData = await GeminiService.analyzeRecipe(
             recipeForm.value.sourceURL || '',
-            recipeForm.value.instructions || '',
+            aiPromptText.value || '',
             sideDishStore.sideDishes
         );
         
         if (aiData.name && !recipeForm.value.name) recipeForm.value.name = aiData.name;
-        if (aiData.instructions && !recipeForm.value.instructions) recipeForm.value.instructions = aiData.instructions;
+        if (aiData.instructions) {
+            // Split the instructions by newline and filter out empty lines, stripping out numbers if present "1. "
+            const newSteps = aiData.instructions
+                .split(/\n+/)
+                .map(step => step.replace(/^\d+[\.\)]\s*/, '').trim())
+                .filter(step => step.length > 0);
+            
+            if (newSteps.length > 0) {
+                 preparationSteps.value = newSteps;
+            }
+        }
         if (aiData.category) recipeForm.value.category = aiData.category as RecipeCategory;
         if (aiData.prepTime) recipeForm.value.prepTime = aiData.prepTime;
         if (aiData.ingredients && Array.isArray(aiData.ingredients)) {
@@ -119,6 +141,13 @@ onMounted(async () => {
         const existingRecipe = recipeStore.recipes.find(r => r.id === id);
         if (existingRecipe) {
             recipeForm.value = { ...existingRecipe };
+            // Populate preparation steps from existing instructions
+            if (recipeForm.value.instructions) {
+                 preparationSteps.value = recipeForm.value.instructions
+                    .split(/\n+/)
+                    .map(step => step.replace(/^\d+[\.\)]\s*/, '').trim())
+                    .filter(step => step.length > 0);
+            }
         } else {
             router.push('/recipes');
         }
@@ -135,6 +164,12 @@ const saveRecipe = async () => {
     formError.value = '';
 
     try {
+        // Aggregate preparation steps back into the instructions string before saving
+        recipeForm.value.instructions = preparationSteps.value
+            .filter(step => step.trim() !== '')
+            .map((step, index) => `${index + 1}. ${step.trim()}`)
+            .join('\n');
+
         if (isEditing.value && recipeForm.value.id) {
             await recipeStore.updateRecipe(recipeForm.value.id, recipeForm.value);
         } else {
@@ -214,21 +249,11 @@ const cancel = () => {
             <hr class="border-surface-200 dark:border-surface-700 my-2" />
 
             <!-- SECTION EXTRACTION IA -->
-            <div class="bg-primary-50 dark:bg-primary-900/30 p-5 rounded-xl border border-primary-200 dark:border-primary-800 flex flex-col gap-5 relative overflow-hidden shadow-sm">
+            <Panel header="Assistant d'Importation IA" toggleable collapsed class="bg-primary-50 dark:bg-primary-900/30" :pt="{ root: { class: 'border border-primary-200 dark:border-primary-800 rounded-xl bg-primary-50/50 dark:bg-primary-900/30' }, header: { class: 'bg-primary-50 dark:bg-primary-800 rounded-t-xl text-primary-900 dark:text-primary-100' }, content: { class: 'bg-transparent rounded-b-xl' } }">
                 <!-- Décoration de fond -->
                 <i class="pi pi-sparkles absolute -right-6 -top-6 text-9xl text-primary-500/5 rotate-12 pointer-events-none"></i>
                 
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 relative z-10">
-                    <div>
-                        <h3 class="font-bold text-lg text-primary-900 dark:text-primary-500 flex items-center gap-2">
-                            <i class="pi pi-bolt text-primary-500"></i>
-                            Assistant d'Importation IA
-                        </h3>
-                        <p class="text-sm text-primary-700 dark:text-primary-400 mt-1">Fournissez un lien web ou collez le texte brut, l'IA complètera les ingrédients et les infos de la recette.</p>
-                    </div>
-                </div>
-
-                <div class="flex flex-col gap-4 relative z-10">
+                <div class="flex flex-col gap-4 relative z-10 p-2">
                     <div class="flex flex-col gap-2">
                         <label for="sourceURL" class="font-semibold text-sm text-primary-900 dark:text-primary-400">1. Lien Web de la recette (URL)</label>
                         <div class="flex items-stretch rounded-md overflow-hidden bg-surface-0 dark:bg-surface-900 border border-surface-300 dark:border-surface-600 focus-within:ring-1 focus-within:ring-primary-500 w-full">
@@ -239,35 +264,55 @@ const cancel = () => {
 
                     <div class="flex flex-col gap-2">
                         <label for="instructions" class="font-semibold text-sm text-primary-900 dark:text-primary-400">2. Et / Ou Instructions et texte détaillé</label>
-                        <Textarea id="instructions" v-model="recipeForm.instructions" rows="4" placeholder="Saisir la recette, coller le texte depuis un blog..." class="w-full" autoResize />
+                        <Textarea id="instructions" v-model="aiPromptText" rows="4" placeholder="Saisir la recette, coller le texte depuis un blog..." class="w-full" autoResize />
                     </div>
                 </div>
                 
-                <div class="flex justify-center sm:justify-end mt-2 relative z-10">
+                <div class="flex justify-center sm:justify-end mt-4 relative z-10">
                     <Button icon="pi pi-sparkles" label="Compléter avec l'IA" @click="analyzeWithAI" :loading="isAnalyzing" class="w-full sm:w-auto shadow-md font-bold px-6 py-3" />
                 </div>
-            </div>
+            </Panel>
 
-            <div class="flex flex-col gap-2">
-                <div class="flex justify-between items-center">
-                    <label class="font-semibold">Ingrédients</label>
-                    <Button icon="pi pi-plus" label="Ajouter" size="small" text @click="addIngredient" />
-                </div>
-                
-                <div v-if="recipeForm.ingredients && recipeForm.ingredients.length > 0" class="flex flex-col gap-3">
-                    <div v-for="(ingredient, index) in recipeForm.ingredients" :key="index" class="flex flex-row flex-wrap sm:flex-nowrap items-center gap-2 bg-surface-50 dark:bg-surface-800/50 p-2 rounded-lg border border-surface-200 dark:border-surface-700">
-                        <InputText v-model="ingredient.name" placeholder="Nom (ex: Farine)" class="w-full sm:flex-1 min-w-[120px]" />
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <input v-model.number="ingredient.quantity" type="number" step="any" placeholder="Qté" class="p-inputtext p-component w-24 flex-shrink-0" />
-                            <InputText v-model="ingredient.unit" placeholder="Unité (g, ml...)" class="w-24 flex-shrink-0" />
-                            <Button icon="pi pi-trash" severity="danger" text rounded @click="removeIngredient(index)" tabindex="-1" class="ml-auto sm:ml-0" aria-label="Supprimer cet ingrédient" />
+            <Panel header="Ingrédients" toggleable :pt="{ root: { class: 'border border-surface-200 dark:border-surface-700 rounded-xl' }, header: { class: 'bg-surface-50 dark:bg-surface-800 rounded-t-xl' }, content: { class: 'bg-surface-0 dark:bg-surface-900 rounded-b-xl' } }">
+                <div class="flex flex-col gap-2 p-2">
+                    <div class="flex justify-end items-center mb-2">
+                        <Button icon="pi pi-plus" label="Ajouter" size="small" text @click="addIngredient" />
+                    </div>
+                    
+                    <div v-if="recipeForm.ingredients && recipeForm.ingredients.length > 0" class="flex flex-col gap-3">
+                        <div v-for="(ingredient, index) in recipeForm.ingredients" :key="index" class="flex flex-row flex-wrap sm:flex-nowrap items-center gap-2 bg-surface-100 dark:bg-surface-800 p-2 rounded-lg border border-surface-200 dark:border-surface-700">
+                            <InputText v-model="ingredient.name" placeholder="Nom (ex: Farine)" class="w-full sm:flex-1 min-w-[120px]" />
+                            <div class="flex items-center gap-2 w-full sm:w-auto">
+                                <input v-model.number="ingredient.quantity" type="number" step="any" placeholder="Qté" class="p-inputtext p-component w-24 flex-shrink-0" />
+                                <InputText v-model="ingredient.unit" placeholder="Unité (g, ml...)" class="w-24 flex-shrink-0" />
+                                <Button icon="pi pi-trash" severity="danger" text rounded @click="removeIngredient(index)" tabindex="-1" class="ml-auto sm:ml-0" aria-label="Supprimer cet ingrédient" />
+                            </div>
                         </div>
                     </div>
+                    <div v-else class="text-sm text-surface-500 dark:text-surface-400 italic p-4 text-center border border-dashed rounded-lg border-surface-200 dark:border-surface-700">
+                        Aucun ingrédient détaillé. (Vous pourrez utiliser l'assistant IA pour les extraire automatiquement plus tard !)
+                    </div>
                 </div>
-                <div v-else class="text-sm text-surface-500 dark:text-surface-400 italic p-4 text-center border border-dashed rounded-lg border-surface-200 dark:border-surface-700">
-                    Aucun ingrédient détaillé. (Vous pourrez utiliser l'assistant IA pour les extraire automatiquement plus tard !)
+            </Panel>
+
+            <Panel header="Étapes de préparation" toggleable :pt="{ root: { class: 'border border-surface-200 dark:border-surface-700 rounded-xl' }, header: { class: 'bg-surface-50 dark:bg-surface-800 rounded-t-xl' }, content: { class: 'bg-surface-0 dark:bg-surface-900 rounded-b-xl' } }">
+                <div class="flex flex-col gap-2 p-2">
+                    <div class="flex justify-end items-center mb-2">
+                        <Button icon="pi pi-plus" label="Ajouter une étape" size="small" text @click="addPreparationStep" />
+                    </div>
+                    
+                    <div v-if="preparationSteps && preparationSteps.length > 0" class="flex flex-col gap-3">
+                        <div v-for="(_step, index) in preparationSteps" :key="index" class="flex flex-row flex-nowrap items-start gap-2 bg-surface-100 dark:bg-surface-800 p-3 rounded-lg border border-surface-200 dark:border-surface-700">
+                            <div class="mt-2 font-bold text-surface-500 dark:text-surface-400 w-6 text-right shrink-0">{{ index + 1 }}.</div>
+                            <Textarea v-model="preparationSteps[index]" rows="2" placeholder="Décrivez cette étape..." class="w-full" autoResize />
+                            <Button icon="pi pi-trash" severity="danger" text rounded @click="removePreparationStep(index)" tabindex="-1" class="shrink-0 mt-1" aria-label="Supprimer cette étape" />
+                        </div>
+                    </div>
+                    <div v-else class="text-sm text-surface-500 dark:text-surface-400 italic p-4 text-center border border-dashed rounded-lg border-surface-200 dark:border-surface-700">
+                        Aucune étape de préparation. Ajoutez-en ou utilisez l'assistant IA.
+                    </div>
                 </div>
-            </div>
+            </Panel>
 
             <hr class="border-surface-200 dark:border-surface-700 my-2" />
 

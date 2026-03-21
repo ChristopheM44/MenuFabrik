@@ -1,10 +1,9 @@
 {
     "manifest_version": 3,
     "name": "MenuFabrik Drive",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "Envoyez votre liste de courses MenuFabrik directement dans votre panier LeclercDrive.",
     "permissions": [
-        "activeTab",
         "storage",
         "tabs"
     ],
