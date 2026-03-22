@@ -20,7 +20,7 @@ const emit = defineEmits<{
 }>();
 
 const gridClass = computed(() =>
-    props.gridCols ?? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+    props.gridCols ?? 'grid-cols-1 md:grid-cols-2'
 );
 
 const formatTime = (minutes: number) => {
