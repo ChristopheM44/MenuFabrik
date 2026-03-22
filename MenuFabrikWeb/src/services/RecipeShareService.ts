@@ -68,9 +68,10 @@ export class RecipeShareService {
         };
 
         // Supprimer les champs undefined pour alléger l'URL
-        Object.keys(payload).forEach(key => {
-            if ((payload as any)[key] === undefined) {
-                delete (payload as any)[key];
+        const payloadRecord = payload as unknown as Record<string, unknown>;
+        Object.keys(payloadRecord).forEach(key => {
+            if (payloadRecord[key] === undefined) {
+                delete payloadRecord[key];
             }
         });
 

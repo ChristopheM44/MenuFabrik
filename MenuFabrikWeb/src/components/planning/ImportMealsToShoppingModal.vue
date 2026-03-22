@@ -130,7 +130,7 @@ watch(datesRange, () => {
         let hasNoQuantities = false;
         
         quantities.forEach(q => {
-            if (q.quantity !== undefined && q.quantity !== null && !isNaN(q.quantity as any) && (q.quantity as any) !== '') {
+            if (typeof q.quantity === 'number' && !isNaN(q.quantity)) {
                 const qNum = Number(q.quantity);
                 const unitKey = (q.unit || '').trim().toLowerCase();
                 const currentSum = unitGroups.get(unitKey) || 0;

@@ -18,6 +18,7 @@ import Rating from 'primevue/rating';
 import AIImportPanel from '../components/recipes/form/AIImportPanel.vue';
 import IngredientsStepPanel from '../components/recipes/form/IngredientsStepPanel.vue';
 import InstructionsStepPanel from '../components/recipes/form/InstructionsStepPanel.vue';
+import { sortByNameFr } from '../utils/sortUtils';
 
 const route = useRoute();
 const router = useRouter();
@@ -77,9 +78,8 @@ const removeImage = () => {
 
 
 
-const sortedSideDishes = computed(() => {
-    return [...sideDishStore.sideDishes].sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
-});
+const sortedAllergens = computed(() => sortByNameFr([...allergenStore.allergens]));
+const sortedSideDishes = computed(() => sortByNameFr([...sideDishStore.sideDishes]));
 
 onMounted(async () => {
     // S'assurer que les données liées sont chargées
@@ -282,7 +282,7 @@ const cancel = () => {
                     id="allergens-wrapper" 
                     inputId="allergens"
                     v-model="recipeForm.allergenIds" 
-                    :options="allergenStore.allergens" 
+                    :options="sortedAllergens" 
                     optionLabel="name" 
                     optionValue="id" 
                     display="chip"
@@ -326,11 +326,4 @@ const cancel = () => {
 </template>
 
 <style scoped>
-.animate-fadein {
-    animation: fadein 0.3s ease-out forwards;
-}
-@keyframes fadein {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
 </style>

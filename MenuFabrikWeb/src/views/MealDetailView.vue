@@ -11,6 +11,8 @@ import { RecipeShareService } from '../services/RecipeShareService';
 import { useToast } from 'primevue/usetoast';
 import { hydrateMeal } from '../utils/hydrateMeal';
 import { formatDateLabel } from '../utils/dateUtils';
+import { sortByNameFr } from '../utils/sortUtils';
+import { getCategoryColor } from '../utils/categoryUtils';
 
 // PrimeVue Components
 import Button from 'primevue/button';
@@ -77,9 +79,7 @@ const formattedDate = computed(() => {
 });
 
 
-const sortedSideDishes = computed(() => {
-    return [...sideDishStore.sideDishes].sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
-});
+const sortedSideDishes = computed(() => sortByNameFr([...sideDishStore.sideDishes]));
 
 // Actions
 const goBack = () => {
@@ -133,12 +133,7 @@ const updateSideDishes = async () => {
     }
 };
 
-const getCategoryColor = (category?: string) => {
-    if (category === 'Viandes') return 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300';
-    if (category === 'Poissons') return 'bg-cyan-100 dark:bg-cyan-900/40 text-cyan-800 dark:text-cyan-300';
-    if (category === 'Végétarien') return 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300';
-    return 'bg-surface-100 dark:bg-surface-800 text-surface-800 dark:text-surface-300';
-};
+// getCategoryColor est importée depuis categoryUtils (audit 3.7)
 </script>
 
 <template>
@@ -302,11 +297,4 @@ const getCategoryColor = (category?: string) => {
 </template>
 
 <style scoped>
-.animate-fadein {
-    animation: fadein 0.3s ease-out forwards;
-}
-@keyframes fadein {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
 </style>

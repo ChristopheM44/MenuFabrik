@@ -133,7 +133,7 @@ watch(() => props.meal.noteText, (newVal) => {
             
             <!-- Thumbnail (if recipe) -->
             <div v-if="meal.recipe" class="w-16 h-16 md:w-24 md:h-24 rounded-xl overflow-hidden bg-surface-100 dark:bg-surface-800 flex-shrink-0 relative">
-                <img v-if="(meal.recipe as any).imageUrl" :src="(meal.recipe as any).imageUrl" class="w-full h-full object-cover" />
+                <img v-if="meal.recipe?.imageUrl" :src="meal.recipe.imageUrl" class="w-full h-full object-cover" loading="lazy" />
                 <div v-else class="w-full h-full flex items-center justify-center text-surface-400 bg-surface-50 dark:bg-surface-800/50">
                     <i class="pi pi-image text-xl md:text-2xl"></i>
                 </div>

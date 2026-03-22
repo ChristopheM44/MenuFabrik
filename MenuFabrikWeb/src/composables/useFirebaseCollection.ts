@@ -1,5 +1,5 @@
 import { ref, watch, type Ref } from 'vue'
-import { collection, doc, query, getDocs, addDoc, updateDoc, deleteDoc, onSnapshot } from 'firebase/firestore'
+import { collection, doc, query, getDocs, addDoc, updateDoc, deleteDoc, onSnapshot, type WithFieldValue, type UpdateData } from 'firebase/firestore'
 import type { Unsubscribe } from 'firebase/firestore'
 import { db } from '../firebase/config'
 import { useAuthStore } from '../stores/authStore'
@@ -57,18 +57,8 @@ export function useFirebaseCollection<T extends { id?: string }>(collectionName:
                 if (change.type === 'modified') {
                     const index = items.value.findIndex(item => item.id === change.doc.id)
                     if (index !== -1) {
-                        const itemToUpdate = items.value[index]
-                        if (itemToUpdate) {
-                            const newData = change.doc.data();
-                            // Handle deleted fields: first clear all keys on itemToUpdate except 'id'
-                            Object.keys(itemToUpdate).forEach(key => {
-                                if (key !== 'id') {
-                                    delete (itemToUpdate as any)[key]
-                                }
-                            });
-                            // Then apply the new ones
-                            Object.assign(itemToUpdate, newData);
-                        }
+                        // Remplacement immutable — plus sûr et compatible réactivité Vue (audit 3.5)
+                        items.value[index] = { id: change.doc.id, ...change.doc.data() } as T;
                     }
                 }
                 if (change.type === 'removed') {
@@ -101,7 +91,7 @@ export function useFirebaseCollection<T extends { id?: string }>(collectionName:
 
     const addItem = async (item: Omit<T, 'id'>) => {
         try {
-            const docRef = await addDoc(getCollectionRef(), item as any)
+            const docRef = await addDoc(getCollectionRef(), item as WithFieldValue<Omit<T, 'id'>>)
             return docRef.id
         } catch (err: any) {
             error.value = "Erreur de création : " + (err.message || 'Permission refusée')
@@ -112,7 +102,7 @@ export function useFirebaseCollection<T extends { id?: string }>(collectionName:
 
     const updateItem = async (id: string, updates: Partial<T>) => {
         try {
-            await updateDoc(getDocRef(id), updates as any)
+            await updateDoc(getDocRef(id), updates as UpdateData<T>)
         } catch (err: any) {
             error.value = "Erreur de mise à jour : " + (err.message || 'Permission refusée')
             console.error(err)

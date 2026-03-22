@@ -7,6 +7,7 @@ import type { useParticipantStore } from '../stores/participantStore';
 import type { useSideDishStore } from '../stores/sideDishStore';
 import { getLocalISODate, formatDateLabel } from '../utils/dateUtils';
 import { hydrateMeal } from '../utils/hydrateMeal';
+import { sortByNameFr } from '../utils/sortUtils';
 
 /**
  * Composable : données calculées du planning.
@@ -77,7 +78,7 @@ export function useMealsPlanningData(
                 (r.category && r.category.toLowerCase().includes(query))
             );
         }
-        return recipes.sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
+        return sortByNameFr(recipes);
     });
 
     return {
