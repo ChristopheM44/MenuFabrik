@@ -7,6 +7,7 @@ import { useAuthStore } from '../stores/authStore'
 export function useFirebaseCollection<T extends { id?: string }>(collectionName: string) {
     const items = ref<T[]>([]) as Ref<T[]>
     const isLoading = ref(false)
+    const isReady = ref(false)
     const error = ref<string | null>(null)
 
     let unsubscribe: Unsubscribe | null = null
@@ -66,14 +67,28 @@ export function useFirebaseCollection<T extends { id?: string }>(collectionName:
                     if (index !== -1) items.value.splice(index, 1)
                 }
             })
+            // Marquer comme prêt au premier snapshot
+            isReady.value = true
             // Unclear if we should clear error here, maybe.
             error.value = null
         }, (err) => {
             error.value = "Erreur de synchronisation : " + (err.message || 'Erreur inconnue')
             console.error(err)
+            isReady.value = true // Résoudre quand même en cas d'erreur pour ne pas bloquer
         })
 
         return unsubscribe
+    }
+
+    const $reset = () => {
+        items.value = []
+        isLoading.value = false
+        isReady.value = false
+        error.value = null
+        if (unsubscribe) {
+            unsubscribe()
+            unsubscribe = null
+        }
     }
 
     // Auto-setup and teardown based on auth state
@@ -81,13 +96,24 @@ export function useFirebaseCollection<T extends { id?: string }>(collectionName:
         if (user) {
             setupRealtimeListener()
         } else {
-            if (unsubscribe) {
-                unsubscribe()
-                unsubscribe = null
-            }
             $reset()
         }
     }, { immediate: true })
+
+    const ensureReady = () => {
+        return new Promise<void>((resolve) => {
+            if (isReady.value) {
+                resolve()
+                return
+            }
+            const unwatch = watch(isReady, (ready) => {
+                if (ready) {
+                    unwatch()
+                    resolve()
+                }
+            })
+        })
+    }
 
     const addItem = async (item: Omit<T, 'id'>) => {
         try {
@@ -120,21 +146,13 @@ export function useFirebaseCollection<T extends { id?: string }>(collectionName:
         }
     }
 
-    const $reset = () => {
-        items.value = []
-        isLoading.value = false
-        error.value = null
-        if (unsubscribe) {
-            unsubscribe()
-            unsubscribe = null
-        }
-    }
-
     return {
         items,
         isLoading,
+        isReady,
         error,
         fetchItems,
+        ensureReady,
         setupRealtimeListener,
         addItem,
         updateItem,

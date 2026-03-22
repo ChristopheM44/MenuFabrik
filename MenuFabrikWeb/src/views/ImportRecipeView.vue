@@ -73,8 +73,10 @@ const handleImport = async () => {
     isImporting.value = true;
     try {
         // 1. Initialiser les stores nécessaires
-        if (allergenStore.allergens.length === 0) await allergenStore.fetchAllergens();
-        if (sideDishStore.sideDishes.length === 0) await sideDishStore.fetchSideDishes();
+        await Promise.all([
+            allergenStore.ensureReady(),
+            sideDishStore.ensureReady()
+        ]);
         
         const payload = decodedRecipe.value;
         const newAllergenIds: string[] = [];

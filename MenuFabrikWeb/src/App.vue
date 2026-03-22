@@ -5,8 +5,25 @@ import ProgressSpinner from 'primevue/progressspinner'
 import Toast from 'primevue/toast'
 import ReloadPrompt from './components/layout/ReloadPrompt.vue'
 
+import { useRecipeStore } from './stores/recipeStore'
+import { useMealStore } from './stores/mealStore'
+import { useShoppingStore } from './stores/shoppingStore'
+import { usePantryStore } from './stores/pantryStore'
+import { useParticipantStore } from './stores/participantStore'
+import { useAllergenStore } from './stores/allergenStore'
+import { useSideDishStore } from './stores/sideDishStore'
+
 const authStore = useAuthStore()
 authStore.setupAuthListener()
+
+// Initialisation précoce des stores pour démarrer les listeners temps réel (Évite le double fetch, Audit 4.2)
+useRecipeStore()
+useMealStore()
+useShoppingStore()
+usePantryStore()
+useParticipantStore()
+useAllergenStore()
+useSideDishStore()
 </script>
 
 <template>

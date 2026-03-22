@@ -10,6 +10,7 @@ export const useSideDishStore = defineStore('sideDish', () => {
         isLoading: collection.isLoading,
         error: collection.error,
         fetchSideDishes: collection.fetchItems,
+        ensureReady: collection.ensureReady,
         addSideDish: collection.addItem,
         updateSideDish: collection.updateItem,
         deleteSideDish: collection.deleteItem,

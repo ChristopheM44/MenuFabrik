@@ -63,6 +63,7 @@ export const useShoppingStore = defineStore('shopping', () => {
         isLoading: firestoreCollection.isLoading,
         error: firestoreCollection.error,
         fetchShoppingItems: firestoreCollection.fetchItems,
+        ensureReady: firestoreCollection.ensureReady,
         addShoppingItem: firestoreCollection.addItem,
         updateShoppingItem: firestoreCollection.updateItem,
         deleteShoppingItem: firestoreCollection.deleteItem,

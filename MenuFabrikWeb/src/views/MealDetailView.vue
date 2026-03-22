@@ -46,12 +46,12 @@ const isDataReady = computed(() => {
 });
 
 onMounted(async () => {
-    if (recipeStore.recipes.length === 0) await recipeStore.fetchRecipes();
-    if (participantStore.participants.length === 0) await participantStore.fetchParticipants();
-    if (sideDishStore.sideDishes.length === 0) await sideDishStore.fetchSideDishes();
-    if (mealStore.meals.length === 0) {
-        mealStore.setupRealtimeListener();
-    }
+    await Promise.all([
+        recipeStore.ensureReady(),
+        participantStore.ensureReady(),
+        sideDishStore.ensureReady(),
+        mealStore.ensureReady()
+    ]);
 });
 
 // Récupération de l'objet repas et hydratation

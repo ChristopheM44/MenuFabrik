@@ -10,6 +10,7 @@ export const useAllergenStore = defineStore('allergen', () => {
         isLoading: collection.isLoading,
         error: collection.error,
         fetchAllergens: collection.fetchItems,
+        ensureReady: collection.ensureReady,
         addAllergen: collection.addItem,
         updateAllergen: collection.updateItem,
         deleteAllergen: collection.deleteItem,

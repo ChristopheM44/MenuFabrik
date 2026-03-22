@@ -37,6 +37,12 @@ const filteredRecipes = computed((): Recipe[] => {
     return list.sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
 });
 
+const displayLimit = ref(20);
+const visibleRecipes = computed(() => filteredRecipes.value.slice(0, displayLimit.value));
+
+const observerTarget = ref<HTMLElement | null>(null);
+let observer: IntersectionObserver | null = null;
+
 const selectRecipe = (recipe: Recipe) => {
     recipeSearchQuery.value = '';
     activeCategory.value = 'Toutes';
@@ -45,9 +51,33 @@ const selectRecipe = (recipe: Recipe) => {
 };
 
 const close = () => {
+    emit('update:visible', false);
+};
+
+const onDialogShow = () => {
+    displayLimit.value = 20;
+    
+    setTimeout(() => {
+        if (observerTarget.value) {
+            if (!observer) {
+                observer = new IntersectionObserver((entries) => {
+                    const entry = entries.length > 0 ? entries[0] : null;
+                    if (entry && entry.isIntersecting && displayLimit.value < filteredRecipes.value.length) {
+                        displayLimit.value += 20;
+                    }
+                }, { rootMargin: '400px' });
+            }
+            observer.observe(observerTarget.value);
+        }
+    }, 100); // Wait for Dialog content to render
+};
+
+const onDialogHide = () => {
     recipeSearchQuery.value = '';
     activeCategory.value = 'Toutes';
-    emit('update:visible', false);
+    if (observer && observerTarget.value) {
+        observer.unobserve(observerTarget.value);
+    }
 };
 </script>
 
@@ -58,7 +88,8 @@ const close = () => {
         modal
         :header="props.header ?? 'Choisir une recette'"
         :style="{ width: '95vw', maxWidth: '800px' }"
-        @hide="recipeSearchQuery = ''; activeCategory = 'Toutes';"
+        @show="onDialogShow"
+        @hide="onDialogHide"
         :pt="{ content: { style: 'padding-bottom: 0;' } }"
     >
         <div class="flex flex-col gap-4 pt-2 pb-4 h-[70vh]">
@@ -95,11 +126,13 @@ const close = () => {
             <div class="flex-1 overflow-y-auto pr-1">
                 <RecipeGrid
                     mode="picker"
-                    :recipes="filteredRecipes"
+                    :recipes="visibleRecipes"
                     :selected-recipe-id="props.selectedRecipeId"
                     grid-cols="grid-cols-1 md:grid-cols-2"
                     @select="selectRecipe"
                 />
+                <!-- Pagination invisible via intersection observer -->
+                <div ref="observerTarget" class="h-4 w-full"></div>
             </div>
         </div>
 

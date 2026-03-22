@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useShoppingStore } from '../../stores/shoppingStore';
 import type { ShoppingItem } from '../../models/ShoppingItem';
 import { useToast } from 'primevue/usetoast';
@@ -23,6 +23,29 @@ const shoppingList = computed(() => {
         if (a.checked !== b.checked) return a.checked ? 1 : -1;
         return a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' });
     });
+});
+
+const displayLimit = ref(50);
+const visibleShoppingList = computed(() => shoppingList.value.slice(0, displayLimit.value));
+
+const observerTarget = ref<HTMLElement | null>(null);
+let observer: IntersectionObserver | null = null;
+
+onMounted(() => {
+    observer = new IntersectionObserver((entries) => {
+        const entry = entries.length > 0 ? entries[0] : null;
+        if (entry && entry.isIntersecting && displayLimit.value < shoppingList.value.length) {
+            displayLimit.value += 50;
+        }
+    }, { rootMargin: '200px' });
+    
+    if (observerTarget.value) {
+        observer.observe(observerTarget.value);
+    }
+});
+
+onUnmounted(() => {
+    if (observer) observer.disconnect();
 });
 
 const addManualShoppingItem = async () => {
@@ -180,7 +203,7 @@ const copyToClipboard = async () => {
 
             <div class="flex flex-col gap-1">
                 <TransitionGroup name="list">
-                    <div v-for="item in shoppingList" :key="item.id"
+                    <div v-for="item in visibleShoppingList" :key="item.id"
                         class="flex flex-col gap-2 p-3 rounded-lg hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors group cursor-pointer"
                         :class="{ 'opacity-50 bg-surface-50 dark:bg-surface-800/50': item.checked }"
                         @click="item.checked = !item.checked; toggleShoppingCheck(item)">
@@ -224,6 +247,7 @@ const copyToClipboard = async () => {
                         </div>
                     </div>
                 </TransitionGroup>
+                <div ref="observerTarget" class="h-4 w-full"></div>
             </div>
         </div>
     </div>

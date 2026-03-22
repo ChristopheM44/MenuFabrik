@@ -53,6 +53,7 @@ export const usePantryStore = defineStore('pantry', () => {
         isLoading: firestoreCollection.isLoading,
         error: firestoreCollection.error,
         fetchPantryItems: firestoreCollection.fetchItems,
+        ensureReady: firestoreCollection.ensureReady,
         addPantryItem: firestoreCollection.addItem,
         updatePantryItem: firestoreCollection.updateItem,
         deletePantryItem: firestoreCollection.deleteItem,

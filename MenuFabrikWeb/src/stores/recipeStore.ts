@@ -10,6 +10,7 @@ export const useRecipeStore = defineStore('recipe', () => {
         isLoading: collection.isLoading,
         error: collection.error,
         fetchRecipes: collection.fetchItems,
+        ensureReady: collection.ensureReady,
         addRecipe: collection.addItem,
         updateRecipe: collection.updateItem,
         deleteRecipe: collection.deleteItem,

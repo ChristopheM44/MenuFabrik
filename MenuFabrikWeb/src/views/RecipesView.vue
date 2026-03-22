@@ -16,10 +16,8 @@ const activeCategory = ref('Toutes');
 const categories = ['Toutes', 'Viandes', 'Poissons', 'Végétarien', 'Rapide', 'Au Four'];
 const toast = useToast();
 
-onMounted(async () => {
-    if (recipeStore.recipes.length === 0) {
-        await recipeStore.fetchRecipes();
-    }
+onMounted(() => {
+    // Les recettes se chargent toutes seules en tâche de fond grâce à useFirebaseCollection.
 });
 
 const filteredRecipes = computed(() => {

@@ -10,6 +10,7 @@ export const useParticipantStore = defineStore('participant', () => {
         isLoading: collection.isLoading,
         error: collection.error,
         fetchParticipants: collection.fetchItems,
+        ensureReady: collection.ensureReady,
         addParticipant: collection.addItem,
         updateParticipant: collection.updateItem,
         deleteParticipant: collection.deleteItem,

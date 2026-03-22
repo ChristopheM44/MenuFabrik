@@ -83,14 +83,14 @@ const sortedSideDishes = computed(() => sortByNameFr([...sideDishStore.sideDishe
 
 onMounted(async () => {
     // S'assurer que les données liées sont chargées
-    if (allergenStore.allergens.length === 0) await allergenStore.fetchAllergens();
-    if (sideDishStore.sideDishes.length === 0) await sideDishStore.fetchSideDishes();
+    await Promise.all([
+        allergenStore.ensureReady(),
+        sideDishStore.ensureReady()
+    ]);
 
     if (isEditing.value) {
         const id = route.params.id as string;
-        if (recipeStore.recipes.length === 0) {
-            await recipeStore.fetchRecipes();
-        }
+        await recipeStore.ensureReady();
         const existingRecipe = recipeStore.recipes.find(r => r.id === id);
         if (existingRecipe) {
             recipeForm.value = { ...existingRecipe };

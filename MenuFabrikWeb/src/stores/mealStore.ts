@@ -40,6 +40,7 @@ export const useMealStore = defineStore('meal', () => {
         isLoading: firestoreCollection.isLoading,
         error: firestoreCollection.error,
         fetchMeals: firestoreCollection.fetchItems,
+        ensureReady: firestoreCollection.ensureReady,
         addMeal: firestoreCollection.addItem,
         updateMeal: firestoreCollection.updateItem,
         deleteMeal: firestoreCollection.deleteItem,

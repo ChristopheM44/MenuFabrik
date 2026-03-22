@@ -83,11 +83,9 @@ const toggleAddMealMenu = (event: Event, dateKey: string) => {
 };
 
 // --- Init ---
-onMounted(async () => {
-    if (recipeStore.recipes.length === 0) await recipeStore.fetchRecipes();
-    if (participantStore.participants.length === 0) await participantStore.fetchParticipants();
-    if (sideDishStore.sideDishes.length === 0) await sideDishStore.fetchSideDishes();
-    if (mealStore.meals.length === 0) mealStore.setupRealtimeListener();
+onMounted(() => {
+    // Les stores sont déjà initialisés dans App.vue, ce qui démarre la synchronisation Firestore.
+    // Pas besoin de requêtes getDocs manuelles ici.
 });
 </script>
 
