@@ -22,6 +22,11 @@ export class GeminiService {
         availableSideDishes: SideDish[]
     ): Promise<AIAnalysisResult> {
 
+        // --- NOTE SUR L'ARCHITECTURE ---
+        // L'appel à l'API Gemini est volontairement conservé côté client (Frontend) 
+        // pour rester sur le plan Firebase SPARK (gratuit). 
+        // Le passage à une Cloud Function masquerait cette clé mais imposerait 
+        // le passage au plan payant BLAZE.
         const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
         if (!apiKey) {
             throw new Error("La clé d'API Gemini est manquante (VITE_GEMINI_API_KEY).");

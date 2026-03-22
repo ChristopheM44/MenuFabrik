@@ -4,7 +4,6 @@ import { useRoute, useRouter } from 'vue-router';
 import { useRecipeStore } from '../stores/recipeStore';
 import { useAllergenStore } from '../stores/allergenStore';
 import { useSideDishStore } from '../stores/sideDishStore';
-import { GeminiService } from '../services/GeminiService';
 import { ImageService } from '../services/ImageService';
 import type { Recipe } from '../models/Recipe';
 import { MealType, RecipeCategory } from '../models/Recipe';
@@ -15,8 +14,10 @@ import Select from 'primevue/select';
 import MultiSelect from 'primevue/multiselect';
 import ToggleSwitch from 'primevue/toggleswitch';
 import Rating from 'primevue/rating';
-import Textarea from 'primevue/textarea';
-import Panel from 'primevue/panel';
+
+import AIImportPanel from '../components/recipes/form/AIImportPanel.vue';
+import IngredientsStepPanel from '../components/recipes/form/IngredientsStepPanel.vue';
+import InstructionsStepPanel from '../components/recipes/form/InstructionsStepPanel.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -51,7 +52,6 @@ const recipeForm = ref<Partial<Recipe>>({
     ingredients: []
 });
 
-const aiPromptText = ref('');
 const preparationSteps = ref<string[]>([]);
 const newImageFile = ref<File | null>(null);
 const localImagePreview = ref<string | null>(null);
@@ -75,97 +75,7 @@ const removeImage = () => {
     if (fileInput.value) fileInput.value.value = '';
 };
 
-const addIngredient = () => {
-    if (!recipeForm.value.ingredients) {
-        recipeForm.value.ingredients = [];
-    }
-    recipeForm.value.ingredients.push({ name: '', quantity: undefined, unit: '' });
-};
 
-const removeIngredient = (index: number) => {
-    recipeForm.value.ingredients?.splice(index, 1);
-};
-
-const addPreparationStep = () => {
-    preparationSteps.value.push('');
-};
-
-const removePreparationStep = (index: number) => {
-    preparationSteps.value.splice(index, 1);
-};
-
-const isAnalyzing = ref(false);
-
-const analyzeWithAI = async () => {
-    isAnalyzing.value = true;
-    formError.value = '';
-
-    const urlInput = recipeForm.value.sourceURL?.trim() || '';
-    const textInput = aiPromptText.value?.trim() || '';
-
-    if (!urlInput && !textInput) {
-        formError.value = "Veuillez saisir une URL ou coller le texte de la recette avant de lancer l'analyse IA.";
-        isAnalyzing.value = false;
-        return;
-    }
-
-    try {
-        const aiData = await GeminiService.analyzeRecipe(
-            urlInput,
-            textInput,
-            sideDishStore.sideDishes
-        );
-
-        // Validation structurelle de la réponse IA (1.6)
-        if (!aiData || typeof aiData !== 'object') {
-            throw new Error("La réponse de l'IA est invalide ou vide.");
-        }
-
-        if (aiData.name && typeof aiData.name === 'string' && !recipeForm.value.name) {
-            recipeForm.value.name = aiData.name.slice(0, 200);
-        }
-        if (aiData.instructions && typeof aiData.instructions === 'string') {
-            const newSteps = aiData.instructions
-                .split(/\n+/)
-                .map(step => step.replace(/^\d+[\.\)]\s*/, '').trim())
-                .filter(step => step.length > 0);
-            if (newSteps.length > 0) {
-                preparationSteps.value = newSteps;
-            }
-        }
-        // Vérifier que la catégorie IA est une valeur connue
-        if (aiData.category && Object.values(RecipeCategory).includes(aiData.category as RecipeCategory)) {
-            recipeForm.value.category = aiData.category as RecipeCategory;
-        }
-        if (aiData.prepTime && typeof aiData.prepTime === 'number' && aiData.prepTime >= 0 && aiData.prepTime <= 1440) {
-            recipeForm.value.prepTime = aiData.prepTime;
-        }
-        // Validation et typage des ingrédients (suppression du `as any`)
-        if (aiData.ingredients && Array.isArray(aiData.ingredients)) {
-            recipeForm.value.ingredients = aiData.ingredients
-                .filter((ing): ing is { name: string; quantity?: number; unit?: string } =>
-                    ing && typeof ing.name === 'string' && ing.name.trim().length > 0
-                )
-                .map(ing => ({
-                    name: ing.name.trim(),
-                    quantity: typeof ing.quantity === 'number' ? ing.quantity : undefined,
-                    unit: typeof ing.unit === 'string' ? ing.unit.trim() : undefined
-                }));
-        }
-
-        const matchedAllergenIds = GeminiService.mapAllergens(aiData.allergens, allergenStore.allergens);
-        recipeForm.value.allergenIds = [...new Set([...(recipeForm.value.allergenIds || []), ...matchedAllergenIds])];
-
-        const matchedSideIds = GeminiService.mapSideDishes(aiData.sideDishes, sideDishStore.sideDishes);
-        recipeForm.value.suggestedSideIds = [...new Set([...(recipeForm.value.suggestedSideIds || []), ...matchedSideIds])];
-
-    } catch (e: any) {
-        formError.value = "Erreur IA : " + e.message;
-        console.error("Gemini AI Analysis Error:", e);
-    } finally {
-        isAnalyzing.value = false;
-    }
-};
 
 const sortedSideDishes = computed(() => {
     return [...sideDishStore.sideDishes].sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
@@ -344,70 +254,15 @@ const cancel = () => {
             <hr class="border-surface-200 dark:border-surface-700 my-2" />
 
             <!-- SECTION EXTRACTION IA -->
-            <Panel header="Assistant d'Importation IA" toggleable collapsed class="bg-primary-50 dark:bg-primary-900/30" :pt="{ root: { class: 'border border-primary-200 dark:border-primary-800 rounded-xl bg-primary-50/50 dark:bg-primary-900/30' }, header: { class: 'bg-primary-50 dark:bg-primary-800 rounded-t-xl text-primary-900 dark:text-primary-100' }, content: { class: 'bg-transparent rounded-b-xl' } }">
-                <!-- Décoration de fond -->
-                <i class="pi pi-sparkles absolute -right-6 -top-6 text-9xl text-primary-500/5 rotate-12 pointer-events-none"></i>
-                
-                <div class="flex flex-col gap-4 relative z-10 p-2">
-                    <div class="flex flex-col gap-2">
-                        <label for="sourceURL" class="font-semibold text-sm text-primary-900 dark:text-primary-400">1. Lien Web de la recette (URL)</label>
-                        <div class="flex items-stretch rounded-md overflow-hidden bg-surface-0 dark:bg-[#202126] border border-surface-300 dark:border-[#2b2d31] focus-within:ring-1 focus-within:ring-primary-500 w-full">
-                            <span class="flex items-center justify-center px-3 text-surface-500 dark:text-surface-400 border-r border-surface-300 dark:border-[#2b2d31] bg-surface-50 dark:bg-[#191a1f]"><i class="pi pi-link"></i></span>
-                            <InputText id="sourceURL" v-model="recipeForm.sourceURL" placeholder="Ex: https://cookidoo.fr/..." class="w-full font-mono text-sm border-none shadow-none ring-0 focus:ring-0" />
-                        </div>
-                    </div>
+            <AIImportPanel 
+                v-model:recipeForm="recipeForm"
+                v-model:preparationSteps="preparationSteps"
+                @error="err => formError = err"
+            />
 
-                    <div class="flex flex-col gap-2">
-                        <label for="instructions" class="font-semibold text-sm text-primary-900 dark:text-primary-400">2. Et / Ou Instructions et texte détaillé</label>
-                        <Textarea id="instructions" v-model="aiPromptText" rows="4" placeholder="Saisir la recette, coller le texte depuis un blog..." class="w-full" autoResize />
-                    </div>
-                </div>
-                
-                <div class="flex justify-center sm:justify-end mt-4 relative z-10">
-                    <Button icon="pi pi-sparkles" label="Compléter avec l'IA" @click="analyzeWithAI" :loading="isAnalyzing" class="w-full sm:w-auto shadow-md font-bold px-6 py-3" />
-                </div>
-            </Panel>
+            <IngredientsStepPanel v-model="recipeForm" />
 
-            <Panel header="Ingrédients" toggleable :pt="{ root: { class: 'border border-surface-200 dark:border-[#2b2d31] rounded-xl overflow-hidden' }, header: { class: 'bg-surface-50 dark:bg-[#202126]' }, content: { class: 'bg-surface-0 dark:bg-[#191a1f]' } }">
-                <div class="flex flex-col gap-2 p-2">
-                    <div class="flex justify-end items-center mb-2">
-                        <Button icon="pi pi-plus" label="Ajouter" size="small" text @click="addIngredient" />
-                    </div>
-                    
-                    <div v-if="recipeForm.ingredients && recipeForm.ingredients.length > 0" class="flex flex-col gap-3">
-                        <div v-for="(ingredient, index) in recipeForm.ingredients" :key="index" class="flex flex-row flex-wrap sm:flex-nowrap items-center gap-2 bg-surface-100 dark:bg-[#202126] p-2 rounded-lg border border-surface-200 dark:border-[#2b2d31]">
-                            <InputText v-model="ingredient.name" placeholder="Nom (ex: Farine)" class="w-full sm:flex-1 min-w-[120px]" />
-                            <div class="flex items-center gap-2 w-full sm:w-auto">
-                                <input v-model.number="ingredient.quantity" type="number" step="any" placeholder="Qté" class="p-inputtext p-component w-24 flex-shrink-0" />
-                                <InputText v-model="ingredient.unit" placeholder="Unité (g, ml...)" class="w-24 flex-shrink-0" />
-                                <Button icon="pi pi-trash" severity="danger" text rounded @click="removeIngredient(index)" tabindex="-1" class="ml-auto sm:ml-0" aria-label="Supprimer cet ingrédient" />
-                            </div>
-                        </div>
-                    </div>
-                    <div v-else class="text-sm text-surface-500 dark:text-surface-400 italic p-4 text-center border border-dashed rounded-lg border-surface-200 dark:border-surface-700">
-                        Aucun ingrédient détaillé. (Vous pourrez utiliser l'assistant IA pour les extraire automatiquement plus tard !)
-                    </div>
-                </div>
-            </Panel>
-
-            <Panel header="Étapes de préparation" toggleable :pt="{ root: { class: 'border border-surface-200 dark:border-[#2b2d31] rounded-xl overflow-hidden' }, header: { class: 'bg-surface-50 dark:bg-[#202126]' }, content: { class: 'bg-surface-0 dark:bg-[#191a1f]' } }">
-                <div class="flex flex-col gap-2 p-2">
-                    <div class="flex justify-end items-center mb-2">
-                        <Button icon="pi pi-plus" label="Ajouter une étape" size="small" text @click="addPreparationStep" />
-                    </div>
-                    
-                    <div v-if="preparationSteps && preparationSteps.length > 0" class="flex flex-col gap-3">
-                        <div v-for="(_step, index) in preparationSteps" :key="index" class="flex flex-row flex-nowrap items-start gap-2 bg-surface-100 dark:bg-[#202126] p-3 rounded-lg border border-surface-200 dark:border-[#2b2d31]">
-                            <div class="mt-2 font-bold text-surface-500 dark:text-surface-400 w-6 text-right shrink-0">{{ index + 1 }}.</div>
-                            <Textarea v-model="preparationSteps[index]" rows="2" placeholder="Décrivez cette étape..." class="w-full" autoResize />
-                            <Button icon="pi pi-trash" severity="danger" text rounded @click="removePreparationStep(index)" tabindex="-1" class="shrink-0 mt-1" aria-label="Supprimer cette étape" />
-                        </div>
-                    </div>
-                    <div v-else class="text-sm text-surface-500 dark:text-surface-400 italic p-4 text-center border border-dashed rounded-lg border-surface-200 dark:border-surface-700">
-                        Aucune étape de préparation. Ajoutez-en ou utilisez l'assistant IA.
-                    </div>
-                </div>
-            </Panel>
+            <InstructionsStepPanel v-model="preparationSteps" />
 
             <hr class="border-surface-200 dark:border-surface-700 my-2" />
 

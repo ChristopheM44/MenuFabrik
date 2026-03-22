@@ -1,4 +1,4 @@
-import { MealStatus, type Meal } from '../models/Meal';
+import { MealStatus, MealTime, type Meal } from '../models/Meal';
 import { MealType, type Recipe, type RecipeCategory } from '../models/Recipe';
 import type { Participant } from '../models/Participant';
 
@@ -13,8 +13,8 @@ export class MenuGeneratorEngine {
             const dateB = new Date(b.date);
 
             if (dateA.toDateString() === dateB.toDateString()) {
-                if (a.type === "Midi" && b.type === "Soir") return -1;
-                if (a.type === "Soir" && b.type === "Midi") return 1;
+                if (a.type === MealTime.LUNCH && b.type === MealTime.DINNER) return -1;
+                if (a.type === MealTime.DINNER && b.type === MealTime.LUNCH) return 1;
                 return 0;
             }
             return dateA.getTime() - dateB.getTime();
@@ -146,7 +146,7 @@ export class MenuGeneratorEngine {
         usedRecipeIDs: Set<string>,
         previousCategory: RecipeCategory | null
     ): { recipe: Recipe, score: number }[] {
-        const expectedType: MealType = (meal.type === "Midi") ? MealType.LUNCH : MealType.DINNER;
+        const expectedType: MealType = (meal.type === MealTime.LUNCH) ? MealType.LUNCH : MealType.DINNER;
         const isWeekend = this.isWeekend(new Date(meal.date));
 
         const scoredCandidates: { recipe: Recipe, score: number }[] = [];
@@ -170,7 +170,7 @@ export class MenuGeneratorEngine {
                 score -= 40;
             }
 
-            if (meal.type === "Midi" && recipe.prepTime <= 30) {
+            if (meal.type === MealTime.LUNCH && recipe.prepTime <= 30) {
                 score += 20;
             }
 

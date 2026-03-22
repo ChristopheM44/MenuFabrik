@@ -11,6 +11,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AIImportPanel: typeof import('./src/components/recipes/form/AIImportPanel.vue')['default']
     AppLayout: typeof import('./src/components/layout/AppLayout.vue')['default']
     AttendeePickerDialog: typeof import('./src/components/planning/AttendeePickerDialog.vue')['default']
     Button: typeof import('primevue/button')['default']
@@ -18,9 +19,12 @@ declare module 'vue' {
     DriveSyncModal: typeof import('./src/components/planning/DriveSyncModal.vue')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     ImportMealsToShoppingModal: typeof import('./src/components/planning/ImportMealsToShoppingModal.vue')['default']
+    IngredientsStepPanel: typeof import('./src/components/recipes/form/IngredientsStepPanel.vue')['default']
     InputText: typeof import('primevue/inputtext')['default']
+    InstructionsStepPanel: typeof import('./src/components/recipes/form/InstructionsStepPanel.vue')['default']
     MealCardView: typeof import('./src/components/MealCardView.vue')['default']
     Message: typeof import('primevue/message')['default']
+    PantryPanel: typeof import('./src/components/shopping/PantryPanel.vue')['default']
     Password: typeof import('primevue/password')['default']
     PlanMealDialog: typeof import('./src/components/planning/PlanMealDialog.vue')['default']
     RecipeGrid: typeof import('./src/components/recipes/RecipeGrid.vue')['default']
@@ -32,6 +36,7 @@ declare module 'vue' {
     SettingsAllergensTab: typeof import('./src/components/settings/SettingsAllergensTab.vue')['default']
     SettingsParticipantsTab: typeof import('./src/components/settings/SettingsParticipantsTab.vue')['default']
     SettingsSideDishesTab: typeof import('./src/components/settings/SettingsSideDishesTab.vue')['default']
+    ShoppingCartPanel: typeof import('./src/components/shopping/ShoppingCartPanel.vue')['default']
   }
   export interface GlobalDirectives {
     Tooltip: typeof import('primevue/tooltip')['default']

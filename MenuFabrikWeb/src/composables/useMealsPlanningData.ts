@@ -5,6 +5,8 @@ import type { useMealStore } from '../stores/mealStore';
 import type { useRecipeStore } from '../stores/recipeStore';
 import type { useParticipantStore } from '../stores/participantStore';
 import type { useSideDishStore } from '../stores/sideDishStore';
+import { getLocalISODate, formatDateLabel } from '../utils/dateUtils';
+import { hydrateMeal } from '../utils/hydrateMeal';
 
 /**
  * Composable : données calculées du planning.
@@ -18,14 +20,6 @@ export function useMealsPlanningData(
     sideDishStore: ReturnType<typeof useSideDishStore>,
     recipeSearchQuery?: Ref<string>
 ) {
-    // Helper format YYYY-MM-DD en heure locale (évite les décalages UTC)
-    const getLocalISODate = (date: Date): string => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
-
     // Priorité de tri par type quand `order` n'est pas défini
     const typeSortPriority = (type: string): number => {
         if (type === MealTime.LUNCH) return 0;
@@ -35,18 +29,7 @@ export function useMealsPlanningData(
 
     // Jointure côté client : recette + participants + sides
     const getHydratedMeals = computed(() => {
-        return mealStore.meals.map(meal => ({
-            ...meal,
-            recipe: meal.recipeId
-                ? recipeStore.recipes.find(r => r.id === meal.recipeId)
-                : undefined,
-            attendees: meal.attendeeIds
-                ? participantStore.participants.filter(p => meal.attendeeIds.includes(p.id!))
-                : [],
-            selectedSideDishes: meal.selectedSideDishIds
-                ? sideDishStore.sideDishes.filter(sd => meal.selectedSideDishIds.includes(sd.id!))
-                : []
-        } as Meal));
+        return mealStore.meals.map(meal => hydrateMeal(meal, recipeStore, participantStore, sideDishStore));
     });
 
     // Groupement + tri par date
@@ -73,19 +56,7 @@ export function useMealsPlanningData(
                 if (aHasOrder && bHasOrder) return (a.order as number) - (b.order as number);
                 return typeSortPriority(a.type) - typeSortPriority(b.type);
             });
-
-            const parts = key.split('-');
-            const year = parseInt(parts[0] || '1970', 10);
-            const month = parseInt(parts[1] || '1', 10) - 1;
-            const day = parseInt(parts[2] || '1', 10);
-
-            const d_date = new Date(year, month, day);
-            const label = new Intl.DateTimeFormat('fr-FR', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long'
-            }).format(d_date);
-            const formattedLabel = label.charAt(0).toUpperCase() + label.slice(1);
+            const formattedLabel = formatDateLabel(key);
 
             return { dateKey: key, label: formattedLabel, meals: sortedMealsDay };
         });

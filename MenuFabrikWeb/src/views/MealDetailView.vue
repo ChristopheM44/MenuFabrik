@@ -5,10 +5,12 @@ import { useMealStore } from '../stores/mealStore';
 import { useRecipeStore } from '../stores/recipeStore';
 import { useParticipantStore } from '../stores/participantStore';
 import { useSideDishStore } from '../stores/sideDishStore';
-import type { Meal } from '../models/Meal';
+
 import type { Recipe } from '../models/Recipe';
 import { RecipeShareService } from '../services/RecipeShareService';
 import { useToast } from 'primevue/usetoast';
+import { hydrateMeal } from '../utils/hydrateMeal';
+import { formatDateLabel } from '../utils/dateUtils';
 
 // PrimeVue Components
 import Button from 'primevue/button';
@@ -55,13 +57,7 @@ const currentMealRaw = computed(() => mealStore.meals.find(m => m.id === mealId)
 
 const hydratedMeal = computed(() => {
     if (!currentMealRaw.value) return null;
-    const m = currentMealRaw.value;
-    return {
-        ...m,
-        recipe: m.recipeId ? recipeStore.recipes.find(r => r.id === m.recipeId) : undefined,
-        attendees: m.attendeeIds ? participantStore.participants.filter(p => m.attendeeIds?.includes(p.id!)) : [],
-        selectedSideDishes: m.selectedSideDishIds ? sideDishStore.sideDishes.filter(sd => m.selectedSideDishIds?.includes(sd.id!)) : []
-    } as Meal;
+    return hydrateMeal(currentMealRaw.value, recipeStore, participantStore, sideDishStore);
 });
 
 // Initialiser le modèle du MultiSelect quand on a chargé les données la première fois
@@ -77,25 +73,7 @@ watch(currentMealRaw, (newMeal) => {
 // Date formatée pour le titre
 const formattedDate = computed(() => {
     if (!hydratedMeal.value) return '';
-    let dateObj = new Date(hydratedMeal.value.date);
-    if (isNaN(dateObj.getTime())) return hydratedMeal.value.date;
-    
-    // Compensation fuseau horaire
-    const offset = dateObj.getTimezoneOffset() * 60000;
-    const localStr = (new Date(dateObj.getTime() - offset)).toISOString().split('T')[0];
-    if (!localStr) return hydratedMeal.value.date;
-    const parts = localStr.split('-');
-    if (parts.length < 3) return hydratedMeal.value.date;
-    
-    // Explicitly parse to guarantee no undefined passing to Date
-    const year = parseInt(parts[0] || '1970', 10);
-    const month = parseInt(parts[1] || '1', 10) - 1;
-    const day = parseInt(parts[2] || '1', 10);
-    
-    const localDate = new Date(year, month, day);
-
-    const label = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).format(localDate);
-    return label.charAt(0).toUpperCase() + label.slice(1);
+    return formatDateLabel(hydratedMeal.value.date);
 });
 
 
