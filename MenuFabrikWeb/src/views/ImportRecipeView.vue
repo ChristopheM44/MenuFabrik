@@ -46,7 +46,14 @@ onMounted(() => {
     try {
         // Decode Base64 -> URI Component -> JSON
         const jsonStr = decodeURIComponent(atob(dataParam));
-        decodedRecipe.value = JSON.parse(jsonStr) as SharedRecipePayload;
+        const parsed = JSON.parse(jsonStr);
+
+        // Validation minimale du payload (1.6)
+        if (!parsed || typeof parsed !== 'object' || typeof parsed.n !== 'string' || !parsed.n.trim()) {
+            throw new Error('Payload incomplet ou mal formé');
+        }
+
+        decodedRecipe.value = parsed as SharedRecipePayload;
     } catch (error) {
         console.error("Erreur de décodage du lien de partage:", error);
         isDecodingError.value = true;
@@ -77,14 +84,13 @@ const handleImport = async () => {
         if (payload.al && payload.al.length > 0) {
             for (const allergenName of payload.al) {
                 const existing = allergenStore.allergens.find(a => a.name.toLowerCase() === allergenName.toLowerCase());
-                if (existing && (existing as any).id) {
-                    newAllergenIds.push((existing as any).id);
+                if (existing?.id) {
+                    newAllergenIds.push(existing.id);
                 } else {
-                    // Création
+                    // Création — addAllergen retourne l'objet complet avec id
                     const newAllergen = await allergenStore.addAllergen({ name: allergenName });
-                    if (newAllergen && (newAllergen as any).id) {
-                        newAllergenIds.push((newAllergen as any).id);
-                    }
+                    const createdId = (newAllergen as { id?: string } | null)?.id;
+                    if (createdId) newAllergenIds.push(createdId);
                 }
             }
         }
@@ -93,14 +99,13 @@ const handleImport = async () => {
         if (payload.sd && payload.sd.length > 0) {
             for (const sideName of payload.sd) {
                 const existing = sideDishStore.sideDishes.find(s => s.name.toLowerCase() === sideName.toLowerCase());
-                if (existing && (existing as any).id) {
-                    newSideDishIds.push((existing as any).id);
+                if (existing?.id) {
+                    newSideDishIds.push(existing.id);
                 } else {
-                    // Création
+                    // Création — addSideDish retourne l'objet complet avec id
                     const newSide = await sideDishStore.addSideDish({ name: sideName });
-                    if (newSide && (newSide as any).id) {
-                        newSideDishIds.push((newSide as any).id);
-                    }
+                    const createdId = (newSide as { id?: string } | null)?.id;
+                    if (createdId) newSideDishIds.push(createdId);
                 }
             }
         }

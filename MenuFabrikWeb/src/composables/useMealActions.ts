@@ -25,6 +25,16 @@ export function useMealActions(
     const confirm = useConfirm();
     const toast = useToast();
 
+    // Helper interne : affichage d'une erreur utilisateur (1.5)
+    const notifyError = (message: string, detail?: string) => {
+        toast.add({
+            severity: 'error',
+            summary: message,
+            detail: detail || 'Une erreur inattendue est survenue. Veuillez réessayer.',
+            life: 4000
+        });
+    };
+
     // --- État UI partagé avec les dialogs ---
     const isGeneratingGlobal = ref(false);
     const showAttendeesDialog = ref(false);
@@ -52,8 +62,9 @@ export function useMealActions(
                 order: maxOrder + 1
             };
             await mealStore.addMeal(newMeal);
-        } catch (e) {
+        } catch (e: any) {
             console.error("Erreur lors de l'ajout libre:", e);
+            notifyError("Impossible d'ajouter le repas", e?.message);
         }
     };
 
@@ -75,9 +86,9 @@ export function useMealActions(
                 );
                 await mealStore.saveMealsBatch(emptyMeals);
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error("Erreur Génération globale:", e);
-            toast.add({ severity: 'error', summary: 'Erreur', detail: 'Une erreur est survenue lors de la génération.', life: 3000 });
+            notifyError('Erreur de génération', 'Une erreur est survenue lors de la génération automatique.');
         } finally {
             isGeneratingGlobal.value = false;
         }
@@ -109,8 +120,9 @@ export function useMealActions(
                     selectedSideDishIds: mealToUpdate.selectedSideDishIds
                 });
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error("Erreur lors de la génération ciblée:", e);
+            notifyError('Erreur de génération', e?.message);
         }
     };
 
@@ -130,8 +142,9 @@ export function useMealActions(
                 selectedSideDishIds: []
             });
             showRecipePicker.value = false;
-        } catch (e) {
+        } catch (e: any) {
             console.error("Erreur selection manuelle:", e);
+            notifyError('Impossible de choisir la recette', e?.message);
         }
     };
 
@@ -173,9 +186,9 @@ export function useMealActions(
                 // Pas de repas opposé → déplace le repas vers l'autre créneau
                 await mealStore.updateMeal(meal.id, { type: targetType });
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error("Erreur de permutation:", e);
-            toast.add({ severity: 'error', summary: 'Erreur', detail: 'Une erreur est survenue lors de la permutation.', life: 3000 });
+            notifyError('Impossible de permuter', e?.message);
         }
     };
 
@@ -202,8 +215,9 @@ export function useMealActions(
                 mealStore.updateMeal(mealId, { order: orderB }),
                 mealStore.updateMeal(neighborId, { order: orderA })
             ]);
-        } catch (e) {
+        } catch (e: any) {
             console.error('Erreur de déplacement:', e);
+            notifyError('Impossible de déplacer le repas', e?.message);
         }
     };
 
@@ -217,8 +231,9 @@ export function useMealActions(
                 updateData.selectedSideDishIds = [];
             }
             await mealStore.updateMeal(meal.id, updateData);
-        } catch (e) {
+        } catch (e: any) {
             console.error("Erreur lors du changement de statut:", e);
+            notifyError('Impossible de changer le statut', e?.message);
         }
     };
 
@@ -227,8 +242,9 @@ export function useMealActions(
         if (!meal.id) return;
         try {
             await mealStore.updateMeal(meal.id, { noteText });
-        } catch (e) {
+        } catch (e: any) {
             console.error("Erreur lors de la mise à jour de la note:", e);
+            notifyError('Impossible de sauvegarder la note', e?.message);
         }
     };
 
@@ -242,7 +258,12 @@ export function useMealActions(
             rejectProps: { label: 'Annuler', severity: 'secondary', outlined: true },
             acceptProps: { label: 'Supprimer', severity: 'danger' },
             accept: async () => {
-                if (meal.id) await mealStore.deleteMeal(meal.id);
+                try {
+                    if (meal.id) await mealStore.deleteMeal(meal.id);
+                } catch (e: any) {
+                    console.error("Erreur lors de la suppression du repas:", e);
+                    notifyError('Impossible de supprimer le repas', e?.message);
+                }
             }
         });
     };
@@ -256,13 +277,18 @@ export function useMealActions(
             rejectProps: { label: 'Annuler', severity: 'secondary', outlined: true },
             acceptProps: { label: 'Vider', severity: 'danger' },
             accept: async () => {
-                const mealsToDelete = mealStore.meals.filter(m => {
-                    const mdObj = new Date(m.date);
-                    if (isNaN(mdObj.getTime())) return false;
-                    return getLocalISODate(mdObj) === dateKey;
-                });
-                for (const m of mealsToDelete) {
-                    if (m.id) await mealStore.deleteMeal(m.id);
+                try {
+                    const mealsToDelete = mealStore.meals.filter(m => {
+                        const mdObj = new Date(m.date);
+                        if (isNaN(mdObj.getTime())) return false;
+                        return getLocalISODate(mdObj) === dateKey;
+                    });
+                    for (const m of mealsToDelete) {
+                        if (m.id) await mealStore.deleteMeal(m.id);
+                    }
+                } catch (e: any) {
+                    console.error("Erreur lors de la suppression de la journée:", e);
+                    notifyError('Impossible de vider la journée', e?.message);
                 }
             }
         });
@@ -288,8 +314,9 @@ export function useMealActions(
         try {
             await mealStore.updateMeal(targetMealIdForAttendees.value, { attendeeIds });
             showAttendeesDialog.value = false;
-        } catch (e) {
+        } catch (e: any) {
             console.error("Erreur lors de la modification des participants:", e);
+            notifyError('Impossible de sauvegarder les participants', e?.message);
         }
     };
 

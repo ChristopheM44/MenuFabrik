@@ -6,8 +6,8 @@ import { useAllergenStore } from '../stores/allergenStore';
 import { useSideDishStore } from '../stores/sideDishStore';
 import { GeminiService } from '../services/GeminiService';
 import { ImageService } from '../services/ImageService';
-import type { Recipe, RecipeCategory } from '../models/Recipe';
-import { MealType } from '../models/Recipe';
+import type { Recipe } from '../models/Recipe';
+import { MealType, RecipeCategory } from '../models/Recipe';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import InputNumber from 'primevue/inputnumber';
@@ -28,13 +28,8 @@ const isEditing = computed(() => !!route.params.id && route.params.id !== 'new')
 const formError = ref('');
 const isSaving = ref(false);
 
-const categories: { label: string, value: string }[] = [
-    { label: 'Viandes', value: 'Viandes' },
-    { label: 'Poissons', value: 'Poissons' },
-    { label: 'Végétarien', value: 'Végétarien' },
-    { label: 'Rapide', value: 'Rapide' },
-    { label: 'Au Four', value: 'Au Four' }
-];
+// Liste complète issue du modèle RecipeCategory (1.6)
+const categories: { label: string, value: RecipeCategory }[] = Object.values(RecipeCategory).map(v => ({ label: v, value: v }));
 
 const mealTypes: { label: string, value: MealType }[] = [
     { label: 'Midi', value: MealType.LUNCH },
@@ -105,36 +100,62 @@ const analyzeWithAI = async () => {
     isAnalyzing.value = true;
     formError.value = '';
 
+    const urlInput = recipeForm.value.sourceURL?.trim() || '';
+    const textInput = aiPromptText.value?.trim() || '';
+
+    if (!urlInput && !textInput) {
+        formError.value = "Veuillez saisir une URL ou coller le texte de la recette avant de lancer l'analyse IA.";
+        isAnalyzing.value = false;
+        return;
+    }
+
     try {
         const aiData = await GeminiService.analyzeRecipe(
-            recipeForm.value.sourceURL || '',
-            aiPromptText.value || '',
+            urlInput,
+            textInput,
             sideDishStore.sideDishes
         );
-        
-        if (aiData.name && !recipeForm.value.name) recipeForm.value.name = aiData.name;
-        if (aiData.instructions) {
-            // Split the instructions by newline and filter out empty lines, stripping out numbers if present "1. "
+
+        // Validation structurelle de la réponse IA (1.6)
+        if (!aiData || typeof aiData !== 'object') {
+            throw new Error("La réponse de l'IA est invalide ou vide.");
+        }
+
+        if (aiData.name && typeof aiData.name === 'string' && !recipeForm.value.name) {
+            recipeForm.value.name = aiData.name.slice(0, 200);
+        }
+        if (aiData.instructions && typeof aiData.instructions === 'string') {
             const newSteps = aiData.instructions
                 .split(/\n+/)
                 .map(step => step.replace(/^\d+[\.\)]\s*/, '').trim())
                 .filter(step => step.length > 0);
-            
             if (newSteps.length > 0) {
-                 preparationSteps.value = newSteps;
+                preparationSteps.value = newSteps;
             }
         }
-        if (aiData.category) recipeForm.value.category = aiData.category as RecipeCategory;
-        if (aiData.prepTime) recipeForm.value.prepTime = aiData.prepTime;
-        if (aiData.ingredients && Array.isArray(aiData.ingredients)) {
-            recipeForm.value.ingredients = aiData.ingredients as any;
+        // Vérifier que la catégorie IA est une valeur connue
+        if (aiData.category && Object.values(RecipeCategory).includes(aiData.category as RecipeCategory)) {
+            recipeForm.value.category = aiData.category as RecipeCategory;
         }
-        
-        // Map allergens match
+        if (aiData.prepTime && typeof aiData.prepTime === 'number' && aiData.prepTime >= 0 && aiData.prepTime <= 1440) {
+            recipeForm.value.prepTime = aiData.prepTime;
+        }
+        // Validation et typage des ingrédients (suppression du `as any`)
+        if (aiData.ingredients && Array.isArray(aiData.ingredients)) {
+            recipeForm.value.ingredients = aiData.ingredients
+                .filter((ing): ing is { name: string; quantity?: number; unit?: string } =>
+                    ing && typeof ing.name === 'string' && ing.name.trim().length > 0
+                )
+                .map(ing => ({
+                    name: ing.name.trim(),
+                    quantity: typeof ing.quantity === 'number' ? ing.quantity : undefined,
+                    unit: typeof ing.unit === 'string' ? ing.unit.trim() : undefined
+                }));
+        }
+
         const matchedAllergenIds = GeminiService.mapAllergens(aiData.allergens, allergenStore.allergens);
         recipeForm.value.allergenIds = [...new Set([...(recipeForm.value.allergenIds || []), ...matchedAllergenIds])];
 
-        // Map side dishes match
         const matchedSideIds = GeminiService.mapSideDishes(aiData.sideDishes, sideDishStore.sideDishes);
         recipeForm.value.suggestedSideIds = [...new Set([...(recipeForm.value.suggestedSideIds || []), ...matchedSideIds])];
 
@@ -177,13 +198,33 @@ onMounted(async () => {
 });
 
 const saveRecipe = async () => {
-    if (!recipeForm.value.name || recipeForm.value.name.trim() === '') {
+    formError.value = '';
+
+    // Validation côté client complète (1.6)
+    const name = recipeForm.value.name?.trim() || '';
+    if (!name) {
         formError.value = "Le nom de la recette est obligatoire.";
         return;
     }
-    
+    if (name.length > 200) {
+        formError.value = "Le nom de la recette ne peut pas dépasser 200 caractères.";
+        return;
+    }
+    const prepTime = recipeForm.value.prepTime ?? 0;
+    if (prepTime < 5 || prepTime > 1440) {
+        formError.value = "Le temps de préparation doit être compris entre 5 et 1440 minutes.";
+        return;
+    }
+    if (!recipeForm.value.mealType || !['Midi', 'Soir', 'Les Deux'].includes(recipeForm.value.mealType)) {
+        formError.value = "Le type de repas est invalide.";
+        return;
+    }
+    if (!recipeForm.value.category || !Object.values(RecipeCategory).includes(recipeForm.value.category as RecipeCategory)) {
+        formError.value = "Veuillez sélectionner une catégorie valide.";
+        return;
+    }
+
     isSaving.value = true;
-    formError.value = '';
 
     try {
         // Aggregate preparation steps back into the instructions string before saving
@@ -201,13 +242,13 @@ const saveRecipe = async () => {
             }
             await recipeStore.updateRecipe(recipeForm.value.id, recipeForm.value);
         } else {
-            // Clean up potentially undefined stuff and force the type
+            // name, prepTime, mealType et category sont déjà validés plus haut
             const newRecipe: Omit<Recipe, 'id'> = {
-                name: recipeForm.value.name.trim(),
-                category: recipeForm.value.category as RecipeCategory || 'Viande',
-                prepTime: recipeForm.value.prepTime || 30,
+                name,
+                category: recipeForm.value.category!,
+                prepTime,
                 rating: recipeForm.value.rating || 0,
-                mealType: recipeForm.value.mealType || MealType.BOTH,
+                mealType: recipeForm.value.mealType!,
                 requiresFreeTime: recipeForm.value.requiresFreeTime || false,
                 allergenIds: recipeForm.value.allergenIds || [],
                 suggestedSideIds: recipeForm.value.suggestedSideIds || [],
