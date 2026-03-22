@@ -5,6 +5,7 @@ import { useRecipeStore } from '../stores/recipeStore';
 import { useAllergenStore } from '../stores/allergenStore';
 import { useSideDishStore } from '../stores/sideDishStore';
 import { GeminiService } from '../services/GeminiService';
+import { ImageService } from '../services/ImageService';
 import type { Recipe, RecipeCategory } from '../models/Recipe';
 import { MealType } from '../models/Recipe';
 import InputText from 'primevue/inputtext';
@@ -57,6 +58,27 @@ const recipeForm = ref<Partial<Recipe>>({
 
 const aiPromptText = ref('');
 const preparationSteps = ref<string[]>([]);
+const newImageFile = ref<File | null>(null);
+const localImagePreview = ref<string | null>(null);
+const fileInput = ref<HTMLInputElement | null>(null);
+
+const onFileSelect = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    if (target.files && target.files.length > 0) {
+        const file = target.files[0];
+        if (file) {
+            newImageFile.value = file;
+            localImagePreview.value = URL.createObjectURL(file);
+        }
+    }
+};
+
+const removeImage = () => {
+    newImageFile.value = null;
+    localImagePreview.value = null;
+    recipeForm.value.imageUrl = '';
+    if (fileInput.value) fileInput.value.value = '';
+};
 
 const addIngredient = () => {
     if (!recipeForm.value.ingredients) {
@@ -171,6 +193,12 @@ const saveRecipe = async () => {
             .join('\n');
 
         if (isEditing.value && recipeForm.value.id) {
+            // S'il y a une nouvelle image
+            if (newImageFile.value) {
+                // Option 2 : Transformer la photo en Base64 très compressé 
+                const compressedBase64 = await ImageService.compressImageToBase64(newImageFile.value);
+                recipeForm.value.imageUrl = compressedBase64;
+            }
             await recipeStore.updateRecipe(recipeForm.value.id, recipeForm.value);
         } else {
             // Clean up potentially undefined stuff and force the type
@@ -184,10 +212,17 @@ const saveRecipe = async () => {
                 allergenIds: recipeForm.value.allergenIds || [],
                 suggestedSideIds: recipeForm.value.suggestedSideIds || [],
                 sourceURL: recipeForm.value.sourceURL || '',
+                imageUrl: recipeForm.value.imageUrl || '',
                 instructions: recipeForm.value.instructions || '',
                 ingredients: (recipeForm.value.ingredients || []).filter(i => i.name && i.name.trim() !== '')
             };
-            await recipeStore.addRecipe(newRecipe);
+            const newId = await recipeStore.addRecipe(newRecipe);
+            
+            // Upload image AFTER having the new ID (or in this case, update the doc if a file is present)
+            if (newImageFile.value && newId) {
+                const compressedBase64 = await ImageService.compressImageToBase64(newImageFile.value);
+                await recipeStore.updateRecipe(newId, { imageUrl: compressedBase64 });
+            }
         }
         router.push('/recipes');
     } catch (e: any) {
@@ -203,17 +238,36 @@ const cancel = () => {
 </script>
 
 <template>
-    <div class="recipe-form-view w-full max-w-3xl mx-auto p-4 animate-fadein">
+    <div class="recipe-form-view w-full max-w-3xl mx-auto p-4 md:p-8 animate-fadein pb-24">
         
-        <div class="mb-6 flex items-center gap-3">
+        <div class="mb-6 flex items-center gap-3 mt-2 md:mt-4">
             <Button icon="pi pi-arrow-left" text rounded @click="cancel" aria-label="Retour" />
             <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0">
                 {{ isEditing ? 'Modifier la recette' : 'Nouvelle Recette' }}
             </h1>
         </div>
 
-        <div class="bg-surface-0 dark:bg-surface-900 rounded-xl shadow-sm p-6 flex flex-col gap-6">
+        <div class="bg-surface-0 dark:bg-[#191a1f] rounded-2xl shadow-sm md:border border-surface-200 dark:border-[#2b2d31] p-6 lg:p-8 flex flex-col gap-6">
             
+            <!-- Dropzone Image -->
+            <div class="relative w-full h-48 md:h-64 bg-surface-50 dark:bg-[#202126] rounded-xl overflow-hidden flex flex-col items-center justify-center border-2 border-dashed border-surface-300 dark:border-[#2b2d31] hover:bg-surface-100 dark:hover:bg-[#2b2d31]/50 transition-colors group cursor-pointer" @click="fileInput?.click()">
+                <input type="file" ref="fileInput" accept="image/*" class="hidden" @change="onFileSelect" />
+                
+                <img v-if="localImagePreview || recipeForm.imageUrl" :src="localImagePreview || recipeForm.imageUrl" class="absolute inset-0 w-full h-full object-cover z-0" />
+                
+                <div v-if="localImagePreview || recipeForm.imageUrl" class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center">
+                    <Button icon="pi pi-trash" severity="danger" rounded aria-label="Supprimer l'image" @click.stop="removeImage" />
+                </div>
+
+                <div v-else class="flex flex-col items-center gap-2 text-surface-500 dark:text-surface-400 group-hover:scale-110 transition-transform">
+                    <div class="w-14 h-14 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-500 mb-1">
+                        <i class="pi pi-camera text-2xl"></i>
+                    </div>
+                    <span class="font-bold text-surface-700 dark:text-surface-300">Ajouter une belle photo</span>
+                    <span class="text-xs opacity-70">JPG, PNG (max 5 Mo)</span>
+                </div>
+            </div>
+
             <div class="flex flex-col gap-2">
                 <label for="name" class="font-semibold">Nom de la recette *</label>
                 <InputText id="name" v-model="recipeForm.name" placeholder="Ex: Poulet Basquaise" class="w-full text-lg" autofocus />
@@ -256,8 +310,8 @@ const cancel = () => {
                 <div class="flex flex-col gap-4 relative z-10 p-2">
                     <div class="flex flex-col gap-2">
                         <label for="sourceURL" class="font-semibold text-sm text-primary-900 dark:text-primary-400">1. Lien Web de la recette (URL)</label>
-                        <div class="flex items-stretch rounded-md overflow-hidden bg-surface-0 dark:bg-surface-900 border border-surface-300 dark:border-surface-600 focus-within:ring-1 focus-within:ring-primary-500 w-full">
-                            <span class="flex items-center justify-center px-3 text-surface-500 dark:text-surface-400 border-r border-surface-300 dark:border-surface-600 bg-surface-50 dark:bg-surface-800"><i class="pi pi-link"></i></span>
+                        <div class="flex items-stretch rounded-md overflow-hidden bg-surface-0 dark:bg-[#202126] border border-surface-300 dark:border-[#2b2d31] focus-within:ring-1 focus-within:ring-primary-500 w-full">
+                            <span class="flex items-center justify-center px-3 text-surface-500 dark:text-surface-400 border-r border-surface-300 dark:border-[#2b2d31] bg-surface-50 dark:bg-[#191a1f]"><i class="pi pi-link"></i></span>
                             <InputText id="sourceURL" v-model="recipeForm.sourceURL" placeholder="Ex: https://cookidoo.fr/..." class="w-full font-mono text-sm border-none shadow-none ring-0 focus:ring-0" />
                         </div>
                     </div>
@@ -273,14 +327,14 @@ const cancel = () => {
                 </div>
             </Panel>
 
-            <Panel header="Ingrédients" toggleable :pt="{ root: { class: 'border border-surface-200 dark:border-surface-700 rounded-xl' }, header: { class: 'bg-surface-50 dark:bg-surface-800 rounded-t-xl' }, content: { class: 'bg-surface-0 dark:bg-surface-900 rounded-b-xl' } }">
+            <Panel header="Ingrédients" toggleable :pt="{ root: { class: 'border border-surface-200 dark:border-[#2b2d31] rounded-xl overflow-hidden' }, header: { class: 'bg-surface-50 dark:bg-[#202126]' }, content: { class: 'bg-surface-0 dark:bg-[#191a1f]' } }">
                 <div class="flex flex-col gap-2 p-2">
                     <div class="flex justify-end items-center mb-2">
                         <Button icon="pi pi-plus" label="Ajouter" size="small" text @click="addIngredient" />
                     </div>
                     
                     <div v-if="recipeForm.ingredients && recipeForm.ingredients.length > 0" class="flex flex-col gap-3">
-                        <div v-for="(ingredient, index) in recipeForm.ingredients" :key="index" class="flex flex-row flex-wrap sm:flex-nowrap items-center gap-2 bg-surface-100 dark:bg-surface-800 p-2 rounded-lg border border-surface-200 dark:border-surface-700">
+                        <div v-for="(ingredient, index) in recipeForm.ingredients" :key="index" class="flex flex-row flex-wrap sm:flex-nowrap items-center gap-2 bg-surface-100 dark:bg-[#202126] p-2 rounded-lg border border-surface-200 dark:border-[#2b2d31]">
                             <InputText v-model="ingredient.name" placeholder="Nom (ex: Farine)" class="w-full sm:flex-1 min-w-[120px]" />
                             <div class="flex items-center gap-2 w-full sm:w-auto">
                                 <input v-model.number="ingredient.quantity" type="number" step="any" placeholder="Qté" class="p-inputtext p-component w-24 flex-shrink-0" />
@@ -295,14 +349,14 @@ const cancel = () => {
                 </div>
             </Panel>
 
-            <Panel header="Étapes de préparation" toggleable :pt="{ root: { class: 'border border-surface-200 dark:border-surface-700 rounded-xl' }, header: { class: 'bg-surface-50 dark:bg-surface-800 rounded-t-xl' }, content: { class: 'bg-surface-0 dark:bg-surface-900 rounded-b-xl' } }">
+            <Panel header="Étapes de préparation" toggleable :pt="{ root: { class: 'border border-surface-200 dark:border-[#2b2d31] rounded-xl overflow-hidden' }, header: { class: 'bg-surface-50 dark:bg-[#202126]' }, content: { class: 'bg-surface-0 dark:bg-[#191a1f]' } }">
                 <div class="flex flex-col gap-2 p-2">
                     <div class="flex justify-end items-center mb-2">
                         <Button icon="pi pi-plus" label="Ajouter une étape" size="small" text @click="addPreparationStep" />
                     </div>
                     
                     <div v-if="preparationSteps && preparationSteps.length > 0" class="flex flex-col gap-3">
-                        <div v-for="(_step, index) in preparationSteps" :key="index" class="flex flex-row flex-nowrap items-start gap-2 bg-surface-100 dark:bg-surface-800 p-3 rounded-lg border border-surface-200 dark:border-surface-700">
+                        <div v-for="(_step, index) in preparationSteps" :key="index" class="flex flex-row flex-nowrap items-start gap-2 bg-surface-100 dark:bg-[#202126] p-3 rounded-lg border border-surface-200 dark:border-[#2b2d31]">
                             <div class="mt-2 font-bold text-surface-500 dark:text-surface-400 w-6 text-right shrink-0">{{ index + 1 }}.</div>
                             <Textarea v-model="preparationSteps[index]" rows="2" placeholder="Décrivez cette étape..." class="w-full" autoResize />
                             <Button icon="pi pi-trash" severity="danger" text rounded @click="removePreparationStep(index)" tabindex="-1" class="shrink-0 mt-1" aria-label="Supprimer cette étape" />

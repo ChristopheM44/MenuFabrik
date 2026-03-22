@@ -23,6 +23,7 @@ declare module 'vue' {
     Message: typeof import('primevue/message')['default']
     Password: typeof import('primevue/password')['default']
     PlanMealDialog: typeof import('./src/components/planning/PlanMealDialog.vue')['default']
+    RecipeGrid: typeof import('./src/components/recipes/RecipeGrid.vue')['default']
     RecipePickerDialog: typeof import('./src/components/planning/RecipePickerDialog.vue')['default']
     RecipeSourceLinkButton: typeof import('./src/components/recipes/RecipeSourceLinkButton.vue')['default']
     ReloadPrompt: typeof import('./src/components/layout/ReloadPrompt.vue')['default']

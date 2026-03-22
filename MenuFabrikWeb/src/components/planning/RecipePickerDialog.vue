@@ -4,8 +4,7 @@ import type { Recipe } from '../../models/Recipe';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
-import IconField from 'primevue/iconfield';
-import InputIcon from 'primevue/inputicon';
+import RecipeGrid from '../recipes/RecipeGrid.vue';
 
 const props = defineProps<{
     visible: boolean;
@@ -20,10 +19,14 @@ const emit = defineEmits<{
 }>();
 
 const recipeSearchQuery = ref('');
+const activeCategory = ref('Toutes');
+const categories = ['Toutes', 'Viandes', 'Poissons', 'Végétarien', 'Rapide', 'Au Four'];
 
-// Filtrage + tri des recettes (recherche par nom ou catégorie)
 const filteredRecipes = computed((): Recipe[] => {
     let list = [...props.recipes];
+    if (activeCategory.value !== 'Toutes') {
+        list = list.filter(r => r.category === activeCategory.value);
+    }
     if (recipeSearchQuery.value) {
         const query = recipeSearchQuery.value.toLowerCase();
         list = list.filter(r =>
@@ -36,12 +39,14 @@ const filteredRecipes = computed((): Recipe[] => {
 
 const selectRecipe = (recipe: Recipe) => {
     recipeSearchQuery.value = '';
+    activeCategory.value = 'Toutes';
     emit('recipe-selected', recipe);
     emit('update:visible', false);
 };
 
 const close = () => {
     recipeSearchQuery.value = '';
+    activeCategory.value = 'Toutes';
     emit('update:visible', false);
 };
 </script>
@@ -52,64 +57,59 @@ const close = () => {
         @update:visible="emit('update:visible', $event)"
         modal
         :header="props.header ?? 'Choisir une recette'"
-        :style="{ width: '90vw', maxWidth: '600px' }"
-        @hide="recipeSearchQuery = ''"
+        :style="{ width: '95vw', maxWidth: '800px' }"
+        @hide="recipeSearchQuery = ''; activeCategory = 'Toutes';"
+        :pt="{ content: { style: 'padding-bottom: 0;' } }"
     >
-        <div class="flex flex-col gap-4 py-2 h-[60vh]">
-            <!-- Champ de recherche — pattern PrimeVue 4 -->
-            <IconField>
-                <InputIcon class="pi pi-search" />
-                <InputText
-                    id="recipe-search"
-                    name="recipe-search"
-                    v-model="recipeSearchQuery"
-                    placeholder="Rechercher un plat..."
-                    class="w-full"
-                />
-            </IconField>
-
-            <!-- Liste des recettes -->
-            <div class="flex-1 overflow-y-auto pr-2 flex flex-col gap-2">
-                <div
-                    v-for="recipe in filteredRecipes"
-                    :key="recipe.id"
-                    class="p-3 border rounded-lg cursor-pointer transition-colors flex items-center justify-between group"
-                    :class="props.selectedRecipeId === recipe.id
-                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-800/50 dark:border-primary-400'
-                        : 'border-surface-200 dark:border-surface-700 hover:bg-surface-100 dark:hover:bg-surface-700'"
-                    @click="selectRecipe(recipe)"
-                >
-                    <div class="flex flex-col">
-                        <span
-                            class="font-bold transition-colors flex items-center gap-2"
-                            :class="props.selectedRecipeId === recipe.id
-                                ? 'text-primary-700 dark:text-primary-500'
-                                : 'text-surface-900 dark:text-surface-0 group-hover:text-primary-600 dark:group-hover:text-primary-300'"
-                        >
-                            {{ recipe.name }}
-                        </span>
-                        <div class="flex items-center gap-2 text-xs text-surface-500 dark:text-surface-400 mt-1">
-                            <span v-if="recipe.rating && recipe.rating > 0" class="text-primary-500 flex items-center gap-1">
-                                <i class="pi pi-star-fill text-[10px]"></i> {{ recipe.rating }}
-                            </span>
-                            <span><i class="pi pi-clock text-[10px]"></i> {{ recipe.prepTime }} min</span>
-                            <span><i class="pi pi-tag"></i> {{ recipe.category }}</span>
-                        </div>
-                    </div>
-                    <Button
-                        :icon="props.selectedRecipeId === recipe.id ? 'pi pi-check' : 'pi pi-chevron-right'"
-                        :severity="props.selectedRecipeId === recipe.id ? 'success' : 'secondary'"
-                        text rounded
+        <div class="flex flex-col gap-4 pt-2 pb-4 h-[70vh]">
+            <!-- Barre de recherche Stitch -->
+            <div class="flex flex-col gap-3">
+                <div class="relative w-full">
+                    <i class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-surface-400 dark:text-surface-500 z-10"></i>
+                    <InputText
+                        id="recipe-search"
+                        v-model="recipeSearchQuery"
+                        placeholder="Rechercher un plat..."
+                        class="w-full bg-surface-100 dark:bg-[#191a1f] border-none rounded-full py-3 pr-4 focus:ring-2 focus:ring-primary-500/20 transition-all text-surface-900 dark:text-surface-0 shadow-sm"
+                        style="padding-left: 2.75rem;"
                     />
                 </div>
 
-                <div v-if="filteredRecipes.length === 0" class="text-center p-8 text-surface-500 dark:text-surface-400">
-                    Aucune recette trouvée<span v-if="recipeSearchQuery"> pour "{{ recipeSearchQuery }}"</span>.
+                <!-- Filtres de catégories -->
+                <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                    <button
+                        v-for="cat in categories"
+                        :key="cat"
+                        @click="activeCategory = cat"
+                        class="px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all whitespace-nowrap border"
+                        :class="activeCategory === cat
+                            ? 'bg-primary-600 dark:bg-primary-500 text-white border-primary-600 dark:border-primary-500'
+                            : 'bg-surface-0 dark:bg-[#191a1f] border-surface-200 dark:border-[#2b2d31] text-surface-600 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-[#202126]'"
+                    >
+                        {{ cat }}
+                    </button>
                 </div>
             </div>
+
+            <!-- Grille partagée en mode picker -->
+            <div class="flex-1 overflow-y-auto pr-1">
+                <RecipeGrid
+                    mode="picker"
+                    :recipes="filteredRecipes"
+                    :selected-recipe-id="props.selectedRecipeId"
+                    grid-cols="grid-cols-1 md:grid-cols-2"
+                    @select="selectRecipe"
+                />
+            </div>
         </div>
+
         <template #footer>
             <Button label="Annuler" icon="pi pi-times" text severity="secondary" @click="close" />
         </template>
     </Dialog>
 </template>
+
+<style scoped>
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+</style>

@@ -51,4 +51,7 @@ export interface Recipe {
 
     // Lien externe (Cookidoo, etc.)
     sourceURL?: string;
+
+    // Lien de l'image (Firebase Storage)
+    imageUrl?: string;
 }

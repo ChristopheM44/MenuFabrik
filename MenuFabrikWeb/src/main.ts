@@ -17,10 +17,10 @@ const LighterDarkPreset = definePreset(Aura, {
         colorScheme: {
             dark: {
                 surface: {
-                    950: '#111827',
-                    900: '#1f2937',
-                    800: '#374151',
-                    700: '#4b5563',
+                    950: '#191a1f', // Stitch Main Background
+                    900: '#202126', // Stitch Elevated (Cards)
+                    800: '#282a33', // Stitch Higher Elevated (Inputs/Menus)
+                    700: '#343741',
                 }
             }
         }

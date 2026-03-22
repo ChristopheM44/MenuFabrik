@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  background-color: var(--p-surface-50);
+  background-color: #f9f9f7; /* Ton blanc pastel de Stitch */
   color: var(--p-surface-900);
   @apply transition-colors duration-200;
   -webkit-font-smoothing: antialiased;
