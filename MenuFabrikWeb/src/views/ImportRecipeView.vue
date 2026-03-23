@@ -165,19 +165,19 @@ const goBackToHome = () => {
 <template>
     <div class="import-recipe-view w-full max-w-2xl mx-auto p-4 flex flex-col items-center justify-center min-h-[60vh] animate-fadein">
         
-        <div v-if="isDecodingError" class="text-center bg-surface-0 dark:bg-surface-900 p-8 rounded-2xl shadow-sm border border-surface-200 dark:border-surface-700">
+        <div v-if="isDecodingError" class="text-center bg-surface-container-lowest p-8 rounded-2xl shadow-sm border border-outline-variant">
             <i class="pi pi-times-circle text-6xl text-red-500 mb-4"></i>
             <h1 class="text-2xl font-bold mb-2">Lien invalide ou expiré</h1>
-            <p class="text-surface-500 dark:text-surface-400 mb-6">Nous n'avons pas pu décoder la recette partagée. Demandez à votre contact de re-générer un lien.</p>
+            <p class="text-on-surface-variant mb-6">Nous n'avons pas pu décoder la recette partagée. Demandez à votre contact de re-générer un lien.</p>
             <Button label="Retourner à l'accueil" icon="pi pi-home" severity="secondary" @click="goBackToHome" />
         </div>
 
         <div v-else-if="!decodedRecipe" class="flex flex-col items-center justify-center p-12">
             <ProgressSpinner strokeWidth="4" />
-            <p class="mt-4 text-surface-500 dark:text-surface-400 text-sm animate-pulse">Décompression de la recette...</p>
+            <p class="mt-4 text-on-surface-variant text-sm animate-pulse">Décompression de la recette...</p>
         </div>
 
-        <div v-else class="w-full bg-surface-0 dark:bg-surface-900 rounded-2xl shadow-xl border border-surface-200 dark:border-surface-700 overflow-hidden">
+        <div v-else class="w-full bg-surface-container-lowest rounded-2xl shadow-xl border border-outline-variant overflow-hidden">
             <!-- Header de l'import -->
             <div class="bg-primary-500 p-8 text-white relative overflow-hidden">
                 <i class="pi pi-gift absolute -right-6 -bottom-6 text-9xl text-white/10 rotate-12 pointer-events-none"></i>
@@ -196,18 +196,18 @@ const goBackToHome = () => {
                 <div class="flex flex-wrap justify-center gap-3">
                     <Tag :value="decodedRecipe.c || 'Autre'" severity="secondary" rounded class="px-3" />
                     <Tag :value="decodedRecipe.m" :severity="getSeverityForMealType(decodedRecipe.m)" rounded class="px-3" />
-                    <Tag icon="pi pi-clock" :value="formatTime(decodedRecipe.p)" severity="secondary" rounded class="px-3 bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300" />
+                    <Tag icon="pi pi-clock" :value="formatTime(decodedRecipe.p)" severity="secondary" rounded class="px-3 bg-surface-container text-on-surface" />
                     <Rating v-if="decodedRecipe.rt && decodedRecipe.rt > 0" :modelValue="decodedRecipe.rt" readonly :cancel="false" />
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                    <div v-if="decodedRecipe.ing && decodedRecipe.ing.length > 0" class="bg-surface-50 dark:bg-surface-800/50 p-4 rounded-xl border border-surface-200 dark:border-surface-700">
-                        <h3 class="font-bold flex items-center gap-2 mb-3 text-surface-900 dark:text-surface-0"><i class="pi pi-shopping-bag text-primary-500"></i> {{ decodedRecipe.ing.length }} Ingrédients</h3>
-                        <div class="flex flex-wrap gap-2 text-sm text-surface-600 dark:text-surface-300">
-                            <span v-for="(ing, i) in decodedRecipe.ing.slice(0, 5)" :key="i" class="bg-surface-200 dark:bg-surface-700 px-2 py-1 rounded">
+                    <div v-if="decodedRecipe.ing && decodedRecipe.ing.length > 0" class="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
+                        <h3 class="font-bold flex items-center gap-2 mb-3 text-on-surface"><i class="pi pi-shopping-bag text-primary"></i> {{ decodedRecipe.ing.length }} Ingrédients</h3>
+                        <div class="flex flex-wrap gap-2 text-sm text-on-surface-variant">
+                            <span v-for="(ing, i) in decodedRecipe.ing.slice(0, 5)" :key="i" class="bg-surface-container px-2 py-1 rounded">
                                 {{ ing.n }}
                             </span>
-                            <span v-if="decodedRecipe.ing.length > 5" class="italic text-surface-400 dark:text-surface-500">
+                            <span v-if="decodedRecipe.ing.length > 5" class="italic text-on-surface-variant">
                                 + {{ decodedRecipe.ing.length - 5 }} autres...
                             </span>
                         </div>
@@ -231,7 +231,7 @@ const goBackToHome = () => {
                 </div>
 
                 <!-- Alert de copie -->
-                <div class="bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 p-4 rounded-lg text-sm border border-blue-200 dark:border-blue-800 flex gap-3">
+                <div class="bg-blue-50 text-blue-700 p-4 rounded-lg text-sm border border-blue-200 flex gap-3">
                     <i class="pi pi-info-circle text-lg mt-0.5"></i>
                     <p>En l'enregistrant, une copie indépendante sera créée dans votre carnet personnel. Les allergènes et accompagnements manquants seront créés. Vous pourrez la modifier à volonté.</p>
                 </div>

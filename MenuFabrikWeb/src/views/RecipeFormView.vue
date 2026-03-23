@@ -189,140 +189,125 @@ const cancel = () => {
 </script>
 
 <template>
-    <div class="recipe-form-view w-full max-w-3xl mx-auto p-4 md:p-8 animate-fadein pb-24">
-        
-        <div class="mb-6 flex items-center gap-3 mt-2 md:mt-4">
-            <Button icon="pi pi-arrow-left" text rounded @click="cancel" aria-label="Retour" />
-            <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0">
-                {{ isEditing ? 'Modifier la recette' : 'Nouvelle Recette' }}
-            </h1>
+  <div class="min-h-screen bg-background text-on-surface antialiased">
+    <main class="py-8 pb-32 max-w-2xl mx-auto px-6">
+      <!-- Top Navigation Bar -->
+      <header class="flex items-center justify-between w-full mb-8">
+        <div class="flex items-center gap-4">
+          <button @click="cancel" type="button" class="flex items-center justify-center w-10 h-10 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface active:scale-95 transition-all">
+            <span class="material-symbols-outlined">arrow_back</span>
+          </button>
+          <h1 class="font-headline font-bold tracking-tight text-xl text-on-surface">
+            {{ isEditing ? 'Modifier la recette' : 'Nouvelle Recette' }}
+          </h1>
+        </div>
+        <button @click="saveRecipe" :disabled="isSaving" type="button" class="px-6 py-2 rounded-full bg-primary text-on-primary font-headline font-bold text-sm hover:opacity-90 active:scale-95 transition-all disabled:opacity-50">
+          {{ isSaving ? 'Sauv...' : 'Enregistrer' }}
+        </button>
+      </header>
+
+      <form @submit.prevent="saveRecipe" class="space-y-10">
+
+        <!-- Error Message -->
+        <div v-if="formError" class="p-4 bg-error-container text-on-error-container rounded-xl text-sm flex items-center gap-3">
+          <span class="material-symbols-outlined">error</span>
+          <span>{{ formError }}</span>
         </div>
 
-        <div class="bg-surface-0 dark:bg-[#191a1f] rounded-2xl shadow-sm md:border border-surface-200 dark:border-[#2b2d31] p-6 lg:p-8 flex flex-col gap-6">
+        <!-- Photo Upload Dropzone -->
+        <section>
+          <div @click="fileInput?.click()" class="group relative flex flex-col items-center justify-center w-full aspect-[4/3] border-2 border-dashed border-outline-variant bg-surface-container-low rounded-xl hover:bg-surface-container transition-colors cursor-pointer overflow-hidden">
+            <input type="file" ref="fileInput" accept="image/*" class="hidden" @change="onFileSelect" />
             
-            <!-- Dropzone Image -->
-            <div class="relative w-full h-48 md:h-64 bg-surface-50 dark:bg-[#202126] rounded-xl overflow-hidden flex flex-col items-center justify-center border-2 border-dashed border-surface-300 dark:border-[#2b2d31] hover:bg-surface-100 dark:hover:bg-[#2b2d31]/50 transition-colors group cursor-pointer" @click="fileInput?.click()">
-                <input type="file" ref="fileInput" accept="image/*" class="hidden" @change="onFileSelect" />
-                
-                <img v-if="localImagePreview || recipeForm.imageUrl" :src="localImagePreview || recipeForm.imageUrl" class="absolute inset-0 w-full h-full object-cover z-0" />
-                
-                <div v-if="localImagePreview || recipeForm.imageUrl" class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center">
-                    <Button icon="pi pi-trash" severity="danger" rounded aria-label="Supprimer l'image" @click.stop="removeImage" />
-                </div>
-
-                <div v-else class="flex flex-col items-center gap-2 text-surface-500 dark:text-surface-400 group-hover:scale-110 transition-transform">
-                    <div class="w-14 h-14 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-500 mb-1">
-                        <i class="pi pi-camera text-2xl"></i>
-                    </div>
-                    <span class="font-bold text-surface-700 dark:text-surface-300">Ajouter une belle photo</span>
-                    <span class="text-xs opacity-70">JPG, PNG (max 5 Mo)</span>
-                </div>
+            <img v-if="localImagePreview || recipeForm.imageUrl" :src="localImagePreview || recipeForm.imageUrl" class="absolute inset-0 w-full h-full object-cover z-0" />
+            
+            <div v-if="localImagePreview || recipeForm.imageUrl" class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center">
+              <Button icon="pi pi-trash" severity="danger" rounded aria-label="Supprimer l'image" @click.stop="removeImage" />
             </div>
 
-            <div class="flex flex-col gap-2">
-                <label for="name" class="font-semibold">Nom de la recette *</label>
-                <InputText id="name" v-model="recipeForm.name" placeholder="Ex: Poulet Basquaise" class="w-full text-lg" autofocus />
+            <div v-else class="flex flex-col items-center gap-3 text-center px-8">
+              <div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add_a_photo</span>
+              </div>
+              <div class="space-y-1">
+                <p class="font-headline font-bold text-on-surface">Ajouter une belle photo</p>
+                <p class="text-sm text-on-surface-variant">JPG, PNG max 5 Mo</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Basic Info Grid -->
+        <section class="space-y-6">
+          <div class="space-y-2">
+            <label class="font-label text-[10px] font-bold uppercase tracking-[0.05em] text-on-surface-variant ml-1">Nom de la recette</label>
+            <InputText v-model="recipeForm.name" class="w-full h-14 px-5 rounded-xl bg-surface-container-high border-none focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all font-body text-on-surface placeholder:text-outline" placeholder="Ex: Poulet Basquaise" />
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="font-label text-[10px] font-bold uppercase tracking-[0.05em] text-on-surface-variant ml-1">Catégorie</label>
+              <Select v-model="recipeForm.category" :options="categories" optionLabel="label" optionValue="value" class="w-full h-14 rounded-xl bg-surface-container-high border-none focus:ring-2 focus:ring-primary/20 transition-all font-body text-on-surface flex items-center px-3" />
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="flex flex-col gap-2">
-                    <label for="category" class="font-semibold">Catégorie</label>
-                    <Select id="category-wrapper" inputId="category" v-model="recipeForm.category" :options="categories" optionLabel="label" optionValue="value" class="w-full" />
-                </div>
-
-                <div class="flex flex-col gap-2">
-                    <label for="mealType" class="font-semibold">Type de Repas idéal</label>
-                    <Select id="mealType-wrapper" inputId="mealType" v-model="recipeForm.mealType" :options="mealTypes" optionLabel="label" optionValue="value" class="w-full" />
-                </div>
-
-                <div class="flex flex-col gap-2">
-                    <label for="prepTime" class="font-semibold">Temps de préparation (min)</label>
-                    <InputNumber id="prepTime-wrapper" inputId="prepTime" v-model="recipeForm.prepTime" mode="decimal" showButtons :min="5" :max="240" :step="5" class="w-full" />
-                </div>
-                
-                <div class="flex flex-col justify-center pt-2">
-                    <div class="flex items-center gap-3">
-                        <ToggleSwitch inputId="requiresFreeTime" v-model="recipeForm.requiresFreeTime" />
-                        <div class="flex flex-col">
-                            <label for="requiresFreeTime" class="font-semibold cursor-pointer">Nécessite du temps libre</label>
-                            <span class="text-sm text-surface-500 dark:text-surface-400">Idéal pour le week-end ou jours de repos.</span>
-                        </div>
-                    </div>
-                </div>
+            <div class="space-y-2">
+              <label class="font-label text-[10px] font-bold uppercase tracking-[0.05em] text-on-surface-variant ml-1">Type de Repas idéal</label>
+              <Select v-model="recipeForm.mealType" :options="mealTypes" optionLabel="label" optionValue="value" class="w-full h-14 rounded-xl bg-surface-container-high border-none focus:ring-2 focus:ring-primary/20 transition-all font-body text-on-surface flex items-center px-3" />
             </div>
+          </div>
 
-            <hr class="border-surface-200 dark:border-surface-700 my-2" />
+          <div class="space-y-2">
+            <label class="font-label text-[10px] font-bold uppercase tracking-[0.05em] text-on-surface-variant ml-1">Temps de préparation (min)</label>
+            <InputNumber v-model="recipeForm.prepTime" mode="decimal" showButtons :min="5" :max="240" :step="5" class="w-full h-14 bg-surface-container-high rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all text-on-surface" inputClass="w-full h-14 bg-transparent border-none px-5 font-body text-on-surface focus:ring-0" />
+          </div>
 
-            <!-- SECTION EXTRACTION IA -->
-            <AIImportPanel 
-                v-model:recipeForm="recipeForm"
-                v-model:preparationSteps="preparationSteps"
-                @error="err => formError = err"
-            />
-
-            <IngredientsStepPanel v-model="recipeForm" />
-
-            <InstructionsStepPanel v-model="preparationSteps" />
-
-            <hr class="border-surface-200 dark:border-surface-700 my-2" />
-
-            <div class="flex flex-col gap-2">
-                <label class="font-semibold text-surface-900 dark:text-surface-0">Appréciation globale (Optionnel)</label>
-                <div class="flex items-center gap-3">
-                    <Rating v-model="recipeForm.rating" :stars="5" :cancel="true" class="text-primary-500" />
-                    <span class="text-sm text-surface-500 dark:text-surface-400 min-w-[50px]">{{ recipeForm.rating || 0 }} / 5</span>
-                </div>
+          <!-- Rating -->
+          <div class="space-y-2">
+            <label class="font-label text-[10px] font-bold uppercase tracking-[0.05em] text-on-surface-variant ml-1">Appréciation globale (Optionnel)</label>
+            <div class="flex items-center gap-3 h-14 px-5 rounded-xl bg-surface-container-high">
+              <Rating v-model="recipeForm.rating" :stars="5" :cancel="true" class="text-primary" />
+              <span class="text-sm font-body text-on-surface-variant ml-auto">{{ recipeForm.rating || 0 }} / 5</span>
             </div>
+          </div>
 
-            <hr class="border-surface-200 dark:border-surface-700 my-2" />
+          <!-- Allergènes -->
+          <div class="space-y-2">
+            <label class="font-label text-[10px] font-bold uppercase tracking-[0.05em] text-on-surface-variant ml-1">Allergènes Présents</label>
+            <MultiSelect v-model="recipeForm.allergenIds" :options="sortedAllergens" optionLabel="name" optionValue="id" display="chip" placeholder="Sélectionner des allergènes" :maxSelectedLabels="3" class="w-full min-h-[56px] rounded-xl bg-surface-container-high border-none focus:ring-2 focus:ring-primary/20 transition-all font-body text-on-surface flex items-center px-3 py-1" :loading="allergenStore.isLoading" />
+          </div>
 
-            <div class="flex flex-col gap-2">
-                <label for="allergens" class="font-semibold">Allergènes Présents</label>
-                <MultiSelect 
-                    id="allergens-wrapper" 
-                    inputId="allergens"
-                    v-model="recipeForm.allergenIds" 
-                    :options="sortedAllergens" 
-                    optionLabel="name" 
-                    optionValue="id" 
-                    display="chip"
-                    placeholder="Sélectionner des allergènes"
-                    :maxSelectedLabels="3" 
-                    class="w-full" 
-                    :loading="allergenStore.isLoading"
-                />
-            </div>
+          <!-- Accompagnements -->
+          <div class="space-y-2">
+            <label class="font-label text-[10px] font-bold uppercase tracking-[0.05em] text-on-surface-variant ml-1">Accompagnements Suggérés</label>
+            <MultiSelect v-model="recipeForm.suggestedSideIds" :options="sortedSideDishes" optionLabel="name" optionValue="id" display="chip" placeholder="Suggestions d'accompagnements" :maxSelectedLabels="20" filter class="w-full min-h-[56px] rounded-xl bg-surface-container-high border-none focus:ring-2 focus:ring-primary/20 transition-all font-body text-on-surface flex items-center px-3 py-1" :loading="sideDishStore.isLoading" />
+          </div>
+        </section>
 
-            <div class="flex flex-col gap-2">
-                <label for="sides" class="font-semibold">Accompagnements Suggérés</label>
-                <MultiSelect 
-                    id="sides-wrapper" 
-                    inputId="sides"
-                    v-model="recipeForm.suggestedSideIds" 
-                    :options="sortedSideDishes" 
-                    optionLabel="name" 
-                    optionValue="id" 
-                    display="chip"
-                    placeholder="Suggestions d'accompagnements"
-                    :maxSelectedLabels="20"
-                    class="w-full" 
-                    filter
-                    :loading="sideDishStore.isLoading"
-                />
-            </div>
+        <!-- Toggle Section -->
+        <section class="p-6 rounded-2xl bg-surface-container-low flex items-center justify-between cursor-pointer" @click="recipeForm.requiresFreeTime = !recipeForm.requiresFreeTime">
+          <div class="space-y-1">
+            <h3 class="font-headline font-bold text-on-surface">Nécessite du temps libre</h3>
+            <p class="text-sm text-on-surface-variant">Idéal pour le week-end ou jours de repos</p>
+          </div>
+          <ToggleSwitch v-model="recipeForm.requiresFreeTime" @click.stop />
+        </section>
 
-            <div v-if="formError" class="p-3 bg-red-50 dark:bg-red-900/40 text-red-600 dark:text-red-300 rounded-lg text-sm flex items-center gap-2">
-                <i class="pi pi-exclamation-circle"></i>
-                {{ formError }}
-            </div>
+        <!-- AI Import Section -->
+        <AIImportPanel 
+            v-model:recipeForm="recipeForm"
+            v-model:preparationSteps="preparationSteps"
+            @error="err => formError = err"
+        />
 
-            <div class="flex justify-end gap-3 mt-4">
-                <Button label="Annuler" severity="secondary" outlined @click="cancel" />
-                <Button :label="isEditing ? 'Enregistrer' : 'Créer la recette'" icon="pi pi-check" @click="saveRecipe" :loading="isSaving" />
-            </div>
+        <!-- Ingredients Section -->
+        <IngredientsStepPanel v-model="recipeForm" />
 
-        </div>
-    </div>
+        <!-- Instructions Section -->
+        <InstructionsStepPanel v-model="preparationSteps" />
+
+      </form>
+    </main>
+  </div>
 </template>
 
 <style scoped>

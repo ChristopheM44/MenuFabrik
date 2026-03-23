@@ -152,25 +152,25 @@ const updateSideDishes = async () => {
         <div v-else class="flex flex-col gap-6">
             
             <!-- HEADER -->
-            <div class="flex items-center gap-4 bg-surface-0 dark:bg-surface-900 p-4 rounded-xl shadow-sm border border-surface-200 dark:border-surface-700">
+            <div class="flex items-center gap-4 bg-surface-container-lowest p-4 rounded-xl shadow-sm border border-outline-variant">
                 <Button icon="pi pi-arrow-left" text rounded severity="secondary" @click="goBack" />
                 <div class="flex-1">
                     <div class="flex items-center gap-3">
-                        <h1 class="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-surface-0">{{ formattedDate }}</h1>
+                        <h1 class="text-2xl sm:text-3xl font-bold text-on-surface">{{ formattedDate }}</h1>
                         <Badge :value="hydratedMeal.type" size="large" severity="info" />
                     </div>
                 </div>
                 
                 <!-- Convives -->
                 <div class="hidden sm:flex items-center gap-2">
-                    <span class="text-sm text-surface-500 dark:text-surface-400">Convives:</span>
+                    <span class="text-sm text-on-surface-variant">Convives:</span>
                     <AvatarGroup>
                         <Avatar 
                             v-for="p in hydratedMeal.attendees" 
                             :key="p.id" 
                             :label="p.name.charAt(0).toUpperCase()" 
                             shape="circle" 
-                            class="bg-primary-100 text-primary-900 font-bold text-sm border-2 border-surface-0 dark:border-surface-900"
+                            class="bg-primary-container text-on-primary-container font-bold text-sm border-2 border-surface-container-lowest"
                             title="p.name"
                         />
                     </AvatarGroup>
@@ -183,7 +183,7 @@ const updateSideDishes = async () => {
                 <div class="md:col-span-2 flex flex-col gap-4">
                     <h2 class="text-xl font-semibold flex items-center gap-2"><i class="pi pi-receipt text-primary-500"></i> Plat Principal</h2>
                     
-                    <div class="bg-surface-0 dark:bg-surface-900 p-6 rounded-xl shadow-sm border border-surface-200 dark:border-surface-700 relative overflow-hidden group">
+                    <div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant relative overflow-hidden group">
                         
                         <div v-if="hydratedMeal.recipe" class="flex flex-col gap-4">
                             <!-- En-tête de la recette -->
@@ -192,7 +192,7 @@ const updateSideDishes = async () => {
                                     <span class="px-3 py-1 rounded-full text-xs font-bold font-mono tracking-wider uppercase mb-3 inline-block" :class="getCategoryColor(hydratedMeal.recipe.category)">
                                         {{ hydratedMeal.recipe.category || 'Non catégorisé' }}
                                     </span>
-                                    <h3 class="text-2xl font-bold text-surface-900 dark:text-surface-0 leading-tight">{{ hydratedMeal.recipe.name }}</h3>
+                                    <h3 class="text-2xl font-bold text-on-surface leading-tight">{{ hydratedMeal.recipe.name }}</h3>
                                     <Rating v-if="hydratedMeal.recipe.rating && hydratedMeal.recipe.rating > 0" :modelValue="hydratedMeal.recipe.rating" readonly :cancel="false" class="mt-2 text-sm" />
                                 </div>
                                 <div class="flex items-center gap-2">
@@ -203,7 +203,7 @@ const updateSideDishes = async () => {
                             </div>
 
                             <!-- Méta informations -->
-                            <div class="flex flex-wrap items-center gap-4 text-surface-600 dark:text-surface-400 text-sm mt-2">
+                            <div class="flex flex-wrap items-center gap-4 text-on-surface-variant text-sm mt-2">
                                 <span class="flex items-center gap-1"><i class="pi pi-clock"></i> Préparation: <strong>{{ hydratedMeal.recipe.prepTime }} min</strong></span>
                                 <span v-if="hydratedMeal.recipe.instructions" class="flex items-center gap-1"><i class="pi pi-list"></i> Recette détaillée dispo</span>
                             </div>
@@ -217,12 +217,12 @@ const updateSideDishes = async () => {
                             </div>
                             
                             <!-- Ingrédients structurés -->
-                            <div v-if="hydratedMeal.recipe.ingredients && hydratedMeal.recipe.ingredients.length > 0" class="mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-                                <h4 class="font-semibold mb-2 flex items-center gap-2"><i class="pi pi-shopping-bag text-primary-500"></i> Ingrédients</h4>
-                                <ul class="list-disc pl-5 text-surface-700 dark:text-surface-300 text-sm space-y-1">
+                            <div v-if="hydratedMeal.recipe.ingredients && hydratedMeal.recipe.ingredients.length > 0" class="mt-4 pt-4 border-t border-outline-variant">
+                                <h4 class="font-semibold mb-2 flex items-center gap-2"><i class="pi pi-shopping-bag text-primary"></i> Ingrédients</h4>
+                                <ul class="list-disc pl-5 text-on-surface text-sm space-y-1">
                                     <li v-for="(ing, idx) in hydratedMeal.recipe.ingredients" :key="idx">
                                         <span class="font-medium">{{ ing.name }}</span>
-                                        <span v-if="ing.quantity || ing.unit" class="text-surface-500 dark:text-surface-400 ml-1">
+                                        <span v-if="ing.quantity || ing.unit" class="text-on-surface-variant ml-1">
                                             - {{ ing.quantity }} {{ ing.unit }}
                                         </span>
                                     </li>
@@ -230,9 +230,9 @@ const updateSideDishes = async () => {
                             </div>
                             
                             <!-- Instructions complètes si requises -->
-                            <div v-if="hydratedMeal.recipe.instructions" class="mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+                            <div v-if="hydratedMeal.recipe.instructions" class="mt-4 pt-4 border-t border-outline-variant">
                                 <h4 class="font-semibold mb-2">Instructions</h4>
-                                <p class="text-surface-700 dark:text-surface-300 whitespace-pre-wrap text-sm leading-relaxed">{{ hydratedMeal.recipe.instructions }}</p>
+                                <p class="text-on-surface whitespace-pre-wrap text-sm leading-relaxed">{{ hydratedMeal.recipe.instructions }}</p>
                             </div>
 
                             <!-- Lien Web -->
@@ -242,7 +242,7 @@ const updateSideDishes = async () => {
 
                         </div>
                         
-                        <div v-else class="flex flex-col items-center justify-center py-8 text-surface-500 dark:text-surface-400">
+                        <div v-else class="flex flex-col items-center justify-center py-8 text-on-surface-variant">
                             <i class="pi pi-calendar-plus text-4xl mb-3 opacity-50"></i>
                             <p class="mb-4">Aucun plat défini pour ce repas.</p>
                             <Button label="Choisir un plat" icon="pi pi-search" @click="openRecipeDialog" />
@@ -255,8 +255,8 @@ const updateSideDishes = async () => {
                 <div class="flex flex-col gap-4">
                     <h2 class="text-xl font-semibold flex items-center gap-2"><i class="pi pi-tags text-green-500"></i> <label for="side-dishes-select">Accompagnements</label></h2>
                     
-                    <div class="bg-surface-0 dark:bg-surface-900 p-5 rounded-xl shadow-sm border border-surface-200 dark:border-surface-700 flex flex-col gap-4">
-                        <p class="text-sm text-surface-500 dark:text-surface-400">Sélectionnez les accompagnements (légumes, féculents) pour compléter ce plat.</p>
+                    <div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border border-outline-variant flex flex-col gap-4">
+                        <p class="text-sm text-on-surface-variant">Sélectionnez les accompagnements (légumes, féculents) pour compléter ce plat.</p>
                         
                         <MultiSelect 
                             id="side-dishes-wrapper"
@@ -274,7 +274,7 @@ const updateSideDishes = async () => {
                             @change="updateSideDishes"
                         />
                         
-                        <div v-if="selectedSideDishIds.length === 0" class="text-sm italic text-surface-400 dark:text-surface-500 mt-2 text-center p-4 border border-dashed rounded-lg border-surface-200 dark:border-surface-700">
+                        <div v-if="selectedSideDishIds.length === 0" class="text-sm italic text-on-surface-variant mt-2 text-center p-4 border border-dashed rounded-lg border-outline-variant">
                             Aucun accompagnement sélectionné.
                         </div>
                     </div>

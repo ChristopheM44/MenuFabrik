@@ -36,11 +36,11 @@ onMounted(async () => {
     <div class="settings-view w-full max-w-5xl mx-auto p-4 animate-fadein pb-8">
         <div class="flex items-center justify-between mb-6 px-2">
             <div>
-                <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0 flex items-center gap-3">
+                <h1 class="text-3xl font-bold text-on-surface flex items-center gap-3">
                     <i class="pi pi-cog text-primary-500"></i>
                     Paramètres de la famille
                 </h1>
-                <p class="text-surface-500 dark:text-surface-400 mt-2">Gérez les préférences de vos convives et du
+                <p class="text-on-surface-variant mt-2">Gérez les préférences de vos convives et du
                     foyer.</p>
             </div>
         </div>

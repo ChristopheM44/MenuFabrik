@@ -108,11 +108,11 @@ onUnmounted(() => {
         <ImportMealsToShoppingModal v-model:visible="isImportModalVisible" />
 
         <div class="mb-4 px-2">
-            <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0 flex items-center gap-3">
+            <h1 class="text-3xl font-bold text-on-surface flex items-center gap-3">
                 <i class="pi pi-shopping-cart text-primary-500"></i>
                 Courses & Placards
             </h1>
-            <p class="text-surface-500 dark:text-surface-400 mt-2">Gérez votre caddie et vos basiques récurrents de n'importe où.</p>
+            <p class="text-on-surface-variant mt-2">Gérez votre caddie et vos basiques récurrents de n'importe où.</p>
         </div>
 
         <Tabs value="0">
@@ -121,7 +121,7 @@ onUnmounted(() => {
                     <i class="pi pi-cart-plus"></i>
                     <span class="font-bold">Mon Panier
                         <span
-                            class="ml-1 text-xs bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 px-1.5 py-0.5 rounded-full"
+                            class="ml-1 text-xs bg-primary-container text-on-primary-container px-1.5 py-0.5 rounded-full"
                             v-if="shoppingStore.shoppingItems.length > 0">
                             {{shoppingStore.shoppingItems.filter(i => !i.checked).length}}
                         </span>

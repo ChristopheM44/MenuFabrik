@@ -21,32 +21,32 @@ const navItems = [
 </script>
 
 <template>
-  <div class="min-h-screen bg-surface-50 dark:bg-surface-950 flex flex-col md:flex-row pb-16 md:pb-0">
+  <div class="min-h-screen bg-background flex flex-col md:flex-row pb-16 md:pb-0">
     
     <!-- Mobile Header -->
-    <header class="md:hidden bg-surface-0 dark:bg-surface-900 border-b border-surface-200 dark:border-surface-700 p-4 sticky top-0 z-20 flex justify-between items-center shadow-sm">
+    <header class="md:hidden bg-surface-container-lowest border-b border-outline-variant p-4 sticky top-0 z-20 flex justify-between items-center shadow-sm">
       <h1 class="text-xl font-bold text-primary">{{ route.meta.title || 'MenuFabrik' }}</h1>
       <div class="flex items-center gap-2">
-        <button @click="toggleTheme" class="p-2 rounded-full hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors text-surface-600 dark:text-surface-400 focus:outline-none" aria-label="Basculer le thème">
+        <button @click="toggleTheme" class="p-2 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant focus:outline-none" aria-label="Basculer le thème">
             <i :class="isDark ? 'pi pi-moon' : 'pi pi-sun'" class="text-xl"></i>
         </button>
-        <button v-if="authStore.user" @click="logout" :title="`Connecté en tant que: ${authStore.user.email}`" class="p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-surface-600 dark:text-surface-400 hover:text-red-600 dark:hover:text-red-400 focus:outline-none" aria-label="Se déconnecter">
+        <button v-if="authStore.user" @click="logout" :title="`Connecté en tant que: ${authStore.user.email}`" class="p-2 rounded-full hover:bg-red-50 transition-colors text-on-surface-variant hover:text-red-600 focus:outline-none" aria-label="Se déconnecter">
             <i class="pi pi-sign-out text-xl"></i>
         </button>
       </div>
     </header>
 
     <!-- Desktop Sidebar Navigation -->
-    <nav class="hidden md:flex flex-col w-64 bg-surface-0 dark:bg-surface-900 border-r border-surface-200 dark:border-surface-700 h-screen sticky top-0 z-20">
+    <nav class="hidden md:flex flex-col w-64 bg-surface-container-lowest border-r border-outline-variant h-screen sticky top-0 z-20">
       <div class="p-6 flex justify-between items-center">
         <h1 class="text-2xl font-bold text-primary flex items-center gap-2">
           <i class="pi pi-sparkles text-xl"></i> MenuFabrik
         </h1>
         <div class="flex items-center gap-1">
-          <button @click="toggleTheme" class="p-2 rounded-full hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors focus:outline-none" aria-label="Basculer le thème">
+          <button @click="toggleTheme" class="p-2 rounded-full hover:bg-surface-container transition-colors focus:outline-none" aria-label="Basculer le thème">
               <i :class="isDark ? 'pi pi-moon text-primary-400' : 'pi pi-sun text-orange-500'" class="text-lg"></i>
           </button>
-          <button v-if="authStore.user" @click="logout" :title="`Connecté en tant que: ${authStore.user.email}`" class="p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-surface-400 dark:text-surface-500 hover:text-red-600 dark:hover:text-red-400 focus:outline-none" aria-label="Se déconnecter">
+          <button v-if="authStore.user" @click="logout" :title="`Connecté en tant que: ${authStore.user.email}`" class="p-2 rounded-full hover:bg-red-50 transition-colors text-on-surface-variant hover:text-red-600 focus:outline-none" aria-label="Se déconnecter">
               <i class="pi pi-sign-out text-lg"></i>
           </button>
         </div>
@@ -57,8 +57,8 @@ const navItems = [
           v-for="item in navItems" 
           :key="item.path"
           :to="item.path"
-          class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800"
-          active-class="bg-primary-50 dark:bg-primary-900/40 text-primary-600 dark:text-primary-900"
+          class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium text-on-surface-variant hover:bg-surface-container"
+          active-class="bg-primary-container text-on-primary-container"
         >
           <i :class="item.icon" class="text-lg"></i>
           {{ item.name }}
@@ -81,15 +81,15 @@ const navItems = [
     </main>
 
     <!-- Mobile Bottom Navigation -->
-    <nav class="md:hidden fixed bottom-0 w-full bg-surface-0 dark:bg-surface-900 border-t border-surface-200 dark:border-surface-700 z-50 flex justify-around items-center h-16 safe-area-bottom pb-env shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+    <nav class="md:hidden fixed bottom-0 w-full bg-surface-container-lowest border-t border-outline-variant z-50 flex justify-around items-center h-16 safe-area-bottom pb-env shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
       <router-link 
         v-for="item in navItems" 
         :key="item.path"
         :to="item.path"
-        class="flex flex-col items-center justify-center w-full h-full text-surface-500 dark:text-surface-400 transition-colors"
-        active-class="text-primary-600 dark:text-primary-300 font-medium"
+        class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant transition-colors"
+        active-class="text-primary font-medium"
       >
-        <i :class="[item.icon, route.path === item.path ? 'scale-110 bg-primary-50 dark:bg-primary-900/40' : '']" class="text-xl mb-1 flex items-center justify-center p-1 rounded-full transition-transform"></i>
+        <i :class="[item.icon, route.path === item.path ? 'scale-110 bg-primary-container' : '']" class="text-xl mb-1 flex items-center justify-center p-1 rounded-full transition-transform"></i>
         <span class="text-[10px]">{{ item.name }}</span>
       </router-link>
     </nav>

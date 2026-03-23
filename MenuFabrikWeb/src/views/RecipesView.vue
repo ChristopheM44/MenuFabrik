@@ -49,10 +49,10 @@ const shareRecipe = async (recipe: Recipe) => {
         <section class="mb-8 mt-2 md:mt-6">
             <div class="flex flex-col items-start gap-4">
                 <div>
-                    <h1 class="font-extrabold tracking-tighter text-4xl md:text-5xl text-surface-900 dark:text-surface-0 mb-3">
-                        Carnet de <br class="hidden md:block"/><span class="text-primary-600 dark:text-primary-400">Recettes.</span>
+                    <h1 class="font-extrabold tracking-tighter text-4xl md:text-5xl text-on-surface mb-3">
+                        Carnet de <br class="hidden md:block"/><span class="text-primary">Recettes.</span>
                     </h1>
-                    <p class="text-surface-600 dark:text-surface-400 max-w-lg leading-relaxed font-medium">
+                    <p class="text-on-surface-variant max-w-lg leading-relaxed font-medium">
                         {{ recipeStore.recipes.length }} recettes organisées dans votre atelier culinaire. Parcourez, filtrez et régalez-vous.
                     </p>
                 </div>
@@ -63,8 +63,8 @@ const shareRecipe = async (recipe: Recipe) => {
         <div class="flex flex-col gap-4 mb-8">
             <div class="flex flex-col md:flex-row gap-4 w-full items-start md:items-center justify-between">
                 <div class="relative w-full md:max-w-xl flex-1">
-                    <i class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-surface-400 dark:text-surface-500 z-10"></i>
-                    <InputText v-model="searchQuery" placeholder="Rechercher une recette, ingrédient..." class="w-full bg-surface-100 dark:bg-[#191a1f] border-none rounded-full py-3.5 pr-4 focus:ring-2 focus:ring-primary-500/20 focus:bg-surface-0 dark:focus:bg-[#202126] transition-all font-medium text-surface-900 dark:text-surface-0 placeholder-surface-500 dark:placeholder-surface-400 shadow-sm" style="padding-left: 2.75rem;" />
+                    <i class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant z-10"></i>
+                    <InputText v-model="searchQuery" placeholder="Rechercher une recette, ingrédient..." class="w-full bg-surface-container-low border-none rounded-full py-3.5 pr-4 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all font-medium text-on-surface placeholder-on-surface-variant shadow-sm" style="padding-left: 2.75rem;" />
                 </div>
                 <Button icon="pi pi-plus" label="Nouvelle" severity="primary" class="shrink-0 rounded-full font-bold px-6 py-3 shadow-sm hover:shadow-md transition-all w-full md:w-auto" @click="$router.push('/recipes/new')" />
             </div>
@@ -76,8 +76,8 @@ const shareRecipe = async (recipe: Recipe) => {
                     @click="activeCategory = cat"
                     class="px-5 py-2.5 rounded-full text-[11px] font-bold tracking-widest uppercase transition-all whitespace-nowrap border"
                     :class="activeCategory === cat
-                        ? 'bg-primary-600 dark:bg-primary-500 text-white border-primary-600 dark:border-primary-500 shadow-md'
-                        : 'bg-surface-0 dark:bg-[#191a1f] border-surface-200 dark:border-[#2b2d31] hover:bg-surface-50 dark:hover:bg-[#202126] text-surface-600 dark:text-surface-300'"
+                        ? 'bg-primary text-on-primary border-primary shadow-md'
+                        : 'bg-surface-container-lowest border-outline-variant hover:bg-surface-container-low text-on-surface-variant'"
                 >
                     {{ cat }}
                 </button>
