@@ -11,11 +11,11 @@ import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
 import ToggleSwitch from 'primevue/toggleswitch';
 import MultiSelect from 'primevue/multiselect';
-import { useConfirm } from 'primevue/useconfirm';
+import { useAppConfirm } from '../../composables/useAppConfirm';
 
 const participantStore = useParticipantStore();
 const allergenStore = useAllergenStore();
-const confirmDialogService = useConfirm();
+const { confirm } = useAppConfirm();
 
 const sortedParticipants = computed(() => {
     return [...participantStore.participants].sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
@@ -51,14 +51,12 @@ const saveParticipant = async () => {
     }
 };
 const deleteParticipant = (id: string) => {
-    confirmDialogService.require({
+    confirm({
+        title: 'Supprimer ce participant',
         message: "Supprimer ce participant ?",
-        header: "Confirmation",
-        icon: "pi pi-exclamation-triangle",
-        acceptLabel: "Oui",
-        rejectLabel: "Non",
-        acceptClass: "p-button-danger",
-        accept: async () => {
+        acceptLabel: 'Oui, supprimer',
+        rejectLabel: 'Non',
+        onAccept: async () => {
             await participantStore.deleteParticipant(id);
         }
     });

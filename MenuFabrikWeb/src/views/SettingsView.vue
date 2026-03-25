@@ -3,11 +3,14 @@ import { computed, onMounted } from 'vue';
 import { useParticipantStore } from '../stores/participantStore';
 import { useSideDishStore } from '../stores/sideDishStore';
 import { useAllergenStore } from '../stores/allergenStore';
+import { useTheme } from '../composables/useTheme';
+import { useAuthStore } from '../stores/authStore';
 
 // Components
 import SettingsParticipantsTab from '../components/settings/SettingsParticipantsTab.vue';
 import SettingsSideDishesTab from '../components/settings/SettingsSideDishesTab.vue';
 import SettingsAllergensTab from '../components/settings/SettingsAllergensTab.vue';
+import PageHeader from '../components/layout/PageHeader.vue';
 
 // PrimeVue
 import Tabs from 'primevue/tabs';
@@ -20,6 +23,12 @@ import ProgressSpinner from 'primevue/progressspinner';
 const participantStore = useParticipantStore();
 const sideDishStore = useSideDishStore();
 const allergenStore = useAllergenStore();
+const { isDark, toggleTheme } = useTheme();
+const authStore = useAuthStore();
+
+const logout = async () => {
+    await authStore.logout();
+};
 
 const isDataReady = computed(() => {
     return !participantStore.isLoading && !sideDishStore.isLoading && !allergenStore.isLoading;
@@ -34,16 +43,21 @@ onMounted(async () => {
 
 <template>
     <div class="settings-view w-full max-w-5xl mx-auto p-4 animate-fadein pb-8">
-        <div class="flex items-center justify-between mb-6 px-2">
-            <div>
-                <h1 class="text-3xl font-bold text-on-surface flex items-center gap-3">
-                    <i class="pi pi-cog text-primary-500"></i>
-                    Paramètres de la famille
-                </h1>
-                <p class="text-on-surface-variant mt-2">Gérez les préférences de vos convives et du
-                    foyer.</p>
-            </div>
-        </div>
+        <PageHeader
+            icon="pi pi-cog"
+            label="Paramètres"
+            title="Paramètres de la famille"
+            subtitle="Gérez les préférences de vos convives et du foyer."
+        >
+            <template #actions>
+                <button @click="toggleTheme" class="p-2 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant focus:outline-none" aria-label="Basculer le thème">
+                    <i :class="isDark ? 'pi pi-moon text-primary' : 'pi pi-sun text-orange-500'" class="text-xl"></i>
+                </button>
+                <button v-if="authStore.user" @click="logout" :title="`Connecté en tant que : ${authStore.user.email}`" class="p-2 rounded-full hover:bg-red-50 transition-colors text-on-surface-variant hover:text-red-600 focus:outline-none" aria-label="Se déconnecter">
+                    <i class="pi pi-sign-out text-xl"></i>
+                </button>
+            </template>
+        </PageHeader>
 
         <div v-if="!isDataReady" class="flex justify-center p-12">
             <ProgressSpinner strokeWidth="4" />

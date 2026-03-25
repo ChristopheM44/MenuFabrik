@@ -5,10 +5,10 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
-import { useConfirm } from 'primevue/useconfirm';
+import { useAppConfirm } from '../../composables/useAppConfirm';
 
 const sideDishStore = useSideDishStore();
-const confirmDialogService = useConfirm();
+const { confirm } = useAppConfirm();
 
 const sortedSideDishes = computed(() => {
     return [...sideDishStore.sideDishes].sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
@@ -40,14 +40,12 @@ const onSideDishEdit = async (event: any) => {
 };
 
 const deleteSideDish = (id: string) => {
-    confirmDialogService.require({
+    confirm({
+        title: 'Supprimer cet accompagnement',
         message: "Supprimer cet accompagnement ?",
-        header: "Confirmation",
-        icon: "pi pi-exclamation-triangle",
-        acceptLabel: "Oui",
-        rejectLabel: "Non",
-        acceptClass: "p-button-danger",
-        accept: async () => {
+        acceptLabel: 'Oui, supprimer',
+        rejectLabel: 'Non',
+        onAccept: async () => {
             await sideDishStore.deleteSideDish(id);
         }
     });

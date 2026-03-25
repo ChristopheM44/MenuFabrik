@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AIImportPanel: typeof import('./src/components/recipes/form/AIImportPanel.vue')['default']
+    AppConfirmModal: typeof import('./src/components/layout/AppConfirmModal.vue')['default']
     AppLayout: typeof import('./src/components/layout/AppLayout.vue')['default']
     AttendeePickerDialog: typeof import('./src/components/planning/AttendeePickerDialog.vue')['default']
     Button: typeof import('primevue/button')['default']
@@ -23,6 +24,7 @@ declare module 'vue' {
     InstructionsStepPanel: typeof import('./src/components/recipes/form/InstructionsStepPanel.vue')['default']
     MealCardView: typeof import('./src/components/MealCardView.vue')['default']
     Message: typeof import('primevue/message')['default']
+    PageHeader: typeof import('./src/components/layout/PageHeader.vue')['default']
     PantryPanel: typeof import('./src/components/shopping/PantryPanel.vue')['default']
     Password: typeof import('primevue/password')['default']
     PlanMealDialog: typeof import('./src/components/planning/PlanMealDialog.vue')['default']

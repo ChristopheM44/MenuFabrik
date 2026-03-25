@@ -2,9 +2,9 @@
 import { onMounted, ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useRecipeStore } from '../stores/recipeStore';
-import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import RecipeGrid from '../components/recipes/RecipeGrid.vue';
+import PageHeader from '../components/layout/PageHeader.vue';
 import type { Recipe } from '../models/Recipe';
 import { RecipeShareService } from '../services/RecipeShareService';
 import { useToast } from 'primevue/usetoast';
@@ -45,31 +45,30 @@ const shareRecipe = async (recipe: Recipe) => {
 
 <template>
     <div class="recipes-view w-full max-w-[1400px] mx-auto p-4 md:p-8 animate-fadein pb-24">
-        <!-- Hero Section -->
-        <section class="mb-8 mt-2 md:mt-6">
-            <div class="flex flex-col items-start gap-4">
-                <div>
-                    <h1 class="font-extrabold tracking-tighter text-4xl md:text-5xl text-on-surface mb-3">
-                        Carnet de <br class="hidden md:block"/><span class="text-primary">Recettes.</span>
-                    </h1>
-                    <p class="text-on-surface-variant max-w-lg leading-relaxed font-medium">
-                        {{ recipeStore.recipes.length }} recettes organisées dans votre atelier culinaire. Parcourez, filtrez et régalez-vous.
-                    </p>
-                </div>
-            </div>
-        </section>
+        <PageHeader
+            icon="pi pi-book"
+            label="Recettes"
+            title="Carnet de Recettes"
+            :subtitle="`${recipeStore.recipes.length} recettes dans votre atelier culinaire`"
+        />
 
-        <!-- Recherche, Filtres et Actions -->
-        <div class="flex flex-col gap-4 mb-8">
-            <div class="flex flex-col md:flex-row gap-4 w-full items-start md:items-center justify-between">
-                <div class="relative w-full md:max-w-xl flex-1">
+        <!-- Recherche, Filtres et bouton + — sticky au scroll -->
+        <div class="sticky top-0 z-10 bg-background -mx-4 md:-mx-8 px-4 md:px-8 pt-2 pb-4 flex flex-col gap-3">
+            <div class="flex items-center gap-3">
+                <div class="relative flex-1">
                     <i class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant z-10"></i>
                     <InputText v-model="searchQuery" placeholder="Rechercher une recette, ingrédient..." class="w-full bg-surface-container-low border-none rounded-full py-3.5 pr-4 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all font-medium text-on-surface placeholder-on-surface-variant shadow-sm" style="padding-left: 2.75rem;" />
                 </div>
-                <Button icon="pi pi-plus" label="Nouvelle" severity="primary" class="shrink-0 rounded-full font-bold px-6 py-3 shadow-sm hover:shadow-md transition-all w-full md:w-auto" @click="$router.push('/recipes/new')" />
+                <button
+                    class="w-12 h-12 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:opacity-90 active:scale-95 transition-all shrink-0"
+                    aria-label="Nouvelle recette"
+                    @click="$router.push('/recipes/new')"
+                >
+                    <i class="pi pi-plus text-lg"></i>
+                </button>
             </div>
 
-            <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
                 <button
                     v-for="cat in categories"
                     :key="cat"
@@ -86,6 +85,7 @@ const shareRecipe = async (recipe: Recipe) => {
 
         <!-- Grille partagée -->
         <RecipeGrid
+            class="mt-6"
             mode="catalog"
             :recipes="filteredRecipes"
             :loading="recipeStore.isLoading"

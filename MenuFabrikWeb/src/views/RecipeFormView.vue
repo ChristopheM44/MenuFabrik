@@ -18,6 +18,7 @@ import Rating from 'primevue/rating';
 import AIImportPanel from '../components/recipes/form/AIImportPanel.vue';
 import IngredientsStepPanel from '../components/recipes/form/IngredientsStepPanel.vue';
 import InstructionsStepPanel from '../components/recipes/form/InstructionsStepPanel.vue';
+import PageHeader from '../components/layout/PageHeader.vue';
 import { sortByNameFr } from '../utils/sortUtils';
 
 const route = useRoute();
@@ -191,20 +192,24 @@ const cancel = () => {
 <template>
   <div class="min-h-screen bg-background text-on-surface antialiased">
     <main class="py-8 pb-32 max-w-2xl mx-auto px-6">
-      <!-- Top Navigation Bar -->
-      <header class="flex items-center justify-between w-full mb-8">
-        <div class="flex items-center gap-4">
-          <button @click="cancel" type="button" class="flex items-center justify-center w-10 h-10 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface active:scale-95 transition-all">
-            <span class="material-symbols-outlined">arrow_back</span>
+      <!-- Retour -->
+      <button @click="cancel" type="button" class="flex items-center gap-2 mb-4 text-on-surface-variant hover:text-on-surface transition-colors active:scale-95">
+        <i class="pi pi-arrow-left text-sm"></i>
+        <span class="text-sm font-medium">Retour aux recettes</span>
+      </button>
+
+      <PageHeader
+        icon="pi pi-file-edit"
+        label="Recette"
+        :title="isEditing ? 'Modifier la recette' : 'Nouvelle Recette'"
+      >
+        <template #actions>
+          <button @click="saveRecipe" :disabled="isSaving" type="button" class="w-11 h-11 rounded-full bg-primary text-on-primary flex items-center justify-center hover:opacity-90 active:scale-95 transition-all disabled:opacity-50" aria-label="Enregistrer">
+            <i v-if="isSaving" class="pi pi-spin pi-spinner text-lg"></i>
+            <i v-else class="pi pi-save text-lg"></i>
           </button>
-          <h1 class="font-headline font-bold tracking-tight text-xl text-on-surface">
-            {{ isEditing ? 'Modifier la recette' : 'Nouvelle Recette' }}
-          </h1>
-        </div>
-        <button @click="saveRecipe" :disabled="isSaving" type="button" class="px-6 py-2 rounded-full bg-primary text-on-primary font-headline font-bold text-sm hover:opacity-90 active:scale-95 transition-all disabled:opacity-50">
-          {{ isSaving ? 'Sauv...' : 'Enregistrer' }}
-        </button>
-      </header>
+        </template>
+      </PageHeader>
 
       <form @submit.prevent="saveRecipe" class="space-y-10">
 

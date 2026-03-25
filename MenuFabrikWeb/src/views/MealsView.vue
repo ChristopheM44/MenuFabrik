@@ -7,6 +7,7 @@ import { useSideDishStore } from '../stores/sideDishStore';
 import { useMealsPlanningData } from '../composables/useMealsPlanningData';
 import { useMealActions } from '../composables/useMealActions';
 import MealCardView from '../components/MealCardView.vue';
+import PageHeader from '../components/layout/PageHeader.vue';
 import PlanMealDialog from '../components/planning/PlanMealDialog.vue';
 import AttendeePickerDialog from '../components/planning/AttendeePickerDialog.vue';
 import RecipePickerDialog from '../components/planning/RecipePickerDialog.vue';
@@ -92,27 +93,19 @@ onMounted(() => {
 <template>
     <div class="w-full max-w-6xl mx-auto p-4 md:p-6 pb-32 min-h-screen animate-fadein">
 
-        <!-- Header -->
-        <section class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-            <div>
-                <div class="flex items-center gap-2 mb-2 text-primary">
-                    <i class="pi pi-calendar"></i>
-                    <span class="text-sm font-bold tracking-[0.1em] uppercase">Planning</span>
-                </div>
-                <h1 class="text-4xl md:text-5xl font-extrabold tracking-tighter text-on-surface">Agenda & Menu</h1>
-            </div>
-            <div class="flex items-center gap-3">
-                <button @click="showPlanDialog = true" class="px-6 h-12 rounded-full bg-surface-container-high text-on-surface font-bold text-sm hover:bg-surface-container-highest transition-all active:scale-95 flex items-center gap-2">
+        <PageHeader icon="pi pi-calendar" label="Planning" title="Agenda & Menu">
+            <template #actions>
+                <button @click="showPlanDialog = true" class="w-11 h-11 md:w-auto md:h-12 md:px-5 rounded-full bg-surface-container-high text-on-surface font-bold text-sm hover:bg-surface-container-highest transition-all active:scale-95 flex items-center justify-center md:gap-2">
                     <i class="pi pi-sliders-h text-lg"></i>
-                    Planifier
+                    <span class="hidden md:inline">Planifier</span>
                 </button>
-                <button @click="generateAllEmptySkeletons(hasEmptySkeletons)" :disabled="!hasEmptySkeletons || isGeneratingGlobal" class="px-6 h-12 rounded-full bg-primary text-on-primary font-bold text-sm shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button @click="generateAllEmptySkeletons(hasEmptySkeletons)" :disabled="!hasEmptySkeletons || isGeneratingGlobal" class="w-11 h-11 md:w-auto md:h-12 md:px-5 rounded-full bg-primary text-on-primary font-bold text-sm shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95 flex items-center justify-center md:gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                     <i v-if="isGeneratingGlobal" class="pi pi-spin pi-spinner text-lg"></i>
                     <i v-else class="pi pi-sparkles text-lg"></i>
-                    Générer les vides
+                    <span class="hidden md:inline">Générer les vides</span>
                 </button>
-            </div>
-        </section>
+            </template>
+        </PageHeader>
 
         <!-- Loader -->
         <div v-if="!isDataReady" class="flex flex-col items-center justify-center p-12 text-on-surface-variant">

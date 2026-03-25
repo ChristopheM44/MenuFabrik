@@ -3,7 +3,7 @@ import { MealStatus, MealTime, type Meal } from '../models/Meal';
 import type { Recipe } from '../models/Recipe';
 import { MenuGeneratorEngine } from '../services/MenuGeneratorEngine';
 import { useRouter } from 'vue-router';
-import { useConfirm } from 'primevue/useconfirm';
+import { useAppConfirm } from './useAppConfirm';
 import { useToast } from 'primevue/usetoast';
 import { cleanForFirestore } from '../utils/mealUtils';
 import type { useMealStore } from '../stores/mealStore';
@@ -22,7 +22,7 @@ export function useMealActions(
     getLocalISODate: (date: Date) => string
 ) {
     const router = useRouter();
-    const confirm = useConfirm();
+    const { confirm } = useAppConfirm();
     const toast = useToast();
 
     // Helper interne : affichage d'une erreur utilisateur (1.5)
@@ -251,13 +251,12 @@ export function useMealActions(
     // 5. Suppression unitaire via useConfirm PrimeVue
     const confirmDeleteMeal = (meal: Meal) => {
         if (!meal.id) return;
-        confirm.require({
+        confirm({
+            title: 'Supprimer ce repas',
             message: "Êtes-vous sûr de vouloir supprimer ce repas de l'agenda ?",
-            header: 'Confirmation de suppression',
-            icon: 'pi pi-exclamation-triangle text-red-500',
-            rejectProps: { label: 'Annuler', severity: 'secondary', outlined: true },
-            acceptProps: { label: 'Supprimer', severity: 'danger' },
-            accept: async () => {
+            acceptLabel: 'Supprimer',
+            rejectLabel: 'Annuler',
+            onAccept: async () => {
                 try {
                     if (meal.id) await mealStore.deleteMeal(meal.id);
                 } catch (e: any) {
@@ -270,13 +269,12 @@ export function useMealActions(
 
     // 5.5 Suppression de toute la journée via useConfirm PrimeVue
     const confirmDeleteDay = (dateKey: string) => {
-        confirm.require({
+        confirm({
+            title: 'Vider la journée',
             message: "Êtes-vous sûr de vouloir vider tous les repas de cette journée ?",
-            header: 'Vider la journée',
-            icon: 'pi pi-exclamation-triangle text-red-500',
-            rejectProps: { label: 'Annuler', severity: 'secondary', outlined: true },
-            acceptProps: { label: 'Vider', severity: 'danger' },
-            accept: async () => {
+            acceptLabel: 'Vider',
+            rejectLabel: 'Annuler',
+            onAccept: async () => {
                 try {
                     const mealsToDelete = mealStore.meals.filter(m => {
                         const mdObj = new Date(m.date);

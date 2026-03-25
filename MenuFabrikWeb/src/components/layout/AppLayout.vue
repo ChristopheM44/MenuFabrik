@@ -1,16 +1,8 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import ConfirmDialog from 'primevue/confirmdialog'
-import { useTheme } from '../../composables/useTheme'
-import { useAuthStore } from '../../stores/authStore'
+import AppConfirmModal from './AppConfirmModal.vue'
 
 const route = useRoute()
-const { isDark, toggleTheme } = useTheme()
-const authStore = useAuthStore()
-
-const logout = async () => {
-    await authStore.logout()
-}
 
 const navItems = [
   { name: 'Agenda', path: '/meals', icon: 'pi pi-calendar' },
@@ -23,33 +15,12 @@ const navItems = [
 <template>
   <div class="min-h-screen bg-background flex flex-col md:flex-row pb-16 md:pb-0">
     
-    <!-- Mobile Header -->
-    <header class="md:hidden bg-surface-container-lowest border-b border-outline-variant p-4 sticky top-0 z-20 flex justify-between items-center shadow-sm">
-      <h1 class="text-xl font-bold text-primary">{{ route.meta.title || 'MenuFabrik' }}</h1>
-      <div class="flex items-center gap-2">
-        <button @click="toggleTheme" class="p-2 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant focus:outline-none" aria-label="Basculer le thème">
-            <i :class="isDark ? 'pi pi-moon' : 'pi pi-sun'" class="text-xl"></i>
-        </button>
-        <button v-if="authStore.user" @click="logout" :title="`Connecté en tant que: ${authStore.user.email}`" class="p-2 rounded-full hover:bg-red-50 transition-colors text-on-surface-variant hover:text-red-600 focus:outline-none" aria-label="Se déconnecter">
-            <i class="pi pi-sign-out text-xl"></i>
-        </button>
-      </div>
-    </header>
-
     <!-- Desktop Sidebar Navigation -->
     <nav class="hidden md:flex flex-col w-64 bg-surface-container-lowest border-r border-outline-variant h-screen sticky top-0 z-20">
-      <div class="p-6 flex justify-between items-center">
+      <div class="p-6">
         <h1 class="text-2xl font-bold text-primary flex items-center gap-2">
           <i class="pi pi-sparkles text-xl"></i> MenuFabrik
         </h1>
-        <div class="flex items-center gap-1">
-          <button @click="toggleTheme" class="p-2 rounded-full hover:bg-surface-container transition-colors focus:outline-none" aria-label="Basculer le thème">
-              <i :class="isDark ? 'pi pi-moon text-primary-400' : 'pi pi-sun text-orange-500'" class="text-lg"></i>
-          </button>
-          <button v-if="authStore.user" @click="logout" :title="`Connecté en tant que: ${authStore.user.email}`" class="p-2 rounded-full hover:bg-red-50 transition-colors text-on-surface-variant hover:text-red-600 focus:outline-none" aria-label="Se déconnecter">
-              <i class="pi pi-sign-out text-lg"></i>
-          </button>
-        </div>
       </div>
       
       <div class="flex-1 px-4 flex flex-col gap-2">
@@ -95,7 +66,7 @@ const navItems = [
     </nav>
     
     <!-- Modale Globale de Confirmation -->
-    <ConfirmDialog></ConfirmDialog>
+    <AppConfirmModal />
 
   </div>
 </template>

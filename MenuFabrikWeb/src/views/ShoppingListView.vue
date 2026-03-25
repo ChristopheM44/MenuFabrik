@@ -3,12 +3,6 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useShoppingStore } from '../stores/shoppingStore';
 import { usePantryStore } from '../stores/pantryStore';
 
-import Tabs from 'primevue/tabs';
-import TabList from 'primevue/tablist';
-import Tab from 'primevue/tab';
-import TabPanels from 'primevue/tabpanels';
-import TabPanel from 'primevue/tabpanel';
-import ProgressSpinner from 'primevue/progressspinner';
 import Toast from 'primevue/toast';
 import { useToast } from 'primevue/usetoast';
 
@@ -16,18 +10,20 @@ import ImportMealsToShoppingModal from '../components/planning/ImportMealsToShop
 import DriveSyncModal from '../components/planning/DriveSyncModal.vue';
 import ShoppingCartPanel from '../components/shopping/ShoppingCartPanel.vue';
 import PantryPanel from '../components/shopping/PantryPanel.vue';
+import PageHeader from '../components/layout/PageHeader.vue';
 
 const shoppingStore = useShoppingStore();
 const pantryStore = usePantryStore();
 const toast = useToast();
 
+const activeTab = ref<'cart' | 'pantry'>('cart');
 const isImportModalVisible = ref(false);
 const isSyncModalVisible = ref(false);
 const syncFeedbackItems = ref<any[]>([]);
 
-const isDataReady = computed(() => {
-    return !shoppingStore.isLoading && !pantryStore.isLoading;
-});
+const uncheckedCount = computed(() =>
+    shoppingStore.shoppingItems.filter(i => !i.checked).length
+);
 
 const handleSyncReceived = (data: any) => {
     const feedbackItems = Array.isArray(data) ? data : (data.detail || []);
@@ -103,103 +99,52 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="shopping-list-view max-w-4xl mx-auto p-2 sm:p-4 animate-fadein pb-8">
+    <div class="max-w-lg mx-auto px-6 pt-4 pb-32">
         <Toast />
         <ImportMealsToShoppingModal v-model:visible="isImportModalVisible" />
-
-        <div class="mb-4 px-2">
-            <h1 class="text-3xl font-bold text-on-surface flex items-center gap-3">
-                <i class="pi pi-shopping-cart text-primary-500"></i>
-                Courses & Placards
-            </h1>
-            <p class="text-on-surface-variant mt-2">Gérez votre caddie et vos basiques récurrents de n'importe où.</p>
-        </div>
-
-        <Tabs value="0">
-            <TabList>
-                <Tab value="0" class="flex items-center gap-2">
-                    <i class="pi pi-cart-plus"></i>
-                    <span class="font-bold">Mon Panier
-                        <span
-                            class="ml-1 text-xs bg-primary-container text-on-primary-container px-1.5 py-0.5 rounded-full"
-                            v-if="shoppingStore.shoppingItems.length > 0">
-                            {{shoppingStore.shoppingItems.filter(i => !i.checked).length}}
-                        </span>
-                    </span>
-                </Tab>
-                <Tab value="1" class="flex items-center gap-2">
-                    <i class="pi pi-box"></i>
-                    <span class="font-bold">Mes Placards</span>
-                </Tab>
-            </TabList>
-
-            <TabPanels>
-                <!-- TAB 0: MON PANIER -->
-                <TabPanel value="0" class="px-0 sm:px-3 py-4">
-                    <div v-if="!isDataReady" class="flex justify-center p-12">
-                        <ProgressSpinner strokeWidth="4" />
-                    </div>
-                    <ShoppingCartPanel v-else 
-                        @importMeals="isImportModalVisible = true" 
-                        @sendToDrive="sendToDrive" 
-                    />
-                </TabPanel>
-
-                <!-- TAB 1: MES PLACARDS -->
-                <TabPanel value="1" class="px-0 sm:px-3 py-4">
-                    <PantryPanel />
-                </TabPanel>
-            </TabPanels>
-        </Tabs>
-
-        <DriveSyncModal 
-            v-model:visible="isSyncModalVisible" 
+        <DriveSyncModal
+            v-model:visible="isSyncModalVisible"
             :items="syncFeedbackItems"
             @synced="onSynced"
         />
+
+        <PageHeader
+            icon="pi pi-shopping-cart"
+            label="Courses"
+            title="Courses & Placard"
+            subtitle="Gérez votre caddie et vos basiques récurrents"
+        />
+
+        <!-- Segmented Control -->
+        <nav class="flex p-1 bg-surface-container-low rounded-full mb-8">
+            <button
+                @click="activeTab = 'cart'"
+                :class="activeTab === 'cart'
+                    ? 'bg-surface-container-lowest shadow-sm text-primary'
+                    : 'text-on-surface-variant hover:text-on-surface'"
+                class="flex-1 py-2.5 text-sm font-bold rounded-full transition-all font-headline">
+                Mon Panier
+                <span v-if="uncheckedCount > 0"
+                    class="ml-1 px-2 py-0.5 bg-primary/10 text-[10px] rounded-full">
+                    {{ uncheckedCount }}
+                </span>
+            </button>
+            <button
+                @click="activeTab = 'pantry'"
+                :class="activeTab === 'pantry'
+                    ? 'bg-surface-container-lowest shadow-sm text-primary'
+                    : 'text-on-surface-variant hover:text-on-surface'"
+                class="flex-1 py-2.5 text-sm font-semibold rounded-full transition-all font-headline">
+                Mes Placards
+            </button>
+        </nav>
+
+        <!-- Panels — v-show pour conserver l'état au switch -->
+        <ShoppingCartPanel
+            v-show="activeTab === 'cart'"
+            @importMeals="isImportModalVisible = true"
+            @sendToDrive="sendToDrive"
+        />
+        <PantryPanel v-show="activeTab === 'pantry'" />
     </div>
 </template>
-
-<style scoped>
-.animate-fadein {
-    animation: fadein 0.3s ease-out forwards;
-}
-
-@keyframes fadein {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-:deep(.list-move),
-:deep(.list-enter-active),
-:deep(.list-leave-active) {
-    transition: all 0.5s ease;
-}
-
-:deep(.list-enter-from),
-:deep(.list-leave-to) {
-    opacity: 0;
-    transform: translateX(30px);
-}
-
-/* Custom styles for the compact quantity input on the Shopping List */
-:deep(.compact-quantity-input.p-inputnumber) {
-    min-width: 4rem; 
-}
-:deep(.compact-quantity-input .p-inputtext) {
-    padding-right: 1.5rem !important;
-}
-:deep(.compact-quantity-input .p-button) {
-    padding: 0;
-    width: 1.5rem;
-}
-:deep(.compact-quantity-input .p-button .pi) {
-    font-size: 0.7rem;
-}
-</style>

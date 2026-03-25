@@ -3,45 +3,39 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useShoppingStore } from '../../stores/shoppingStore';
 import type { ShoppingItem } from '../../models/ShoppingItem';
 import { useToast } from 'primevue/usetoast';
-import { useConfirm } from 'primevue/useconfirm';
-
-import Button from 'primevue/button';
-import InputText from 'primevue/inputtext';
-import InputNumber from 'primevue/inputnumber';
-import Checkbox from 'primevue/checkbox';
+import { useAppConfirm } from '../../composables/useAppConfirm';
 
 const emit = defineEmits(['importMeals', 'sendToDrive']);
 const shoppingStore = useShoppingStore();
 const toast = useToast();
-const confirm = useConfirm();
+const { confirm } = useAppConfirm();
 
 const newShoppingItemName = ref('');
 const copySuccess = ref(false);
 
-const shoppingList = computed(() => {
-    return [...shoppingStore.shoppingItems].sort((a, b) => {
-        if (a.checked !== b.checked) return a.checked ? 1 : -1;
-        return a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' });
-    });
-});
+const sortedItems = computed(() =>
+    [...shoppingStore.shoppingItems].sort((a, b) =>
+        a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })
+    )
+);
+
+const uncheckedItems = computed(() => sortedItems.value.filter(i => !i.checked));
+const checkedItems = computed(() => sortedItems.value.filter(i => i.checked));
 
 const displayLimit = ref(50);
-const visibleShoppingList = computed(() => shoppingList.value.slice(0, displayLimit.value));
+const visibleUnchecked = computed(() => uncheckedItems.value.slice(0, displayLimit.value));
 
 const observerTarget = ref<HTMLElement | null>(null);
 let observer: IntersectionObserver | null = null;
 
 onMounted(() => {
     observer = new IntersectionObserver((entries) => {
-        const entry = entries.length > 0 ? entries[0] : null;
-        if (entry && entry.isIntersecting && displayLimit.value < shoppingList.value.length) {
+        const entry = entries[0];
+        if (entry?.isIntersecting && displayLimit.value < uncheckedItems.value.length) {
             displayLimit.value += 50;
         }
     }, { rootMargin: '200px' });
-    
-    if (observerTarget.value) {
-        observer.observe(observerTarget.value);
-    }
+    if (observerTarget.value) observer.observe(observerTarget.value);
 });
 
 onUnmounted(() => {
@@ -65,14 +59,12 @@ const addManualShoppingItem = async () => {
 };
 
 const deleteCheckedShoppingItems = async () => {
-    confirm.require({
+    confirm({
+        title: 'Supprimer les articles cochés',
         message: "Voulez-vous vraiment supprimer tous les articles cochés de votre panier ?",
-        header: "Confirmation",
-        icon: "pi pi-exclamation-triangle",
-        acceptLabel: "Oui",
-        rejectLabel: "Non",
-        acceptClass: "p-button-danger",
-        accept: async () => {
+        acceptLabel: 'Oui, supprimer',
+        rejectLabel: 'Non',
+        onAccept: async () => {
             try {
                 await shoppingStore.clearCheckedItems();
                 toast.add({ severity: 'success', summary: 'Nettoyage terminé', detail: 'Les articles terminés ont été supprimés.', life: 3000 });
@@ -84,14 +76,12 @@ const deleteCheckedShoppingItems = async () => {
 };
 
 const resetShoppingList = async () => {
-    confirm.require({
+    confirm({
+        title: 'Réinitialiser la liste',
         message: "Voulez-vous vraiment réinitialiser toute votre liste de courses ?",
-        header: "Confirmation",
-        icon: "pi pi-exclamation-triangle",
-        acceptLabel: "Oui",
-        rejectLabel: "Non",
-        acceptClass: "p-button-danger",
-        accept: async () => {
+        acceptLabel: 'Oui, réinitialiser',
+        rejectLabel: 'Non',
+        onAccept: async () => {
             try {
                 await shoppingStore.clearAllItems();
                 toast.add({ severity: 'success', summary: 'Liste réinitialisée', detail: 'Votre panier a été complètement vidé.', life: 3000 });
@@ -106,13 +96,13 @@ const toggleShoppingCheck = (item: ShoppingItem) => {
     if (item.id) {
         shoppingStore.updateShoppingItem(item.id, { checked: item.checked });
     }
-}
+};
 
-const updateShoppingQuantity = (item: ShoppingItem, newQuantity: number | null) => {
-    if (item.id && newQuantity !== null) {
-        shoppingStore.updateShoppingItem(item.id, { customQuantity: newQuantity });
-    }
-}
+const updateShoppingQuantity = (item: ShoppingItem, newQty: number) => {
+    if (!item.id || newQty < 1 || newQty > 99) return;
+    item.customQuantity = newQty;
+    shoppingStore.updateShoppingItem(item.id, { customQuantity: newQty });
+};
 
 const copyToClipboard = async () => {
     const itemsToCopy = shoppingStore.shoppingItems.filter(i => !i.checked);
@@ -136,119 +126,216 @@ const copyToClipboard = async () => {
     try {
         const blobText = new Blob([plainText], { type: 'text/plain' });
         const blobHtml = new Blob([htmlText], { type: 'text/html' });
-
         await navigator.clipboard.write([
             new ClipboardItem({ 'text/plain': blobText, 'text/html': blobHtml })
         ]);
-
         copySuccess.value = true;
         setTimeout(() => { copySuccess.value = false; }, 3000);
-    } catch (err) {
+    } catch {
         try {
             await navigator.clipboard.writeText(plainText);
             copySuccess.value = true;
             setTimeout(() => { copySuccess.value = false; }, 3000);
         } catch (err2) {
-            console.error('Final fallback failed: ', err2);
+            console.error('Clipboard fallback failed:', err2);
         }
     }
 };
 
+const sourceIcon = (source: ShoppingItem['source']) => {
+    if (source === 'recipe') return 'stars';
+    if (source === 'pantry') return 'inventory_2';
+    return 'edit_note';
+};
 </script>
 
 <template>
-    <div class="flex flex-col gap-6">
-        <!-- HEADER ACTIONS -->
-        <div class="bg-surface-0 dark:bg-surface-900 p-4 sm:p-5 rounded-xl shadow-sm border border-surface-200 dark:border-surface-700 flex flex-col gap-4">
-            <div class="flex flex-col md:flex-row gap-4 justify-between w-full">
-                <Button icon="pi pi-sparkles" label="D'après mes Menus" @click="$emit('importMeals')" class="w-full md:w-auto p-button-outlined" />
+    <div class="flex flex-col gap-8">
 
-                <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                    <Button :icon="copySuccess ? 'pi pi-check' : 'pi pi-copy'"
-                        :label="copySuccess ? 'Copié !' : 'Copier liste'"
-                        :severity="copySuccess ? 'success' : 'secondary'" @click="copyToClipboard"
-                        class="w-full sm:w-auto" :disabled="shoppingList.length === 0" />
-                    <Button icon="pi pi-refresh" label="Réinitialiser" severity="danger" outlined
-                        @click="resetShoppingList" class="w-full sm:w-auto" :disabled="shoppingList.length === 0" />
-                    <Button icon="pi pi-send" label="Drive" severity="primary" @click="$emit('sendToDrive')"
-                        class="w-full sm:w-auto" :disabled="shoppingList.length === 0" />
-                </div>
-            </div>
+        <!-- Grille d'actions -->
+        <div class="grid grid-cols-2 gap-3">
+            <!-- Importer depuis les menus — pleine largeur -->
+            <button
+                @click="$emit('importMeals')"
+                class="col-span-2 flex items-center justify-center gap-2 bg-primary text-on-primary py-4 rounded-full font-bold font-headline shadow-lg shadow-primary/20 active:scale-[0.98] transition-transform">
+                <span class="material-symbols-outlined text-sm">auto_awesome</span>
+                D'après mes Menus
+            </button>
 
-            <form @submit.prevent="addManualShoppingItem" class="flex mt-2">
-                <div class="p-inputgroup flex-1">
-                    <InputText v-model="newShoppingItemName" placeholder="Ajouter un article, un extra..." />
-                    <Button type="submit" icon="pi pi-plus" :disabled="!newShoppingItemName.trim()" />
-                </div>
-            </form>
+            <!-- Copier -->
+            <button
+                @click="copyToClipboard"
+                :disabled="shoppingStore.shoppingItems.length === 0"
+                class="flex items-center justify-center gap-2 bg-surface-container-lowest border border-outline-variant/30 py-3 rounded-2xl font-semibold text-sm text-on-surface-variant disabled:opacity-40 transition-opacity">
+                <span class="material-symbols-outlined text-sm">{{ copySuccess ? 'check' : 'content_copy' }}</span>
+                {{ copySuccess ? 'Copié !' : 'Copier liste' }}
+            </button>
+
+            <!-- Réinitialiser -->
+            <button
+                @click="resetShoppingList"
+                :disabled="shoppingStore.shoppingItems.length === 0"
+                class="flex items-center justify-center gap-2 bg-surface-container-lowest border border-outline-variant/30 py-3 rounded-2xl font-semibold text-sm text-on-surface-variant disabled:opacity-40 transition-opacity">
+                <span class="material-symbols-outlined text-sm">refresh</span>
+                Réinitialiser
+            </button>
+
+            <!-- Drive — pleine largeur -->
+            <button
+                @click="$emit('sendToDrive')"
+                :disabled="shoppingStore.shoppingItems.length === 0"
+                class="col-span-2 flex items-center justify-center gap-2 bg-[#E1F1FF] text-[#004A77] py-3 rounded-2xl font-bold disabled:opacity-40 transition-opacity">
+                <span class="material-symbols-outlined">shopping_cart</span>
+                Passer au Drive
+            </button>
         </div>
 
-        <!-- LA LISTE -->
-        <div v-if="shoppingList.length === 0"
-            class="text-center p-12 bg-surface-50 dark:bg-surface-800/50 rounded-xl border border-dashed border-surface-200 dark:border-surface-700">
-            <i class="pi pi-inbox text-4xl text-surface-400 dark:text-surface-500 mb-3 block"></i>
-            <h3 class="font-semibold text-lg">Votre panier est vide</h3>
-            <p class="text-surface-500 dark:text-surface-400 mt-1">Importez vos ingrédients de la semaine ou ajoutez des articles manuellement.</p>
+        <!-- Input d'ajout -->
+        <div class="relative">
+            <input
+                v-model="newShoppingItemName"
+                @keyup.enter="addManualShoppingItem"
+                class="w-full bg-surface-container-high rounded-2xl py-4 pl-5 pr-14 text-on-surface placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-primary/20 transition-all border-none outline-none"
+                placeholder="Ajouter un article, un extra..." />
+            <button
+                @click="addManualShoppingItem"
+                :disabled="!newShoppingItemName.trim()"
+                class="absolute right-2 top-2 w-10 h-10 bg-primary text-on-primary rounded-xl flex items-center justify-center shadow-md disabled:opacity-40 transition-opacity">
+                <span class="material-symbols-outlined">add</span>
+            </button>
         </div>
 
-        <div v-else class="bg-surface-0 dark:bg-surface-900 p-2 sm:p-5 rounded-xl shadow-sm border border-surface-200 dark:border-surface-700">
-            <div class="flex flex-col gap-1 mb-4 px-3 border-b border-surface-100 dark:border-surface-800 pb-3">
-                <div class="flex justify-between items-center">
-                    <span class="font-bold text-lg">Articles restants ({{shoppingList.length - shoppingList.filter(i => i.checked).length}})</span>
-                    <Button v-if="shoppingList.filter(i => i.checked).length > 0" icon="pi pi-trash"
-                        severity="danger" text size="small" label="Vider cochés"
-                        @click="deleteCheckedShoppingItems" />
-                </div>
+        <!-- État vide -->
+        <div v-if="shoppingStore.shoppingItems.length === 0"
+            class="text-center py-16 flex flex-col items-center gap-3">
+            <span class="material-symbols-outlined text-5xl text-on-surface-variant/30">shopping_cart</span>
+            <h3 class="font-headline font-semibold text-lg text-on-surface">Votre panier est vide</h3>
+            <p class="text-on-surface-variant text-sm">Importez vos ingrédients de la semaine ou ajoutez des articles manuellement.</p>
+        </div>
+
+        <!-- Liste -->
+        <div v-else class="flex flex-col gap-4">
+
+            <!-- Header -->
+            <div class="flex items-center justify-between">
+                <h3 class="font-headline font-bold text-on-surface flex items-center gap-2">
+                    Articles restants
+                    <span class="text-on-surface-variant font-medium">({{ uncheckedItems.length }})</span>
+                </h3>
+                <button v-if="checkedItems.length > 0"
+                    @click="deleteCheckedShoppingItems"
+                    class="text-xs font-bold text-error uppercase tracking-wider flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">delete_sweep</span>
+                    Vider cochés
+                </button>
             </div>
 
-            <div class="flex flex-col gap-1">
-                <TransitionGroup name="list">
-                    <div v-for="item in visibleShoppingList" :key="item.id"
-                        class="flex flex-col gap-2 p-3 rounded-lg hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors group cursor-pointer"
-                        :class="{ 'opacity-50 bg-surface-50 dark:bg-surface-800/50': item.checked }"
-                        @click="item.checked = !item.checked; toggleShoppingCheck(item)">
-                        
-                        <!-- Top Row: Checkbox, Name, Quantity -->
-                        <div class="flex items-center justify-between w-full">
-                            <div class="flex items-center gap-3 flex-1 overflow-hidden">
-                                <Checkbox v-model="item.checked" :binary="true" :inputId="item.id || item.name" @change="toggleShoppingCheck(item)" @click.stop />
-                                <label :for="item.id || item.name" class="flex items-center gap-2 flex-1 cursor-pointer overflow-hidden" :class="{ 'line-through': item.checked }" @click.prevent>
-                                    <i class="text-surface-400 dark:text-surface-500 text-xs shrink-0" :class="{
-                                        'pi pi-box': item.source === 'pantry',
-                                        'pi pi-sparkles': item.source === 'recipe',
-                                        'pi pi-pen-to-square': item.source === 'manual' || !item.source
-                                    }"></i>
-                                    <span class="font-semibold text-surface-900 dark:text-surface-0 truncate">{{ item.name }}</span>
-                                </label>
-                            </div>
+            <!-- Items non cochés -->
+            <TransitionGroup name="list" tag="div" class="flex flex-col gap-4">
+                <div v-for="item in visibleUnchecked" :key="item.id"
+                    class="flex items-center gap-4 bg-surface-container-lowest p-4 rounded-3xl shadow-sm border border-outline-variant/5 cursor-pointer"
+                    @click="item.checked = !item.checked; toggleShoppingCheck(item)">
 
-                            <div @click.stop.prevent class="shrink-0 ml-3">
-                                <InputNumber v-model="item.customQuantity" inputId="minmax-buttons" mode="decimal" showButtons buttonLayout="stacked"
-                                    :min="1" :max="99" v-tooltip.top="'Quantité'" class="compact-quantity-input w-16"
-                                    inputClass="w-full text-center p-inputtext-sm font-semibold px-2 py-1"
-                                    @update:modelValue="updateShoppingQuantity(item, $event)" />
-                            </div>
+                    <!-- Checkbox custom vide -->
+                    <div class="w-6 h-6 rounded-lg border-2 border-primary/30 shrink-0"></div>
+
+                    <!-- Contenu -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span
+                                class="material-symbols-outlined text-sm shrink-0"
+                                :class="{
+                                    'text-primary': item.source === 'recipe',
+                                    'text-amber-600': item.source === 'pantry',
+                                    'text-on-surface-variant': item.source === 'manual' || !item.source
+                                }"
+                                :style="item.source === 'recipe' ? 'font-variation-settings: \'FILL\' 1' : ''">
+                                {{ sourceIcon(item.source) }}
+                            </span>
+                            <span class="font-bold text-on-surface truncate">{{ item.name }}</span>
                         </div>
 
-                        <!-- Bottom Row: Recipes and Details (indented) -->
-                        <div v-if="(item.recipeNames && item.recipeNames.length > 0) || item.details" 
-                             class="flex flex-wrap items-center justify-between gap-2 pl-9 w-full">
-                            
-                            <div v-if="item.recipeNames && item.recipeNames.length > 0" class="flex flex-wrap gap-1 flex-1">
-                                <span v-for="recipe in item.recipeNames" :key="recipe" :title="recipe" class="text-[0.65rem] sm:text-xs bg-surface-100 dark:bg-surface-800 text-surface-600 dark:text-surface-300 px-1.5 py-0.5 rounded-full border border-surface-200 dark:border-surface-700">
-                                    {{ recipe.length > 15 ? recipe.substring(0, 15) + '...' : recipe }}
-                                </span>
-                            </div>
-                            <div v-else class="flex-1"></div>
-
-                            <span v-if="item.details" class="shrink-0 text-sm text-surface-600 dark:text-surface-400 font-medium ml-auto">
-                                {{ item.details }}
+                        <!-- Badges recettes -->
+                        <div v-if="item.recipeNames?.length" class="flex flex-wrap gap-1">
+                            <span v-for="recipe in item.recipeNames" :key="recipe"
+                                class="px-2 py-0.5 bg-secondary-container/50 text-on-secondary-container text-[10px] font-bold rounded uppercase tracking-tighter">
+                                {{ recipe.length > 18 ? recipe.substring(0, 18) + '…' : recipe }}
                             </span>
+                        </div>
+
+                        <!-- Label pantry -->
+                        <span v-else-if="item.source === 'pantry'"
+                            class="text-[10px] text-on-surface-variant font-medium">
+                            Récurrent / Placard
+                        </span>
+
+                        <!-- Détails -->
+                        <span v-else-if="item.details"
+                            class="text-[10px] text-on-surface-variant font-medium">
+                            {{ item.details }}
+                        </span>
+                    </div>
+
+                    <!-- Quantité +/- pill -->
+                    <div @click.stop
+                        class="flex items-center bg-surface-container-low rounded-full px-2 py-1 gap-2 shrink-0">
+                        <button
+                            @click="updateShoppingQuantity(item, (item.customQuantity ?? 1) - 1)"
+                            :disabled="(item.customQuantity ?? 1) <= 1"
+                            class="w-6 h-6 flex items-center justify-center text-primary disabled:opacity-30 transition-opacity">
+                            <span class="material-symbols-outlined text-sm">remove</span>
+                        </button>
+                        <span class="text-sm font-bold w-5 text-center">{{ item.customQuantity ?? 1 }}</span>
+                        <button
+                            @click="updateShoppingQuantity(item, (item.customQuantity ?? 1) + 1)"
+                            class="w-6 h-6 flex items-center justify-center text-primary">
+                            <span class="material-symbols-outlined text-sm">add</span>
+                        </button>
+                    </div>
+                </div>
+            </TransitionGroup>
+
+            <div ref="observerTarget" class="h-4 w-full"></div>
+
+            <!-- Séparateur + items cochés -->
+            <template v-if="checkedItems.length > 0">
+                <div class="py-2 border-t border-dashed border-outline-variant/30 flex justify-center">
+                    <span class="px-4 py-1 bg-surface-container text-[10px] font-bold text-on-surface-variant/60 rounded-full uppercase tracking-widest">
+                        Articles achetés
+                    </span>
+                </div>
+
+                <TransitionGroup name="list" tag="div" class="flex flex-col gap-4">
+                    <div v-for="item in checkedItems" :key="item.id"
+                        class="flex items-center gap-4 bg-surface-container-low/50 p-4 rounded-3xl opacity-50 cursor-pointer"
+                        @click="item.checked = !item.checked; toggleShoppingCheck(item)">
+
+                        <!-- Checkbox cochée -->
+                        <div class="w-6 h-6 rounded-lg bg-primary flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-on-primary text-xs">check</span>
+                        </div>
+
+                        <span class="font-bold text-on-surface line-through flex-1 truncate">{{ item.name }}</span>
+
+                        <div class="flex items-center bg-surface-container-low rounded-full px-3 py-1 shrink-0">
+                            <span class="text-xs font-bold">{{ item.customQuantity ?? 1 }}</span>
                         </div>
                     </div>
                 </TransitionGroup>
-                <div ref="observerTarget" class="h-4 w-full"></div>
-            </div>
+            </template>
         </div>
     </div>
 </template>
+
+<style scoped>
+.list-move,
+.list-enter-active,
+.list-leave-active {
+    transition: all 0.3s ease;
+}
+.list-enter-from,
+.list-leave-to {
+    opacity: 0;
+    transform: translateX(20px);
+}
+</style>
