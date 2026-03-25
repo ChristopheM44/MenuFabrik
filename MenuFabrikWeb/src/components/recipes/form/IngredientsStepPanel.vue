@@ -17,7 +17,7 @@ const addIngredient = () => {
     if (!newRecipe.ingredients) {
         newRecipe.ingredients = [];
     }
-    newRecipe.ingredients.push({ name: '', quantity: undefined, unit: '' });
+    newRecipe.ingredients.push({ name: '', unit: '' });
     emit('update:modelValue', newRecipe);
 };
 

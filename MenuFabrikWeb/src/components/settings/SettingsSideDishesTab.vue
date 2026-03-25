@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useSideDishStore } from '../../stores/sideDishStore';
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-import Button from 'primevue/button';
-import InputText from 'primevue/inputtext';
+import type { SideDish } from '../../models/SideDish';
 import { useAppConfirm } from '../../composables/useAppConfirm';
 
 const sideDishStore = useSideDishStore();
@@ -16,27 +13,35 @@ const sortedSideDishes = computed(() => {
 
 const newSideDishName = ref('');
 const isAddingSideDish = ref(false);
-const editingSideDishes = ref([]);
+const editingId = ref<string | null>(null);
+const editingName = ref('');
 
 const quickAddSideDish = async () => {
     if (!newSideDishName.value.trim()) return;
     isAddingSideDish.value = true;
     try {
-        const name = newSideDishName.value.trim();
-        await sideDishStore.addSideDish({ name: name });
+        await sideDishStore.addSideDish({ name: newSideDishName.value.trim() });
         newSideDishName.value = '';
     } finally {
         isAddingSideDish.value = false;
     }
 };
 
-const onSideDishEdit = async (event: any) => {
-    const { newData } = event;
-    if (newData.name && newData.id) {
-        await sideDishStore.updateSideDish(newData.id, { 
-            name: newData.name
-        });
+const startEdit = (dish: SideDish) => {
+    editingId.value = dish.id!;
+    editingName.value = dish.name;
+};
+
+const saveEdit = async (dish: SideDish) => {
+    if (editingName.value.trim() && dish.id) {
+        await sideDishStore.updateSideDish(dish.id, { name: editingName.value.trim() });
     }
+    cancelEdit();
+};
+
+const cancelEdit = () => {
+    editingId.value = null;
+    editingName.value = '';
 };
 
 const deleteSideDish = (id: string) => {
@@ -54,26 +59,76 @@ const deleteSideDish = (id: string) => {
 
 <template>
   <div>
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
-        <p class="text-surface-500 dark:text-surface-400">Personnalisez la liste des accompagnements disponibles pour vos plats.</p>
-        <div class="flex items-center gap-2">
-            <InputText v-model="newSideDishName" placeholder="Nouvel accompagnement..." size="small" @keyup.enter="quickAddSideDish" />
-            <Button icon="pi pi-plus" size="small" @click="quickAddSideDish" :loading="isAddingSideDish" :disabled="!newSideDishName" />
+    <p class="text-on-surface-variant mb-6">Personnalisez la liste des accompagnements disponibles pour vos plats.</p>
+
+    <!-- Quick add pill -->
+    <div class="flex items-center bg-surface-container-high dark:bg-surface-700 rounded-full px-6 py-3 mb-8 focus-within:bg-surface-container-lowest dark:focus-within:bg-surface-600 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+        <input
+            v-model="newSideDishName"
+            placeholder="Nouvel accompagnement..."
+            @keyup.enter="quickAddSideDish"
+            class="bg-transparent border-none focus:ring-0 w-full text-on-surface dark:text-white placeholder:text-outline font-medium outline-none"
+        />
+        <button
+            @click="quickAddSideDish"
+            :disabled="!newSideDishName.trim() || isAddingSideDish"
+            class="ml-2 bg-primary text-on-primary w-10 h-10 rounded-full flex items-center justify-center hover:opacity-90 active:scale-90 transition-all disabled:opacity-40"
+        >
+            <span class="material-symbols-outlined text-[1.25rem]">add</span>
+        </button>
+    </div>
+
+    <!-- Liste -->
+    <div class="space-y-3">
+        <div
+            v-for="dish in sortedSideDishes"
+            :key="dish.id"
+            class="group bg-surface-container-lowest dark:bg-surface-800 p-5 rounded-xl flex items-center justify-between transition-all hover:bg-surface-container-low dark:hover:bg-surface-700 shadow-sm"
+        >
+            <div class="flex items-center gap-4 flex-1 min-w-0">
+                <div class="w-10 h-10 rounded-lg bg-primary-container/30 flex items-center justify-center text-primary shrink-0">
+                    <span class="material-symbols-outlined text-[1.25rem]">restaurant</span>
+                </div>
+                <span
+                    v-if="editingId !== dish.id"
+                    class="font-headline font-semibold text-on-surface text-lg truncate"
+                >{{ dish.name }}</span>
+                <input
+                    v-else
+                    v-model="editingName"
+                    @keyup.enter="saveEdit(dish)"
+                    @keyup.escape="cancelEdit"
+                    @blur="saveEdit(dish)"
+                    autofocus
+                    class="font-headline font-semibold text-on-surface dark:text-white text-lg bg-transparent border-b-2 border-primary focus:outline-none w-full"
+                />
+            </div>
+            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-3">
+                <button
+                    v-if="editingId !== dish.id"
+                    @click="startEdit(dish)"
+                    class="p-2 hover:bg-surface-container-high dark:hover:bg-surface-600 rounded-full text-outline hover:text-primary transition-colors"
+                    aria-label="Modifier"
+                >
+                    <span class="material-symbols-outlined text-[1.25rem]">edit</span>
+                </button>
+                <button
+                    v-else
+                    @click="saveEdit(dish)"
+                    class="p-2 hover:bg-primary-container/30 rounded-full text-primary transition-colors"
+                    aria-label="Enregistrer"
+                >
+                    <span class="material-symbols-outlined text-[1.25rem]">check</span>
+                </button>
+                <button
+                    @click="deleteSideDish(dish.id!)"
+                    class="p-2 hover:bg-error-container/20 rounded-full text-error transition-colors"
+                    aria-label="Supprimer"
+                >
+                    <span class="material-symbols-outlined text-[1.25rem]">delete</span>
+                </button>
+            </div>
         </div>
     </div>
-    
-    <DataTable :value="sortedSideDishes" v-model:editingRows="editingSideDishes" editMode="row" dataKey="id" @row-edit-save="onSideDishEdit" class="p-datatable-sm bg-surface-0 dark:bg-surface-900 rounded-lg shadow-sm">
-        <Column field="name" header="Nom">
-            <template #editor="{ data, field }">
-                <InputText v-model="data[field]" autofocus />
-            </template>
-        </Column>
-        <Column :rowEditor="true" style="width: 5rem" bodyStyle="text-align:center"></Column>
-        <Column headerStyle="width: 4rem" bodyStyle="text-align: right">
-            <template #body="{ data }">
-                <Button icon="pi pi-trash" text rounded severity="danger" size="small" @click="deleteSideDish(data.id)" />
-            </template>
-        </Column>
-    </DataTable>
   </div>
 </template>

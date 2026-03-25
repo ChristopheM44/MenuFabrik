@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useParticipantStore } from '../stores/participantStore';
 import { useSideDishStore } from '../stores/sideDishStore';
 import { useAllergenStore } from '../stores/allergenStore';
@@ -13,11 +13,6 @@ import SettingsAllergensTab from '../components/settings/SettingsAllergensTab.vu
 import PageHeader from '../components/layout/PageHeader.vue';
 
 // PrimeVue
-import Tabs from 'primevue/tabs';
-import TabList from 'primevue/tablist';
-import Tab from 'primevue/tab';
-import TabPanels from 'primevue/tabpanels';
-import TabPanel from 'primevue/tabpanel';
 import ProgressSpinner from 'primevue/progressspinner';
 
 const participantStore = useParticipantStore();
@@ -39,6 +34,14 @@ onMounted(async () => {
     if (sideDishStore.sideDishes.length === 0) sideDishStore.setupRealtimeListener();
     if (allergenStore.allergens.length === 0) allergenStore.setupRealtimeListener();
 });
+
+const tabs = [
+    { value: 'participants', label: 'Participants', component: SettingsParticipantsTab },
+    { value: 'accompagnements', label: 'Accompagnements', component: SettingsSideDishesTab },
+    { value: 'allergenes', label: 'Allergènes', component: SettingsAllergensTab },
+];
+const activeTab = ref('participants');
+const activeComponent = computed(() => tabs.find(t => t.value === activeTab.value)?.component);
 </script>
 
 <template>
@@ -46,8 +49,8 @@ onMounted(async () => {
         <PageHeader
             icon="pi pi-cog"
             label="Paramètres"
-            title="Paramètres de la famille"
-            subtitle="Gérez les préférences de vos convives et du foyer."
+            title="Paramètres"
+            subtitle="Gérez les préférences de l'application."
         >
             <template #actions>
                 <button @click="toggleTheme" class="p-2 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant focus:outline-none" aria-label="Basculer le thème">
@@ -63,33 +66,24 @@ onMounted(async () => {
             <ProgressSpinner strokeWidth="4" />
         </div>
 
-        <div v-else class="flex flex-col gap-8">
+        <div v-else class="flex flex-col gap-6">
+            <!-- Tab bar underline style -->
+            <div class="flex border-b border-outline/20 dark:border-surface-700">
+                <button
+                    v-for="tab in tabs"
+                    :key="tab.value"
+                    @click="activeTab = tab.value"
+                    :class="activeTab === tab.value
+                        ? 'text-primary border-b-2 border-primary -mb-px'
+                        : 'text-on-surface-variant hover:text-on-surface border-b-2 border-transparent -mb-px'"
+                    class="px-4 py-3 font-headline font-bold text-sm transition-all"
+                >
+                    {{ tab.label }}
+                </button>
+            </div>
 
-            <Tabs value="0">
-                <TabList>
-                    <Tab value="0"><i class="pi pi-users mr-2"></i> Participants</Tab>
-                    <Tab value="1"><i class="pi pi-tags mr-2"></i> Accompagnements</Tab>
-                    <Tab value="2"><i class="pi pi-exclamation-triangle mr-2"></i> Allergènes</Tab>
-                </TabList>
-
-                <TabPanels>
-                    <!-- ONGLETS PARTICIPANTS -->
-                    <TabPanel value="0">
-                        <SettingsParticipantsTab />
-                    </TabPanel>
-
-                    <!-- ONGLET ACCOMPAGNEMENTS -->
-                    <TabPanel value="1">
-                        <SettingsSideDishesTab />
-                    </TabPanel>
-
-                    <!-- ONGLET ALLERGENES -->
-                    <TabPanel value="2">
-                        <SettingsAllergensTab />
-                    </TabPanel>
-                </TabPanels>
-            </Tabs>
+            <!-- Tab content -->
+            <component :is="activeComponent" />
         </div>
-
     </div>
 </template>

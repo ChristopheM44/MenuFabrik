@@ -166,7 +166,14 @@ const saveRecipe = async () => {
                 sourceURL: recipeForm.value.sourceURL || '',
                 imageUrl: recipeForm.value.imageUrl || '',
                 instructions: recipeForm.value.instructions || '',
-                ingredients: (recipeForm.value.ingredients || []).filter(i => i.name && i.name.trim() !== '')
+                ingredients: (recipeForm.value.ingredients || [])
+                    .filter(i => i.name && i.name.trim() !== '')
+                    .map(({ name, quantity, unit, department }) => ({
+                        name: name.trim(),
+                        ...(quantity !== undefined && { quantity }),
+                        ...(unit ? { unit } : {}),
+                        ...(department ? { department } : {})
+                    }))
             };
             const newId = await recipeStore.addRecipe(newRecipe);
             

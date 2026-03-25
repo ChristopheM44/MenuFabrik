@@ -126,9 +126,9 @@ const handleImport = async () => {
             rating: payload.rt || 0,
             ingredients: payload.ing?.map(ing => ({
                 name: ing.n,
-                quantity: ing.q,
-                unit: ing.u,
-                department: ing.d
+                ...(ing.q !== undefined && { quantity: ing.q }),
+                ...(ing.u ? { unit: ing.u } : {}),
+                ...(ing.d ? { department: ing.d } : {})
             })) || []
         };
 
