@@ -77,6 +77,9 @@ const analyzeWithAI = async () => {
         if (aiData.prepTime && typeof aiData.prepTime === 'number' && aiData.prepTime >= 0 && aiData.prepTime <= 1440) {
             updatedRecipe.prepTime = aiData.prepTime;
         }
+        if (aiData.servings && typeof aiData.servings === 'number' && aiData.servings >= 1 && aiData.servings <= 20) {
+            updatedRecipe.servings = aiData.servings;
+        }
         
         if (aiData.ingredients && Array.isArray(aiData.ingredients)) {
             updatedRecipe.ingredients = aiData.ingredients

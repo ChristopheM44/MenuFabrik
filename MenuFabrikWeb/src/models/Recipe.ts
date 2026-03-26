@@ -45,6 +45,7 @@ export interface Recipe {
     ingredients?: Ingredient[]; // Nouveau champ structuré
     instructions?: string;
     rating?: number; // De 0 à 5 étoiles
+    servings?: number; // nombre de parts
 
     // Nouveaux champs pour l'intelligence
     requiresFreeTime: boolean;

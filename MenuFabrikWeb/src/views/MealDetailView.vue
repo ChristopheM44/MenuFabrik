@@ -205,6 +205,7 @@ const updateSideDishes = async () => {
                             <!-- Méta informations -->
                             <div class="flex flex-wrap items-center gap-4 text-on-surface-variant text-sm mt-2">
                                 <span class="flex items-center gap-1"><i class="pi pi-clock"></i> Préparation: <strong>{{ hydratedMeal.recipe.prepTime }} min</strong></span>
+                                <span v-if="hydratedMeal.recipe.servings" class="flex items-center gap-1"><i class="pi pi-users"></i> <strong>{{ hydratedMeal.recipe.servings }}</strong> parts</span>
                                 <span v-if="hydratedMeal.recipe.instructions" class="flex items-center gap-1"><i class="pi pi-list"></i> Recette détaillée dispo</span>
                             </div>
                             

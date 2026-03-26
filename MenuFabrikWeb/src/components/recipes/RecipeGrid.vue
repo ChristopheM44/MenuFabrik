@@ -110,6 +110,11 @@ const handleCardClick = (recipe: Recipe) => {
                             <i class="pi pi-clock text-[11px]"></i>
                             {{ formatTime(recipe.prepTime) }}
                         </span>
+                        <span v-if="recipe.servings" class="flex items-center gap-1">
+                            <span class="text-on-surface-variant">•</span>
+                            <i class="pi pi-users text-[11px]"></i>
+                            {{ recipe.servings }}
+                        </span>
                         <span v-if="recipe.rating && recipe.rating > 0" class="flex items-center gap-1 text-primary">
                             <span class="text-on-surface-variant">•</span>
                             <i class="pi pi-star-fill text-[11px]"></i>

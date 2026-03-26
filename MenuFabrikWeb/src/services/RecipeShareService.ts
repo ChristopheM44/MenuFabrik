@@ -9,6 +9,7 @@ import { useSideDishStore } from '../stores/sideDishStore';
 export interface SharedRecipePayload {
     n: string; // name
     p: number; // prepTime
+    sv?: number; // servings
     m: string; // mealType
     c: string; // category
     r: boolean; // requiresFreeTime
@@ -51,6 +52,7 @@ export class RecipeShareService {
         const payload: SharedRecipePayload = {
             n: recipe.name,
             p: recipe.prepTime,
+            sv: recipe.servings,
             m: recipe.mealType,
             c: recipe.category,
             r: recipe.requiresFreeTime,

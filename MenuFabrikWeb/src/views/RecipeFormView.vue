@@ -44,6 +44,7 @@ const recipeForm = ref<Partial<Recipe>>({
     name: '',
     category: 'Viandes',
     prepTime: 30,
+    servings: 4,
     mealType: MealType.BOTH,
     requiresFreeTime: false,
     rating: 0,
@@ -95,6 +96,7 @@ onMounted(async () => {
         const existingRecipe = recipeStore.recipes.find(r => r.id === id);
         if (existingRecipe) {
             recipeForm.value = { ...existingRecipe };
+            if (!recipeForm.value.servings) recipeForm.value.servings = 4;
             // Populate preparation steps from existing instructions
             if (recipeForm.value.instructions) {
                  preparationSteps.value = recipeForm.value.instructions
@@ -158,6 +160,7 @@ const saveRecipe = async () => {
                 name,
                 category: recipeForm.value.category!,
                 prepTime,
+                servings: recipeForm.value.servings || 4,
                 rating: recipeForm.value.rating || 0,
                 mealType: recipeForm.value.mealType!,
                 requiresFreeTime: recipeForm.value.requiresFreeTime || false,
@@ -268,9 +271,15 @@ const cancel = () => {
             </div>
           </div>
 
-          <div class="space-y-2">
-            <label class="font-label text-[10px] font-bold uppercase tracking-[0.05em] text-on-surface-variant ml-1">Temps de préparation (min)</label>
-            <InputNumber v-model="recipeForm.prepTime" mode="decimal" showButtons :min="5" :max="240" :step="5" class="w-full h-14 bg-surface-container-high rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all text-on-surface" inputClass="w-full h-14 bg-transparent border-none px-5 font-body text-on-surface focus:ring-0" />
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="font-label text-[10px] font-bold uppercase tracking-[0.05em] text-on-surface-variant ml-1">Temps de préparation (min)</label>
+              <InputNumber v-model="recipeForm.prepTime" mode="decimal" showButtons :min="5" :max="240" :step="5" class="w-full h-14 bg-surface-container-high rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all text-on-surface" inputClass="w-full h-14 bg-transparent border-none px-5 font-body text-on-surface focus:ring-0" />
+            </div>
+            <div class="space-y-2">
+              <label class="font-label text-[10px] font-bold uppercase tracking-[0.05em] text-on-surface-variant ml-1">Nombre de parts</label>
+              <InputNumber v-model="recipeForm.servings" mode="decimal" showButtons :min="1" :max="20" :step="1" class="w-full h-14 bg-surface-container-high rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all text-on-surface" inputClass="w-full h-14 bg-transparent border-none px-5 font-body text-on-surface focus:ring-0" />
+            </div>
           </div>
 
           <!-- Rating -->

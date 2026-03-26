@@ -116,6 +116,7 @@ const handleImport = async () => {
         const newRecipe: Omit<Recipe, 'id'> = {
             name: payload.n,
             prepTime: payload.p || 30,
+            servings: payload.sv || 4,
             mealType: (payload.m as MealType) || MealType.BOTH,
             category: (payload.c as RecipeCategory) || 'Autre',
             requiresFreeTime: payload.r || false,
@@ -197,6 +198,7 @@ const goBackToHome = () => {
                     <Tag :value="decodedRecipe.c || 'Autre'" severity="secondary" rounded class="px-3" />
                     <Tag :value="decodedRecipe.m" :severity="getSeverityForMealType(decodedRecipe.m)" rounded class="px-3" />
                     <Tag icon="pi pi-clock" :value="formatTime(decodedRecipe.p)" severity="secondary" rounded class="px-3 bg-surface-container text-on-surface" />
+                    <Tag v-if="decodedRecipe.sv" icon="pi pi-users" :value="`${decodedRecipe.sv} parts`" severity="secondary" rounded class="px-3 bg-surface-container text-on-surface" />
                     <Rating v-if="decodedRecipe.rt && decodedRecipe.rt > 0" :modelValue="decodedRecipe.rt" readonly :cancel="false" />
                 </div>
 

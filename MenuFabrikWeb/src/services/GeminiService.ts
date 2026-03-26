@@ -7,6 +7,7 @@ export interface AIAnalysisResult {
     instructions?: string;
     category?: RecipeCategory;
     prepTime?: number;
+    servings?: number;
     ingredients?: { name: string; quantity?: number; unit?: string }[];
     allergens?: string[];
     sideDishes?: string[];
@@ -49,10 +50,11 @@ export class GeminiService {
         promptText += `
 **CONSIGNES STRICTES :**
 1. Tu es un extracteur de données. Tu DOIS extraire EXACTEMENT les ingrédients présents dans le texte ou la page web, sans rien inventer.
-2. Structure la liste des ingrédients de manière précise. Si le texte dit "oignon - 200 g d'oignon émincés", extrait: name="Oignon", quantity=200, unit="g". 
+2. Structure la liste des ingrédients de manière précise. Si le texte dit "oignon - 200 g d'oignon émincés", extrait: name="Oignon", quantity=200, unit="g".
 3. Déduis l'unité si elle est absente mais implicite. Par exemple, "1 reblochon" devient quantity=1, unit="pièce".
 4. Extrais les instructions étape par étape.
 5. Suggère 1 à 3 accompagnements appropriés pour ce plat, choisis **UNIQUEMENT** parmi cette liste stricte : [${availableSidesNames}]. S'il s'agit d'un plat complet (ex: Tartiflette), laisse le tableau vide.
+6. Extrais le nombre de parts (servings) indiqué dans la recette. Si non précisé, utilise 4 par défaut.
 
 Réponds UNIQUEMENT avec un objet JSON strictement formaté (sans bloc markdown \`\`\`json) :
 {
@@ -60,6 +62,7 @@ Réponds UNIQUEMENT avec un objet JSON strictement formaté (sans bloc markdown 
   "instructions": "1. Faire chauffer...\\n2. Ajouter...",
   "category": "Viandes"|"Poissons"|"Végétarien"|"Rapide"|"Au Four"|"Pâtes"|"Soupes"|"Salades"|"Fast Food"|"Autre",
   "prepTime": 30,
+  "servings": 4,
   "ingredients": [
     {"name": "Reblochon", "quantity": 1, "unit": "pièce(s)"},
     {"name": "Pomme de terre", "quantity": 1, "unit": "kg"}
