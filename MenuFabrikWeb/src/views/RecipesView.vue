@@ -92,6 +92,7 @@ const shareRecipe = async (recipe: Recipe) => {
             @edit="(r) => router.push(`/recipes/${r.id}`)"
             @delete="(r) => recipeStore.deleteRecipe(r.id!)"
             @share="shareRecipe"
+            @cook="(r) => router.push({ name: 'cooking', params: { recipeId: r.id } })"
         />
     </div>
 </template>

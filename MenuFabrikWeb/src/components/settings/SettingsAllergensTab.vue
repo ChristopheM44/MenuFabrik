@@ -101,7 +101,7 @@ const deleteAllergen = (id: string) => {
                     class="font-headline font-semibold text-on-surface dark:text-white text-xl bg-transparent border-b-2 border-primary focus:outline-none w-full"
                 />
             </div>
-            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-3">
+            <div class="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0 ml-3">
                 <button
                     v-if="editingId !== allergen.id"
                     @click="startEdit(allergen)"

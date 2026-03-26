@@ -108,7 +108,7 @@ const hasAllergens = (p: Participant) => p.allergyIds && p.allergyIds.length > 0
             </span>
 
             <!-- Actions -->
-            <div class="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div class="flex items-center gap-1 shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                 <button
                     @click="editParticipant(p)"
                     class="p-2 rounded-xl text-outline hover:text-primary hover:bg-primary-container/20 transition-all active:scale-90"

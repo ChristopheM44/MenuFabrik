@@ -214,6 +214,15 @@ const cancel = () => {
         :title="isEditing ? 'Modifier la recette' : 'Nouvelle Recette'"
       >
         <template #actions>
+          <button
+            v-if="isEditing && recipeForm.instructions"
+            @click="router.push({ name: 'cooking', params: { recipeId: recipeForm.id } })"
+            type="button"
+            class="w-11 h-11 rounded-full bg-green-600 text-white flex items-center justify-center hover:opacity-90 active:scale-95 transition-all"
+            aria-label="Cuisiner"
+          >
+            <i class="pi pi-play text-lg"></i>
+          </button>
           <button @click="saveRecipe" :disabled="isSaving" type="button" class="w-11 h-11 rounded-full bg-primary text-on-primary flex items-center justify-center hover:opacity-90 active:scale-95 transition-all disabled:opacity-50" aria-label="Enregistrer">
             <i v-if="isSaving" class="pi pi-spin pi-spinner text-lg"></i>
             <i v-else class="pi pi-save text-lg"></i>
@@ -301,6 +310,17 @@ const cancel = () => {
           <div class="space-y-2">
             <label class="font-label text-[10px] font-bold uppercase tracking-[0.05em] text-on-surface-variant ml-1">Accompagnements Suggérés</label>
             <MultiSelect v-model="recipeForm.suggestedSideIds" :options="sortedSideDishes" optionLabel="name" optionValue="id" display="chip" placeholder="Suggestions d'accompagnements" :maxSelectedLabels="20" filter class="w-full min-h-[56px] rounded-xl bg-surface-container-high border-none focus:ring-2 focus:ring-primary/20 transition-all font-body text-on-surface flex items-center px-3 py-1" :loading="sideDishStore.isLoading" />
+          </div>
+
+          <!-- Lien source -->
+          <div class="space-y-2">
+            <label class="font-label text-[10px] font-bold uppercase tracking-[0.05em] text-on-surface-variant ml-1">Lien source (URL)</label>
+            <div class="flex items-center h-14 rounded-xl bg-surface-container-high overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+              <span class="flex items-center justify-center w-12 h-full text-on-surface-variant shrink-0">
+                <i class="pi pi-link"></i>
+              </span>
+              <InputText v-model="recipeForm.sourceURL" placeholder="Ex: https://cookidoo.fr/..." class="flex-1 h-full bg-transparent border-none shadow-none ring-0 focus:ring-0 font-body text-on-surface text-sm placeholder:text-outline pr-4" />
+            </div>
           </div>
         </section>
 

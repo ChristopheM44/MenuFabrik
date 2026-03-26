@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import Panel from 'primevue/panel';
 import Button from 'primevue/button';
-import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
 import { GeminiService } from '../../../services/GeminiService';
 import { useSideDishStore } from '../../../stores/sideDishStore';
@@ -26,14 +24,13 @@ const allergenStore = useAllergenStore();
 
 const isAnalyzing = ref(false);
 const aiPromptText = ref('');
-// Create local reactive copy of source URL to avoid mutating prop directly from InputText
-const localSourceURL = ref(props.recipeForm.sourceURL || '');
+const isOpen = ref(false);
 
 const analyzeWithAI = async () => {
     isAnalyzing.value = true;
     emit('error', ''); // clear previous errors
 
-    const urlInput = localSourceURL.value.trim() || '';
+    const urlInput = (props.recipeForm.sourceURL || '').trim();
     const textInput = aiPromptText.value?.trim() || '';
 
     if (!urlInput && !textInput) {
@@ -54,7 +51,6 @@ const analyzeWithAI = async () => {
         }
 
         const updatedRecipe = { ...props.recipeForm };
-        updatedRecipe.sourceURL = urlInput; // Sync local copy back
 
         if (aiData.name && typeof aiData.name === 'string' && !updatedRecipe.name) {
             updatedRecipe.name = aiData.name.slice(0, 200);
@@ -115,26 +111,49 @@ const analyzeWithAI = async () => {
 </script>
 
 <template>
-    <Panel header="Assistant d'Importation IA" toggleable collapsed class="bg-primary-50 dark:bg-primary-900/30" :pt="{ root: { class: 'border border-primary-200 dark:border-primary-800 rounded-xl bg-primary-50/50 dark:bg-primary-900/30' }, header: { class: 'bg-primary-50 dark:bg-primary-800 rounded-t-xl text-primary-900 dark:text-primary-100' }, content: { class: 'bg-transparent rounded-b-xl' } }">
-        <i class="pi pi-sparkles absolute -right-6 -top-6 text-9xl text-primary-500/5 rotate-12 pointer-events-none"></i>
-        
-        <div class="flex flex-col gap-4 relative z-10 p-2">
-            <div class="flex flex-col gap-2">
-                <label for="sourceURL" class="font-semibold text-sm text-primary-900 dark:text-primary-400">1. Lien Web de la recette (URL)</label>
-                <div class="flex items-stretch rounded-md overflow-hidden bg-surface-0 dark:bg-[#202126] border border-surface-300 dark:border-[#2b2d31] focus-within:ring-1 focus-within:ring-primary-500 w-full">
-                    <span class="flex items-center justify-center px-3 text-surface-500 dark:text-surface-400 border-r border-surface-300 dark:border-[#2b2d31] bg-surface-50 dark:bg-[#191a1f]"><i class="pi pi-link"></i></span>
-                    <InputText id="sourceURL" v-model="localSourceURL" placeholder="Ex: https://cookidoo.fr/..." class="w-full font-mono text-sm border-none shadow-none ring-0 focus:ring-0" />
-                </div>
+    <section class="rounded-2xl bg-surface-container-low overflow-hidden">
+        <!-- Header cliquable -->
+        <div
+            class="p-6 flex items-center gap-4 cursor-pointer select-none"
+            @click="isOpen = !isOpen"
+        >
+            <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <i class="pi pi-sparkles text-primary text-lg"></i>
             </div>
+            <div class="flex-1">
+                <h3 class="font-headline font-bold text-primary">Assistant d'Importation IA</h3>
+                <p class="text-sm text-on-surface-variant">Remplir automatiquement depuis une URL ou du texte</p>
+            </div>
+            <i
+                class="pi pi-chevron-down text-on-surface-variant transition-transform duration-300"
+                :class="{ 'rotate-180': isOpen }"
+            ></i>
+        </div>
+
+        <!-- Contenu dépliable -->
+        <div v-if="isOpen" class="px-6 pb-6 flex flex-col gap-4 border-t border-outline-variant">
+            <p class="text-xs text-on-surface-variant pt-4">L'URL est reprise du champ "Lien source" ci-dessus. Collez du texte en complément si besoin.</p>
 
             <div class="flex flex-col gap-2">
-                <label for="aiInstructions" class="font-semibold text-sm text-primary-900 dark:text-primary-400">2. Et / Ou Instructions et texte détaillé</label>
-                <Textarea id="aiInstructions" v-model="aiPromptText" rows="4" placeholder="Saisir la recette, coller le texte depuis un blog..." class="w-full" autoResize />
+                <label for="aiInstructions" class="font-label text-[10px] font-bold uppercase tracking-[0.05em] text-on-surface-variant ml-1">Texte de la recette (optionnel)</label>
+                <Textarea
+                    id="aiInstructions"
+                    v-model="aiPromptText"
+                    rows="4"
+                    placeholder="Collez le texte depuis un blog, un livre, une application..."
+                    class="w-full h-auto rounded-xl bg-surface-container-high border-none focus:ring-2 focus:ring-primary/20 transition-all font-body text-on-surface placeholder:text-outline resize-none"
+                    autoResize
+                />
             </div>
+
+            <Button
+                icon="pi pi-sparkles"
+                label="Compléter avec l'IA"
+                @click="analyzeWithAI"
+                :loading="isAnalyzing"
+                class="w-full font-bold"
+                severity="success"
+            />
         </div>
-        
-        <div class="flex justify-center sm:justify-end mt-4 relative z-10">
-            <Button icon="pi pi-sparkles" label="Compléter avec l'IA" @click="analyzeWithAI" :loading="isAnalyzing" class="w-full sm:w-auto shadow-md font-bold px-6 py-3" />
-        </div>
-    </Panel>
+    </section>
 </template>

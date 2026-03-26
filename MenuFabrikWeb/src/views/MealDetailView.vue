@@ -187,19 +187,38 @@ const updateSideDishes = async () => {
                         
                         <div v-if="hydratedMeal.recipe" class="flex flex-col gap-4">
                             <!-- En-tête de la recette -->
-                            <div class="flex justify-between items-start">
-                                <div>
+                            <div class="flex justify-between items-start gap-3">
+                                <div class="flex-1 min-w-0">
                                     <span class="px-3 py-1 rounded-full text-xs font-bold font-mono tracking-wider uppercase mb-3 inline-block" :class="getCategoryColor(hydratedMeal.recipe.category)">
                                         {{ hydratedMeal.recipe.category || 'Non catégorisé' }}
                                     </span>
                                     <h3 class="text-2xl font-bold text-on-surface leading-tight">{{ hydratedMeal.recipe.name }}</h3>
                                     <Rating v-if="hydratedMeal.recipe.rating && hydratedMeal.recipe.rating > 0" :modelValue="hydratedMeal.recipe.rating" readonly :cancel="false" class="mt-2 text-sm" />
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <Button icon="pi pi-share-alt" aria-label="Partager" v-tooltip.top="'Partager la recette'" size="small" text severity="info" @click="shareCurrentRecipe" />
-                                    <Button icon="pi pi-file-edit" aria-label="Modifier" v-tooltip.top="'Modifier la recette'" size="small" text severity="secondary" @click="editRecipe(hydratedMeal.recipe.id)" />
-                                    <Button icon="pi pi-pencil" label="Changer de plat" size="small" outlined @click="openRecipeDialog" />
+                                <!-- Icônes secondaires uniquement -->
+                                <div class="flex items-center gap-1 shrink-0">
+                                    <Button icon="pi pi-share-alt" aria-label="Partager" v-tooltip.top="'Partager la recette'" size="small" text rounded severity="secondary" @click="shareCurrentRecipe" />
+                                    <Button icon="pi pi-file-edit" aria-label="Modifier" v-tooltip.top="'Modifier la recette'" size="small" text rounded severity="secondary" @click="editRecipe(hydratedMeal.recipe.id)" />
                                 </div>
+                            </div>
+
+                            <!-- Actions principales -->
+                            <div class="flex flex-wrap gap-2">
+                                <Button
+                                    v-if="hydratedMeal.recipe.instructions"
+                                    icon="pi pi-play"
+                                    label="Cuisiner"
+                                    severity="success"
+                                    class="flex-1 min-w-[120px]"
+                                    @click="router.push({ name: 'cooking', params: { recipeId: hydratedMeal.recipe.id } })"
+                                />
+                                <Button
+                                    icon="pi pi-pencil"
+                                    label="Changer de plat"
+                                    outlined
+                                    class="flex-1 min-w-[120px]"
+                                    @click="openRecipeDialog"
+                                />
                             </div>
 
                             <!-- Méta informations -->

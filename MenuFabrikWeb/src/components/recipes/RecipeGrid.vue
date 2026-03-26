@@ -17,6 +17,7 @@ const emit = defineEmits<{
     (e: 'edit', recipe: Recipe): void;
     (e: 'delete', recipe: Recipe): void;
     (e: 'share', recipe: Recipe): void;
+    (e: 'cook', recipe: Recipe): void;
 }>();
 
 const gridClass = computed(() =>
@@ -131,6 +132,7 @@ const handleCardClick = (recipe: Recipe) => {
 
                     <!-- Catalog mode: action buttons -->
                     <div v-if="mode === 'catalog'" class="flex items-center gap-1 -mr-1">
+                        <Button v-if="recipe.instructions" icon="pi pi-play" text rounded severity="success" class="w-8 h-8 p-0" @click.stop="emit('cook', recipe)" v-tooltip.top="'Cuisiner'" />
                         <Button icon="pi pi-share-alt" text rounded severity="secondary" class="w-8 h-8 p-0" @click.stop="emit('share', recipe)" v-tooltip.top="'Partager'" />
                         <Button icon="pi pi-pencil" text rounded severity="secondary" class="w-8 h-8 p-0" @click.stop="emit('edit', recipe)" v-tooltip.top="'Modifier'" />
                         <Button icon="pi pi-trash" text rounded severity="danger" class="w-8 h-8 p-0" @click.stop="emit('delete', recipe)" v-tooltip.top="'Supprimer'" />

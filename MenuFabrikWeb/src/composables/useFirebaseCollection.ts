@@ -128,7 +128,10 @@ export function useFirebaseCollection<T extends { id?: string }>(collectionName:
 
     const updateItem = async (id: string, updates: Partial<T>) => {
         try {
-            await updateDoc(getDocRef(id), updates as UpdateData<T>)
+            const cleanUpdates = Object.fromEntries(
+                Object.entries(updates).filter(([, v]) => v !== undefined)
+            ) as UpdateData<T>
+            await updateDoc(getDocRef(id), cleanUpdates)
         } catch (err: any) {
             error.value = "Erreur de mise à jour : " + (err.message || 'Permission refusée')
             console.error(err)
