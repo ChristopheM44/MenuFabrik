@@ -5,46 +5,59 @@ import AppConfirmModal from './AppConfirmModal.vue'
 const route = useRoute()
 
 const navItems = [
-  { name: 'Agenda', path: '/meals', icon: 'pi pi-calendar' },
-  { name: 'Courses', path: '/shopping-list', icon: 'pi pi-shopping-cart' },
-  { name: 'Recettes', path: '/recipes', icon: 'pi pi-book' },
-  { name: 'Paramètres', path: '/settings', icon: 'pi pi-cog' }
+  { name: 'Agenda', path: '/meals', icon: 'calendar_month' },
+  { name: 'Courses', path: '/shopping-list', icon: 'shopping_basket' },
+  { name: 'Recettes', path: '/recipes', icon: 'auto_stories' },
+  { name: 'Paramètres', path: '/settings', icon: 'settings' }
 ]
+
+const isActive = (path: string) => route.path.startsWith(path)
 </script>
 
 <template>
-  <div class="min-h-screen bg-background flex flex-col md:flex-row pb-16 md:pb-0">
-    
-    <!-- Desktop Sidebar Navigation -->
-    <nav class="hidden md:flex flex-col w-64 bg-surface-container-lowest border-r border-outline-variant h-screen sticky top-0 z-20">
-      <div class="p-6">
-        <h1 class="text-2xl font-bold text-primary flex items-center gap-2">
-          <i class="pi pi-sparkles text-xl"></i> MenuFabrik
-        </h1>
+  <div class="min-h-screen bg-background flex flex-col">
+
+    <!-- Top Header Bar -->
+    <header class="fixed top-0 w-full z-50 bg-surface-bright/80 backdrop-blur-xl shadow-sm shadow-black/5 flex items-center justify-between px-6 h-16">
+
+      <!-- Logo -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+          <span class="material-symbols-outlined" style="font-size: 1.25rem">restaurant_menu</span>
+        </div>
+        <span class="font-headline font-bold tracking-tight text-xl text-primary">MenuFabrik</span>
       </div>
-      
-      <div class="flex-1 px-4 flex flex-col gap-2">
-        <router-link 
-          v-for="item in navItems" 
+
+      <!-- Desktop Nav Links -->
+      <nav class="hidden md:flex items-center gap-1">
+        <router-link
+          v-for="item in navItems"
           :key="item.path"
           :to="item.path"
-          class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium text-on-surface-variant hover:bg-surface-container"
-          active-class="bg-primary-container text-on-primary-container"
+          class="flex items-center gap-2 px-4 py-2 rounded-full font-label text-[10px] font-bold tracking-widest uppercase transition-all"
+          :class="isActive(item.path)
+            ? 'text-primary bg-primary-container/50'
+            : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'"
         >
-          <i :class="item.icon" class="text-lg"></i>
+          <span
+            class="material-symbols-outlined"
+            style="font-size: 1rem"
+            :style="isActive(item.path) ? 'font-variation-settings: \'FILL\' 1' : ''"
+          >{{ item.icon }}</span>
           {{ item.name }}
         </router-link>
-      </div>
-    </nav>
+      </nav>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 overflow-x-hidden flex flex-col relative w-full pt-4 md:pt-6">
-      <div class="max-w-5xl mx-auto w-full px-4 flex-1">
+      <!-- Spacer (balance logo) -->
+      <div class="w-[140px]"></div>
+
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-x-hidden pt-16 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-6">
+      <div class="max-w-5xl mx-auto w-full px-4 pt-4 md:pt-6">
         <router-view v-slot="{ Component }">
-          <transition 
-            name="fade" 
-            mode="out-in"
-          >
+          <transition name="fade" mode="out-in">
             <component :is="Component" />
           </transition>
         </router-view>
@@ -52,43 +65,43 @@ const navItems = [
     </main>
 
     <!-- Mobile Bottom Navigation -->
-    <nav class="md:hidden fixed bottom-0 w-full bg-surface-container-lowest border-t border-outline-variant z-50 flex justify-around items-center h-16 safe-area-bottom pb-env shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-      <router-link 
-        v-for="item in navItems" 
+    <nav
+      class="md:hidden fixed bottom-0 w-full z-50 rounded-t-3xl bg-surface-container-lowest/90 backdrop-blur-lg shadow-[0_-4px_24px_rgba(0,0,0,0.06)] flex justify-around items-center px-4 pt-3"
+      style="padding-bottom: calc(1.25rem + env(safe-area-inset-bottom))"
+    >
+      <router-link
+        v-for="item in navItems"
         :key="item.path"
         :to="item.path"
-        class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant transition-colors"
-        active-class="text-primary font-medium"
+        class="flex flex-col items-center gap-0.5 min-w-[3.5rem] transition-all"
+        :class="isActive(item.path) ? 'text-primary' : 'text-on-surface-variant'"
       >
-        <i :class="[item.icon, route.path === item.path ? 'scale-110 bg-primary-container' : '']" class="text-xl mb-1 flex items-center justify-center p-1 rounded-full transition-transform"></i>
-        <span class="text-[10px]">{{ item.name }}</span>
+        <!-- Pill indicator -->
+        <div
+          class="w-14 h-8 rounded-full flex items-center justify-center transition-all"
+          :class="isActive(item.path) ? 'bg-primary-container' : ''"
+        >
+          <span
+            class="material-symbols-outlined text-2xl transition-all"
+            :style="isActive(item.path) ? 'font-variation-settings: \'FILL\' 1' : ''"
+          >{{ item.icon }}</span>
+        </div>
+        <span class="font-label text-[10px] font-bold tracking-widest uppercase">{{ item.name }}</span>
       </router-link>
     </nav>
-    
-    <!-- Modale Globale de Confirmation -->
-    <AppConfirmModal />
 
+    <AppConfirmModal />
   </div>
 </template>
 
 <style>
-/* Animations de transition de route */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
-
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-  transform: translateY(10px);
-}
-
-/* Prise en compte de la "safe area" sur iOS (le trait en bas de l'écran) */
-.pb-env {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-.safe-area-bottom {
-  height: calc(4rem + env(safe-area-inset-bottom));
+  transform: translateY(8px);
 }
 </style>

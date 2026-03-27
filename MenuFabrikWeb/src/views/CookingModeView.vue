@@ -80,7 +80,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-950 text-white flex flex-col">
+  <div class="fixed inset-0 z-[100] bg-gray-950 text-white flex flex-col">
     <!-- Loading -->
     <div v-if="isLoading" class="flex-1 flex items-center justify-center">
       <i class="pi pi-spin pi-spinner text-4xl text-white/50"></i>
@@ -190,7 +190,7 @@ onMounted(async () => {
       </main>
 
       <!-- Navigation -->
-      <nav class="px-5 py-5 bg-gray-900 border-t border-white/10 shrink-0">
+      <nav class="px-5 pt-5 bg-gray-900 border-t border-white/10 shrink-0" style="padding-bottom: calc(1.25rem + env(safe-area-inset-bottom))">
         <!-- Active timers bar -->
         <div v-if="activeTimers.length > 0" class="flex flex-wrap gap-2 mb-4">
           <div
