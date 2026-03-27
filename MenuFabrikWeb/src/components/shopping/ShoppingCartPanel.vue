@@ -2,12 +2,12 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useShoppingStore } from '../../stores/shoppingStore';
 import type { ShoppingItem } from '../../models/ShoppingItem';
-import { useToast } from 'primevue/usetoast';
+import { useNotify } from '../../composables/useNotify';
 import { useAppConfirm } from '../../composables/useAppConfirm';
 
 const emit = defineEmits(['importMeals', 'sendToDrive']);
 const shoppingStore = useShoppingStore();
-const toast = useToast();
+const { notifySuccess, notifyError } = useNotify();
 const { confirm } = useAppConfirm();
 
 const newShoppingItemName = ref('');
@@ -54,7 +54,7 @@ const addManualShoppingItem = async () => {
         });
         newShoppingItemName.value = '';
     } catch (e: any) {
-        toast.add({ severity: 'error', summary: 'Erreur', detail: e.message, life: 3000 });
+        notifyError('Erreur', e.message);
     }
 };
 
@@ -67,9 +67,9 @@ const deleteCheckedShoppingItems = async () => {
         onAccept: async () => {
             try {
                 await shoppingStore.clearCheckedItems();
-                toast.add({ severity: 'success', summary: 'Nettoyage terminé', detail: 'Les articles terminés ont été supprimés.', life: 3000 });
+                notifySuccess('Nettoyage terminé', 'Les articles terminés ont été supprimés.');
             } catch (e: any) {
-                toast.add({ severity: 'error', summary: 'Erreur', detail: e.message, life: 3000 });
+                notifyError('Erreur', e.message);
             }
         }
     });
@@ -84,9 +84,9 @@ const resetShoppingList = async () => {
         onAccept: async () => {
             try {
                 await shoppingStore.clearAllItems();
-                toast.add({ severity: 'success', summary: 'Liste réinitialisée', detail: 'Votre panier a été complètement vidé.', life: 3000 });
+                notifySuccess('Liste réinitialisée', 'Votre panier a été complètement vidé.');
             } catch (e: any) {
-                toast.add({ severity: 'error', summary: 'Erreur', detail: e.message, life: 3000 });
+                notifyError('Erreur', e.message);
             }
         }
     });

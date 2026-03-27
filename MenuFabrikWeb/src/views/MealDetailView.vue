@@ -8,7 +8,7 @@ import { useSideDishStore } from '../stores/sideDishStore';
 
 import type { Recipe } from '../models/Recipe';
 import { RecipeShareService } from '../services/RecipeShareService';
-import { useToast } from 'primevue/usetoast';
+import { useNotify } from '../composables/useNotify';
 import { hydrateMeal } from '../utils/hydrateMeal';
 import { formatDateLabel } from '../utils/dateUtils';
 import { sortByNameFr } from '../utils/sortUtils';
@@ -27,7 +27,7 @@ import Rating from 'primevue/rating';
 
 const route = useRoute();
 const router = useRouter();
-const toast = useToast();
+const { notifySuccess } = useNotify();
 
 const mealStore = useMealStore();
 const recipeStore = useRecipeStore();
@@ -117,7 +117,7 @@ const shareCurrentRecipe = async () => {
     if (hydratedMeal.value?.recipe) {
         const result = await RecipeShareService.shareOrCopy(hydratedMeal.value.recipe);
         if (result.copied) {
-            toast.add({ severity: 'success', summary: 'Lien copié', detail: 'Le lien de partage a été copié dans le presse-papier.', life: 3000 });
+            notifySuccess('Lien copié', 'Le lien de partage a été copié dans le presse-papier.');
         }
     }
 };
@@ -189,8 +189,8 @@ const updateSideDishes = async () => {
                             <!-- En-tête de la recette -->
                             <div class="flex justify-between items-start gap-3">
                                 <div class="flex-1 min-w-0">
-                                    <span class="px-3 py-1 rounded-full text-xs font-bold font-mono tracking-wider uppercase mb-3 inline-block" :class="getCategoryColor(hydratedMeal.recipe.category)">
-                                        {{ hydratedMeal.recipe.category || 'Non catégorisé' }}
+                                    <span v-for="cat in (hydratedMeal.recipe.categories?.length ? hydratedMeal.recipe.categories : ['Non catégorisé'])" :key="cat" class="px-3 py-1 rounded-full text-xs font-bold font-mono tracking-wider uppercase mb-3 mr-1 inline-block" :class="getCategoryColor(cat)">
+                                        {{ cat }}
                                     </span>
                                     <h3 class="text-2xl font-bold text-on-surface leading-tight">{{ hydratedMeal.recipe.name }}</h3>
                                     <Rating v-if="hydratedMeal.recipe.rating && hydratedMeal.recipe.rating > 0" :modelValue="hydratedMeal.recipe.rating" readonly :cancel="false" class="mt-2 text-sm" />

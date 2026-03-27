@@ -6,7 +6,7 @@ import { useMealStore } from '../../stores/mealStore';
 import { useRecipeStore } from '../../stores/recipeStore';
 import { useSideDishStore } from '../../stores/sideDishStore';
 import { useShoppingStore } from '../../stores/shoppingStore';
-import { useToast } from 'primevue/usetoast';
+import { useNotify } from '../../composables/useNotify';
 
 const visible = defineModel<boolean>('visible', { default: false });
 
@@ -14,7 +14,7 @@ const mealStore = useMealStore();
 const recipeStore = useRecipeStore();
 const sideDishStore = useSideDishStore();
 const shoppingStore = useShoppingStore();
-const toast = useToast();
+const { notifySuccess, notifyError, notifyWarn } = useNotify();
 
 const datesRange = ref<Date[]>([]);
 const isImporting = ref(false);
@@ -174,7 +174,7 @@ const toggleAll = () => {
 const handleImport = async () => {
     const itemsToImport = localItems.value.filter(i => i.selected);
     if (itemsToImport.length === 0) {
-        toast.add({ severity: 'warn', summary: 'Aucun article', detail: 'Veuillez sélectionner au moins un article.', life: 3000 });
+        notifyWarn('Aucun article', 'Veuillez sélectionner au moins un article.');
         return;
     }
 
@@ -190,10 +190,10 @@ const handleImport = async () => {
         }));
 
         await shoppingStore.addItemsBatch(addedItems);
-        toast.add({ severity: 'success', summary: 'Import réussi', detail: `${addedItems.length} article(s) ajouté(s) à votre panier.`, life: 3000 });
+        notifySuccess('Import réussi', `${addedItems.length} article(s) ajouté(s) à votre panier.`);
         visible.value = false;
     } catch (e: any) {
-        toast.add({ severity: 'error', summary: 'Erreur', detail: e.message, life: 5000 });
+        notifyError('Erreur', e.message, 5000);
     } finally {
         isImporting.value = false;
     }

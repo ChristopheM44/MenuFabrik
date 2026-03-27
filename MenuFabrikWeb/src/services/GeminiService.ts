@@ -5,7 +5,7 @@ import type { SideDish } from '../models/SideDish';
 export interface AIAnalysisResult {
     name?: string;
     instructions?: string;
-    category?: RecipeCategory;
+    categories?: RecipeCategory[];
     prepTime?: number;
     servings?: number;
     ingredients?: { name: string; quantity?: number; unit?: string }[];
@@ -55,12 +55,13 @@ export class GeminiService {
 4. Extrais les instructions étape par étape.
 5. Suggère 1 à 3 accompagnements appropriés pour ce plat, choisis **UNIQUEMENT** parmi cette liste stricte : [${availableSidesNames}]. S'il s'agit d'un plat complet (ex: Tartiflette), laisse le tableau vide.
 6. Extrais le nombre de parts (servings) indiqué dans la recette. Si non précisé, utilise 4 par défaut.
+7. Attribue 1 à 3 catégories pertinentes au plat. Par exemple un hachis parmentier peut être à la fois "Viandes", "Au Four" et "Sans Gluten". Mets au minimum 1 catégorie.
 
 Réponds UNIQUEMENT avec un objet JSON strictement formaté (sans bloc markdown \`\`\`json) :
 {
   "name": "Nom du plat trouvé",
   "instructions": "1. Faire chauffer...\\n2. Ajouter...",
-  "category": "Viandes"|"Poissons"|"Végétarien"|"Rapide"|"Au Four"|"Pâtes"|"Soupes"|"Salades"|"Fast Food"|"Autre",
+  "categories": ["Viandes", "Au Four"],
   "prepTime": 30,
   "servings": 4,
   "ingredients": [

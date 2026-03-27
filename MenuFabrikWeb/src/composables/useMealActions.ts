@@ -4,7 +4,7 @@ import type { Recipe } from '../models/Recipe';
 import { MenuGeneratorEngine } from '../services/MenuGeneratorEngine';
 import { useRouter } from 'vue-router';
 import { useAppConfirm } from './useAppConfirm';
-import { useToast } from 'primevue/usetoast';
+import { useNotify } from './useNotify';
 import { cleanForFirestore } from '../utils/mealUtils';
 import type { useMealStore } from '../stores/mealStore';
 import type { useRecipeStore } from '../stores/recipeStore';
@@ -23,17 +23,7 @@ export function useMealActions(
 ) {
     const router = useRouter();
     const { confirm } = useAppConfirm();
-    const toast = useToast();
-
-    // Helper interne : affichage d'une erreur utilisateur (1.5)
-    const notifyError = (message: string, detail?: string) => {
-        toast.add({
-            severity: 'error',
-            summary: message,
-            detail: detail || 'Une erreur inattendue est survenue. Veuillez réessayer.',
-            life: 4000
-        });
-    };
+    const { notifyError } = useNotify();
 
     // --- État UI partagé avec les dialogs ---
     const isGeneratingGlobal = ref(false);

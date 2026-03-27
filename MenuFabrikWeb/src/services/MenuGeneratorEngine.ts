@@ -21,7 +21,7 @@ export class MenuGeneratorEngine {
         });
 
         const usedRecipeIDs = new Set<string>();
-        let previousCategory: RecipeCategory | null = null;
+        let previousCategories: RecipeCategory[] = [];
         let previousSideDishId: string | null = null;
 
         for (const meal of sortedMeals) {
@@ -34,7 +34,7 @@ export class MenuGeneratorEngine {
                 meal,
                 safeRecipes,
                 usedRecipeIDs,
-                previousCategory
+                previousCategories
             );
 
             if (scoredCandidates.length === 0) {
@@ -50,7 +50,7 @@ export class MenuGeneratorEngine {
             if (chosenRecipe.id) {
                 usedRecipeIDs.add(chosenRecipe.id);
             }
-            previousCategory = chosenRecipe.category;
+            previousCategories = chosenRecipe.categories;
 
             // Tirage au sort de l'accompagnement
             let sideIds = [...(chosenRecipe.suggestedSideIds || [])];
@@ -97,7 +97,7 @@ export class MenuGeneratorEngine {
             meal,
             candidates,
             usedRecipeIDs,
-            null
+            []
         );
 
         if (scoredCandidates.length === 0) return;
@@ -144,7 +144,7 @@ export class MenuGeneratorEngine {
         meal: Meal,
         recipes: Recipe[],
         usedRecipeIDs: Set<string>,
-        previousCategory: RecipeCategory | null
+        previousCategories: RecipeCategory[]
     ): { recipe: Recipe, score: number }[] {
         const expectedType: MealType = (meal.type === MealTime.LUNCH) ? MealType.LUNCH : MealType.DINNER;
         const isWeekend = this.isWeekend(new Date(meal.date));
@@ -166,7 +166,7 @@ export class MenuGeneratorEngine {
                 score -= 80;
             }
 
-            if (previousCategory && previousCategory === recipe.category) {
+            if (previousCategories.length > 0 && recipe.categories.some(c => previousCategories.includes(c))) {
                 score -= 40;
             }
 

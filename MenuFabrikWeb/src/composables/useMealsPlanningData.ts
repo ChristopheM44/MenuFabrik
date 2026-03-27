@@ -75,7 +75,7 @@ export function useMealsPlanningData(
         if (query) {
             recipes = recipes.filter(r =>
                 r.name.toLowerCase().includes(query) ||
-                (r.category && r.category.toLowerCase().includes(query))
+                (r.categories && r.categories.some(c => c.toLowerCase().includes(query)))
             );
         }
         return sortByNameFr(recipes);

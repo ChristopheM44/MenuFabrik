@@ -4,7 +4,7 @@ import { useShoppingStore } from '../stores/shoppingStore';
 import { usePantryStore } from '../stores/pantryStore';
 
 import Toast from 'primevue/toast';
-import { useToast } from 'primevue/usetoast';
+import { useNotify } from '../composables/useNotify';
 
 import ImportMealsToShoppingModal from '../components/planning/ImportMealsToShoppingModal.vue';
 import DriveSyncModal from '../components/planning/DriveSyncModal.vue';
@@ -14,7 +14,7 @@ import PageHeader from '../components/layout/PageHeader.vue';
 
 const shoppingStore = useShoppingStore();
 const pantryStore = usePantryStore();
-const toast = useToast();
+const { notifySuccess } = useNotify();
 
 const activeTab = ref<'cart' | 'pantry'>('cart');
 const isImportModalVisible = ref(false);
@@ -49,12 +49,7 @@ const handleCustomSyncEvent = (e: any) => {
 };
 
 const onSynced = () => {
-    toast.add({
-        severity: 'success',
-        summary: 'Synchronisation terminée',
-        detail: 'Votre liste de courses a été mise à jour.',
-        life: 3000
-    });
+    notifySuccess('Synchronisation terminée', 'Votre liste de courses a été mise à jour.');
     localStorage.removeItem('menufabrik_drive_feedback');
 };
 
@@ -77,12 +72,7 @@ const sendToDrive = () => {
 
     localStorage.setItem('menufabrik_drive_export', JSON.stringify(exportData));
 
-    toast.add({
-        severity: 'success',
-        summary: 'Export réussi',
-        detail: 'Ouvrez leclercdrive.fr et cliquez sur l\'extension MenuFabrik pour ajouter ces articles.',
-        life: 8000
-    });
+    notifySuccess('Export réussi', 'Ouvrez leclercdrive.fr et cliquez sur l\'extension MenuFabrik pour ajouter ces articles.', 8000);
 };
 
 onMounted(() => {

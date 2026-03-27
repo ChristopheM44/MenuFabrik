@@ -20,18 +20,18 @@ const emit = defineEmits<{
 
 const recipeSearchQuery = ref('');
 const activeCategory = ref('Toutes');
-const categories = ['Toutes', 'Viandes', 'Poissons', 'Végétarien', 'Rapide', 'Au Four'];
+const categories = ['Toutes', 'Pâtes', 'Viandes', 'Poissons', 'Soupes', 'Salades', 'Fast Food', 'Végétarien', 'Rapide', 'Au Four', 'Sans Gluten', 'Autre'];
 
 const filteredRecipes = computed((): Recipe[] => {
     let list = [...props.recipes];
     if (activeCategory.value !== 'Toutes') {
-        list = list.filter(r => r.category === activeCategory.value);
+        list = list.filter(r => r.categories?.includes(activeCategory.value as any));
     }
     if (recipeSearchQuery.value) {
         const query = recipeSearchQuery.value.toLowerCase();
         list = list.filter(r =>
             r.name.toLowerCase().includes(query) ||
-            (r.category && r.category.toLowerCase().includes(query))
+            (r.categories && r.categories.some(c => c.toLowerCase().includes(query)))
         );
     }
     return list.sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));

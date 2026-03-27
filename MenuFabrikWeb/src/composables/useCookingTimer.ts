@@ -1,4 +1,4 @@
-import { ref, onUnmounted } from 'vue';
+import { ref, watch, onUnmounted, toValue, type MaybeRefOrGetter } from 'vue';
 
 export interface CookingTimer {
   id: string;
@@ -9,7 +9,7 @@ export interface CookingTimer {
   isFinished: boolean;
 }
 
-export function useCookingTimer(storageKey: string) {
+export function useCookingTimer(storageKey: MaybeRefOrGetter<string>) {
   const timers = ref<CookingTimer[]>([]);
   let intervalId: ReturnType<typeof setInterval> | null = null;
 
@@ -35,11 +35,11 @@ export function useCookingTimer(storageKey: string) {
   };
 
   const saveToStorage = () => {
-    localStorage.setItem(storageKey + '_timers', JSON.stringify(timers.value));
+    localStorage.setItem(toValue(storageKey) + '_timers', JSON.stringify(timers.value));
   };
 
   const loadFromStorage = () => {
-    const saved = localStorage.getItem(storageKey + '_timers');
+    const saved = localStorage.getItem(toValue(storageKey) + '_timers');
     if (saved) {
       try {
         const parsed = JSON.parse(saved) as CookingTimer[];
@@ -116,7 +116,13 @@ export function useCookingTimer(storageKey: string) {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  loadFromStorage();
+  const loaded = ref(false);
+  watch(() => toValue(storageKey), (key) => {
+    if (key && !loaded.value) {
+      loadFromStorage();
+      loaded.value = true;
+    }
+  }, { immediate: true });
 
   onUnmounted(() => {
     stopTicking();

@@ -32,7 +32,7 @@ const formError = ref('');
 const isSaving = ref(false);
 
 // Liste complète issue du modèle RecipeCategory (1.6)
-const categories: { label: string, value: RecipeCategory }[] = Object.values(RecipeCategory).map(v => ({ label: v, value: v }));
+const categories: { label: string, value: RecipeCategory }[] = Object.values(RecipeCategory).map(v => ({ label: v, value: v })).sort((a, b) => a.label.localeCompare(b.label, 'fr'));
 
 const mealTypes: { label: string, value: MealType }[] = [
     { label: 'Midi', value: MealType.LUNCH },
@@ -42,7 +42,7 @@ const mealTypes: { label: string, value: MealType }[] = [
 
 const recipeForm = ref<Partial<Recipe>>({
     name: '',
-    category: 'Viandes',
+    categories: ['Viandes'],
     prepTime: 30,
     servings: 4,
     mealType: MealType.BOTH,
@@ -132,8 +132,12 @@ const saveRecipe = async () => {
         formError.value = "Le type de repas est invalide.";
         return;
     }
-    if (!recipeForm.value.category || !Object.values(RecipeCategory).includes(recipeForm.value.category as RecipeCategory)) {
-        formError.value = "Veuillez sélectionner une catégorie valide.";
+    if (!recipeForm.value.categories || recipeForm.value.categories.length === 0) {
+        formError.value = "Veuillez sélectionner au moins une catégorie.";
+        return;
+    }
+    if (!recipeForm.value.categories.every(c => Object.values(RecipeCategory).includes(c as RecipeCategory))) {
+        formError.value = "Une des catégories sélectionnées est invalide.";
         return;
     }
 
@@ -155,10 +159,10 @@ const saveRecipe = async () => {
             }
             await recipeStore.updateRecipe(recipeForm.value.id, recipeForm.value);
         } else {
-            // name, prepTime, mealType et category sont déjà validés plus haut
+            // name, prepTime, mealType et categories sont déjà validés plus haut
             const newRecipe: Omit<Recipe, 'id'> = {
                 name,
-                category: recipeForm.value.category!,
+                categories: recipeForm.value.categories as RecipeCategory[],
                 prepTime,
                 servings: recipeForm.value.servings || 4,
                 rating: recipeForm.value.rating || 0,
@@ -271,7 +275,7 @@ const cancel = () => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
               <label class="font-label text-[10px] font-bold uppercase tracking-[0.05em] text-on-surface-variant ml-1">Catégorie</label>
-              <Select v-model="recipeForm.category" :options="categories" optionLabel="label" optionValue="value" class="w-full h-14 rounded-xl bg-surface-container-high border-none focus:ring-2 focus:ring-primary/20 transition-all font-body text-on-surface flex items-center px-3" />
+              <MultiSelect v-model="recipeForm.categories" :options="categories" optionLabel="label" optionValue="value" display="chip" placeholder="Sélectionner des catégories" :maxSelectedLabels="5" class="w-full min-h-[56px] rounded-xl bg-surface-container-high border-none focus:ring-2 focus:ring-primary/20 transition-all font-body text-on-surface flex items-center px-3 py-1" />
             </div>
 
             <div class="space-y-2">

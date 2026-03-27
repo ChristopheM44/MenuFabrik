@@ -21,7 +21,7 @@ export function useCookingMode(recipe: Ref<Recipe | undefined>) {
   const savedSession = ref<CookingSession | null>(null);
 
   const wakeLock = useWakeLock();
-  const timerComposable = useCookingTimer(storageKey.value);
+  const timerComposable = useCookingTimer(storageKey);
 
   // Check for existing session
   const checkExistingSession = () => {

@@ -7,14 +7,16 @@ import RecipeGrid from '../components/recipes/RecipeGrid.vue';
 import PageHeader from '../components/layout/PageHeader.vue';
 import type { Recipe } from '../models/Recipe';
 import { RecipeShareService } from '../services/RecipeShareService';
-import { useToast } from 'primevue/usetoast';
+import { useNotify } from '../composables/useNotify';
+import { useAppConfirm } from '../composables/useAppConfirm';
 
 const router = useRouter();
 const recipeStore = useRecipeStore();
 const searchQuery = ref('');
 const activeCategory = ref('Toutes');
-const categories = ['Toutes', 'Viandes', 'Poissons', 'Végétarien', 'Rapide', 'Au Four'];
-const toast = useToast();
+const categories = ['Toutes', 'Pâtes', 'Viandes', 'Poissons', 'Soupes', 'Salades', 'Fast Food', 'Végétarien', 'Rapide', 'Au Four', 'Sans Gluten', 'Autre'];
+const { notifySuccess } = useNotify();
+const { confirm } = useAppConfirm();
 
 onMounted(() => {
     // Les recettes se chargent toutes seules en tâche de fond grâce à useFirebaseCollection.
@@ -23,13 +25,13 @@ onMounted(() => {
 const filteredRecipes = computed(() => {
     let result = recipeStore.recipes;
     if (activeCategory.value !== 'Toutes') {
-        result = result.filter(r => r.category === activeCategory.value);
+        result = result.filter(r => r.categories?.includes(activeCategory.value as any));
     }
     if (searchQuery.value) {
         const lowerQuery = searchQuery.value.toLowerCase();
         result = result.filter(r =>
             r.name.toLowerCase().includes(lowerQuery) ||
-            r.category?.toLowerCase().includes(lowerQuery)
+            r.categories?.some(c => c.toLowerCase().includes(lowerQuery))
         );
     }
     return result.slice().sort((a, b) => a.name.localeCompare(b.name));
@@ -38,8 +40,18 @@ const filteredRecipes = computed(() => {
 const shareRecipe = async (recipe: Recipe) => {
     const result = await RecipeShareService.shareOrCopy(recipe);
     if (result.copied) {
-        toast.add({ severity: 'success', summary: 'Lien copié', detail: 'Le lien de partage a été copié dans le presse-papier.', life: 3000 });
+        notifySuccess('Lien copié', 'Le lien de partage a été copié dans le presse-papier.');
     }
+};
+
+const confirmDeleteRecipe = (recipe: Recipe) => {
+    confirm({
+        title: 'Supprimer la recette',
+        message: `Voulez-vous vraiment supprimer "${recipe.name}" ? Cette action est irréversible.`,
+        acceptLabel: 'Supprimer',
+        variant: 'danger',
+        onAccept: () => recipeStore.deleteRecipe(recipe.id!),
+    });
 };
 </script>
 
@@ -90,7 +102,7 @@ const shareRecipe = async (recipe: Recipe) => {
             :recipes="filteredRecipes"
             :loading="recipeStore.isLoading"
             @edit="(r) => router.push(`/recipes/${r.id}`)"
-            @delete="(r) => recipeStore.deleteRecipe(r.id!)"
+            @delete="confirmDeleteRecipe"
             @share="shareRecipe"
             @cook="(r) => router.push({ name: 'cooking', params: { recipeId: r.id } })"
         />

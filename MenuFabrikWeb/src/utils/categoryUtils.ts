@@ -17,6 +17,9 @@ export function getCategoryColor(category?: string): string {
         case RecipeCategory.SOUP:       return 'bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300';
         case RecipeCategory.SALAD:      return 'bg-lime-100 dark:bg-lime-900/40 text-lime-800 dark:text-lime-300';
         case RecipeCategory.FAST_FOOD:  return 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300';
+        case RecipeCategory.QUICK:      return 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300';
+        case RecipeCategory.OVEN:       return 'bg-rose-100 dark:bg-rose-900/40 text-rose-800 dark:text-rose-300';
+        case RecipeCategory.GLUTEN_FREE:return 'bg-teal-100 dark:bg-teal-900/40 text-teal-800 dark:text-teal-300';
         case RecipeCategory.OTHER:
         default:                        return 'bg-surface-100 dark:bg-surface-800 text-surface-800 dark:text-surface-300';
     }

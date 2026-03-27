@@ -16,6 +16,9 @@ export const RecipeCategory = {
     SALAD: "Salades",
     FAST_FOOD: "Fast Food",
     VEGETARIAN: "Végétarien",
+    QUICK: "Rapide",
+    OVEN: "Au Four",
+    GLUTEN_FREE: "Sans Gluten",
     OTHER: "Autre"
 } as const;
 export type RecipeCategory = typeof RecipeCategory[keyof typeof RecipeCategory];
@@ -32,7 +35,7 @@ export interface Recipe {
     name: string;
     prepTime: number; // en minutes
     mealType: MealType;
-    category: RecipeCategory;
+    categories: RecipeCategory[];
 
     // Listes d'IDs pour le stockage relationnel Firestore
     allergenIds: string[];

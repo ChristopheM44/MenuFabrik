@@ -67,8 +67,11 @@ const analyzeWithAI = async () => {
             }
         }
         
-        if (aiData.category && Object.values(RecipeCategory).includes(aiData.category as RecipeCategory)) {
-            updatedRecipe.category = aiData.category as RecipeCategory;
+        if (aiData.categories && Array.isArray(aiData.categories)) {
+            const validCategories = aiData.categories.filter(c => Object.values(RecipeCategory).includes(c as RecipeCategory)) as RecipeCategory[];
+            if (validCategories.length > 0) {
+                updatedRecipe.categories = validCategories;
+            }
         }
         if (aiData.prepTime && typeof aiData.prepTime === 'number' && aiData.prepTime >= 0 && aiData.prepTime <= 1440) {
             updatedRecipe.prepTime = aiData.prepTime;

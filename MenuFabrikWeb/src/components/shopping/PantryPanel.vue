@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, nextTick } from 'vue';
 import { usePantryStore } from '../../stores/pantryStore';
-import { useToast } from 'primevue/usetoast';
+import { useNotify } from '../../composables/useNotify';
 import { useAppConfirm } from '../../composables/useAppConfirm';
 import type { PantryItem } from '../../models/PantryItem';
 
 const pantryStore = usePantryStore();
-const toast = useToast();
+const { notifySuccess, notifyError } = useNotify();
 const { confirm } = useAppConfirm();
 
 const newPantryItemName = ref('');
@@ -30,9 +30,9 @@ const addPantryItem = async () => {
     try {
         await pantryStore.addPantryItem({ name, selected: false });
         newPantryItemName.value = '';
-        toast.add({ severity: 'success', summary: 'Ajouté', detail: 'Basique ajouté à vos placards', life: 2000 });
+        notifySuccess('Ajouté', 'Basique ajouté à vos placards', 2000);
     } catch (e: any) {
-        toast.add({ severity: 'error', summary: 'Erreur', detail: e.message, life: 3000 });
+        notifyError('Erreur', e.message);
     }
 };
 
@@ -62,7 +62,7 @@ const saveEdit = async () => {
         await pantryStore.updatePantryItem(editingId.value, { name: newName });
         editingId.value = null;
     } catch (e: any) {
-        toast.add({ severity: 'error', summary: 'Erreur', detail: e.message, life: 3000 });
+        notifyError('Erreur', e.message);
     }
 };
 
@@ -75,15 +75,10 @@ const transferSelected = async () => {
     try {
         const count = await pantryStore.transferSelectedToShoppingList();
         if (count > 0) {
-            toast.add({ 
-                severity: 'success', 
-                summary: 'Transfert réussi', 
-                detail: `${count} article(s) ajouté(s) à votre panier`, 
-                life: 3000 
-            });
+            notifySuccess('Transfert réussi', `${count} article(s) ajouté(s) à votre panier`);
         }
     } catch (e: any) {
-        toast.add({ severity: 'error', summary: 'Erreur', detail: e.message, life: 3000 });
+        notifyError('Erreur', e.message);
     }
 };
 
@@ -97,9 +92,9 @@ const deleteItem = (item: PantryItem) => {
             if (item.id) {
                 try {
                     await pantryStore.deletePantryItem(item.id);
-                    toast.add({ severity: 'success', summary: 'Supprimé', detail: 'Article retiré du placard', life: 2000 });
+                    notifySuccess('Supprimé', 'Article retiré du placard', 2000);
                 } catch (e: any) {
-                    toast.add({ severity: 'error', summary: 'Erreur', detail: e.message, life: 3000 });
+                    notifyError('Erreur', e.message);
                 }
             }
         }

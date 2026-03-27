@@ -11,7 +11,7 @@ export interface SharedRecipePayload {
     p: number; // prepTime
     sv?: number; // servings
     m: string; // mealType
-    c: string; // category
+    cs: string[]; // categories
     r: boolean; // requiresFreeTime
     i?: string; // instructions
     s?: string; // sourceURL
@@ -54,7 +54,7 @@ export class RecipeShareService {
             p: recipe.prepTime,
             sv: recipe.servings,
             m: recipe.mealType,
-            c: recipe.category,
+            cs: recipe.categories,
             r: recipe.requiresFreeTime,
             i: recipe.instructions,
             s: recipe.sourceURL,

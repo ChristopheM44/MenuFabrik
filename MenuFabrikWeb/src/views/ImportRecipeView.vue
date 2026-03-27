@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useRecipeStore } from '../stores/recipeStore';
 import { useAllergenStore } from '../stores/allergenStore';
 import { useSideDishStore } from '../stores/sideDishStore';
-import { useToast } from 'primevue/usetoast';
+import { useNotify } from '../composables/useNotify';
 
 import type { Recipe, RecipeCategory } from '../models/Recipe';
 import { MealType } from '../models/Recipe';
@@ -17,7 +17,7 @@ import Rating from 'primevue/rating';
 
 const route = useRoute();
 const router = useRouter();
-const toast = useToast();
+const { notifySuccess, notifyError } = useNotify();
 
 const recipeStore = useRecipeStore();
 const allergenStore = useAllergenStore();
@@ -118,7 +118,7 @@ const handleImport = async () => {
             prepTime: payload.p || 30,
             servings: payload.sv || 4,
             mealType: (payload.m as MealType) || MealType.BOTH,
-            category: (payload.c as RecipeCategory) || 'Autre',
+            categories: (payload.cs as RecipeCategory[]) || ['Autre'],
             requiresFreeTime: payload.r || false,
             allergenIds: newAllergenIds,
             suggestedSideIds: newSideDishIds,
@@ -136,12 +136,7 @@ const handleImport = async () => {
         // 5. Sauvegarde
         const createdId = await recipeStore.addRecipe(newRecipe);
         
-        toast.add({ 
-            severity: 'success', 
-            summary: 'Livre de Recettes mis à jour', 
-            detail: `${payload.n} a été ajoutée avec succès !`, 
-            life: 4000 
-        });
+        notifySuccess('Livre de Recettes mis à jour', `${payload.n} a été ajoutée avec succès !`, 4000);
 
         // 6. Navigation
         if (createdId) {
@@ -152,7 +147,7 @@ const handleImport = async () => {
 
     } catch (e: any) {
         console.error("Erreur lors de l'import:", e);
-        toast.add({ severity: 'error', summary: "Erreur d'import", detail: e.message, life: 5000 });
+        notifyError("Erreur d'import", e.message, 5000);
     } finally {
         isImporting.value = false;
     }
@@ -195,7 +190,7 @@ const goBackToHome = () => {
             <div class="p-6 md:p-8 flex flex-col gap-6">
                 
                 <div class="flex flex-wrap justify-center gap-3">
-                    <Tag :value="decodedRecipe.c || 'Autre'" severity="secondary" rounded class="px-3" />
+                    <Tag v-for="cat in (decodedRecipe.cs || ['Autre'])" :key="cat" :value="cat" severity="secondary" rounded class="px-3" />
                     <Tag :value="decodedRecipe.m" :severity="getSeverityForMealType(decodedRecipe.m)" rounded class="px-3" />
                     <Tag icon="pi pi-clock" :value="formatTime(decodedRecipe.p)" severity="secondary" rounded class="px-3 bg-surface-container text-on-surface" />
                     <Tag v-if="decodedRecipe.sv" icon="pi pi-users" :value="`${decodedRecipe.sv} parts`" severity="secondary" rounded class="px-3 bg-surface-container text-on-surface" />

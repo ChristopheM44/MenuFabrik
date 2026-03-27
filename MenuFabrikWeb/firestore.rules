@@ -31,7 +31,7 @@ service cloud.firestore {
     }
 
     function isValidRecipe(data) {
-      return data.keys().hasAll(['name', 'prepTime', 'mealType', 'category', 'allergenIds', 'suggestedSideIds', 'requiresFreeTime'])
+      return data.keys().hasAll(['name', 'prepTime', 'mealType', 'categories', 'allergenIds', 'suggestedSideIds', 'requiresFreeTime'])
           && data.name is string
           && data.name.size() > 0
           && data.name.size() <= 200
@@ -39,7 +39,8 @@ service cloud.firestore {
           && data.prepTime >= 0
           && data.prepTime <= 1440
           && data.mealType in ['Midi', 'Soir', 'Les Deux']
-          && data.category in ['Pâtes', 'Viandes', 'Poissons', 'Soupes', 'Salades', 'Fast Food', 'Végétarien', 'Autre']
+          && data.categories is list
+          && data.categories.size() >= 1
           && data.allergenIds is list
           && data.suggestedSideIds is list
           && data.requiresFreeTime is bool
@@ -51,7 +52,7 @@ service cloud.firestore {
       return (!('name' in data) || (data.name is string && data.name.size() > 0 && data.name.size() <= 200))
           && (!('prepTime' in data) || (data.prepTime is number && data.prepTime >= 0 && data.prepTime <= 1440))
           && (!('mealType' in data) || data.mealType in ['Midi', 'Soir', 'Les Deux'])
-          && (!('category' in data) || data.category in ['Pâtes', 'Viandes', 'Poissons', 'Soupes', 'Salades', 'Fast Food', 'Végétarien', 'Autre'])
+          && (!('categories' in data) || (data.categories is list && data.categories.size() >= 1))
           && (!('allergenIds' in data) || data.allergenIds is list)
           && (!('suggestedSideIds' in data) || data.suggestedSideIds is list)
           && (!('requiresFreeTime' in data) || data.requiresFreeTime is bool)
@@ -178,7 +179,8 @@ service cloud.firestore {
         allow read: if isOwner(userId);
         allow create, update: if isOwner(userId)
             && request.resource.data.keys().hasAll(['isInitialized'])
-            && request.resource.data.isInitialized is bool;
+            && request.resource.data.isInitialized is bool
+            && (!('migrationVersion' in request.resource.data) || (request.resource.data.migrationVersion is int && request.resource.data.migrationVersion >= 0));
         allow delete: if isOwner(userId);
       }
     }

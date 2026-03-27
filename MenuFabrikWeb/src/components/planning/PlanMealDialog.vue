@@ -11,7 +11,7 @@ import Dialog from 'primevue/dialog';
 import DatePicker from 'primevue/datepicker';
 import Select from 'primevue/select';
 import MultiSelect from 'primevue/multiselect';
-import { useToast } from 'primevue/usetoast';
+import { useNotify } from '../../composables/useNotify';
 
 const props = defineProps<{
     visible: boolean;
@@ -23,7 +23,7 @@ const emit = defineEmits<{
 
 const mealStore = useMealStore();
 const participantStore = useParticipantStore();
-const toast = useToast();
+const { notifyError } = useNotify();
 
 // Helper
 const getLocalISODate = (date: Date): string => {
@@ -96,7 +96,7 @@ const planEmptyMeals = async () => {
 
     } catch (e) {
         console.error("Erreur Planification:", e);
-        toast.add({ severity: 'error', summary: 'Erreur', detail: 'Une erreur est survenue lors de la planification.', life: 3000 });
+        notifyError('Erreur', 'Une erreur est survenue lors de la planification.');
     } finally {
         isPlanning.value = false;
     }

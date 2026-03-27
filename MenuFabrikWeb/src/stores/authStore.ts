@@ -10,6 +10,7 @@ import {
     type User
 } from 'firebase/auth'
 import { collection, doc, getDoc, getDocs, serverTimestamp, writeBatch } from 'firebase/firestore'
+import { MigrationService } from '../services/MigrationService'
 import router from '../router'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -38,6 +39,7 @@ export const useAuthStore = defineStore('auth', () => {
             const profileSnap = await getDoc(profileRef)
 
             if (profileSnap.exists() && profileSnap.data().isInitialized) {
+                await MigrationService.runIfNeeded(uid)
                 isUserDbInitialized.value = true
                 return
             }
@@ -73,6 +75,7 @@ export const useAuthStore = defineStore('auth', () => {
             batch.set(profileRef, { isInitialized: true, createdAt: serverTimestamp() })
 
             await batch.commit()
+            await MigrationService.runIfNeeded(uid)
             isUserDbInitialized.value = true
         } catch (err: any) {
             console.error("Error initializing user space:", err)

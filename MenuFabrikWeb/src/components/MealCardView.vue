@@ -169,8 +169,8 @@ watch(() => props.meal.noteText, (newVal) => {
                     <span v-if="meal.recipe?.prepTime" class="flex items-center gap-1">
                         <i class="pi pi-clock text-sm"></i> {{ meal.recipe.prepTime }} min
                     </span>
-                    <span v-if="meal.recipe?.category" class="flex items-center gap-1">
-                        <i class="pi pi-tag text-sm"></i> <span class="truncate max-w-[80px] md:max-w-none">{{ meal.recipe.category }}</span>
+                    <span v-if="meal.recipe?.categories?.length" class="flex items-center gap-1">
+                        <i class="pi pi-tag text-sm"></i> <span class="truncate max-w-[120px] md:max-w-none">{{ meal.recipe.categories.join(', ') }}</span>
                     </span>
                 </div>
                 

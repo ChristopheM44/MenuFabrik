@@ -7,11 +7,13 @@
 
 ## CRITIQUE
 
-- [ ] **1.3** Aligner categories Gemini / TypeScript / Firestore
-  - [ ] Ajouter "Rapide" et "Au Four" dans `RecipeCategory` (`src/models/Recipe.ts`)
-  - [ ] Mettre a jour `firestore.rules:42` et `:54`
-  - [ ] Verifier coherence dans `RecipesView.vue:16`
-- [ ] **2.2** Supprimer le package `brew` de package.json (`npm uninstall brew`)
+- [x] **1.3** Aligner categories Gemini / TypeScript / Firestore
+  - [x] Ajouter "Rapide", "Au Four" et "Sans Gluten" dans `RecipeCategory` (`src/models/Recipe.ts`)
+  - [x] Mettre a jour `firestore.rules:42` et `:54`
+  - [x] Verifier coherence dans `RecipesView.vue:16`, `RecipePickerDialog.vue:23`
+  - [x] Ajouter couleurs dans `categoryUtils.ts`
+  - [x] Mettre a jour le prompt Gemini dans `GeminiService.ts:63`
+- [x] **2.2** Supprimer le package `brew` de package.json (`npm uninstall brew`)
 
 ---
 
@@ -19,9 +21,9 @@
 
 - [ ] **1.5** Corriger DataSeeder — soit migrer vers Admin SDK, soit ajuster les rules
 - [ ] **3.4** authStore : utiliser `commitInChunks` dans `checkAndInitializeUserSpace`
-- [ ] **3.1** Rendre `useCookingTimer` reactif (passer `Ref<string>` au lieu de `string`)
-- [ ] **4.1** Creer composable `useNotify()` centralise et migrer tous les toast.add disperses
-- [ ] **4.3** Ajouter confirmation `useAppConfirm` avant delete dans `RecipesView.vue:93`
+- [x] **3.1** Rendre `useCookingTimer` reactif (passer `Ref<string>` au lieu de `string`)
+- [x] **4.1** Creer composable `useNotify()` centralise et migrer tous les toast.add disperses
+- [x] **4.3** Ajouter confirmation `useAppConfirm` avant delete dans `RecipesView.vue:93`
 - [ ] **2.1** Supprimer `firebase/functions` de `src/firebase/config.ts` (import + init + export)
 - [ ] **6.1** Optimiser `getHydratedMeals` avec des Map id->object au lieu de find/filter
 - [ ] **1.1** Configurer restriction HTTP Referrer sur la cle Gemini dans Google AI Studio
@@ -44,7 +46,7 @@
 - [ ] **4.6** PlanMealDialog : importer `getLocalISODate` depuis `dateUtils.ts`
 
 ### Nouveaux composables
-- [ ] **5.2** Creer `useNotify()` — wrapper centralise de useToast (cf. 4.1)
+- [x] **5.2** Creer `useNotify()` — wrapper centralise de useToast (cf. 4.1)
 - [ ] **5.3** Creer `useDialog<T>()` — { visible, target, open(), close() }
 - [ ] **5.4** Creer `useInlineEdit<T>(updateFn)` — editingId, editingName, start/save/cancel
 - [ ] **5.1** Creer `useRecipeFilter(recipes, query, category)` — logique filtrage partagee
@@ -72,8 +74,10 @@
 
 | Categorie | Total | Fait | Reste |
 |-----------|-------|------|-------|
-| Critique | 2 | 0 | 2 |
-| Important | 8 | 0 | 8 |
-| Amelioration | 18 | 0 | 18 |
+| Categorie | Total | Fait | Reste |
+|-----------|-------|------|-------|
+| Critique | 2 | 2 | 0 |
+| Important | 8 | 3 | 5 |
+| Amelioration | 18 | 1 | 17 |
 | Nice-to-have | 5 | 0 | 5 |
-| **Total** | **33** | **0** | **33** |
+| **Total** | **33** | **6** | **27** |

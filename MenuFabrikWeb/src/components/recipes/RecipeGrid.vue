@@ -90,9 +90,9 @@ const handleCardClick = (recipe: Recipe) => {
                 <img v-if="recipe.imageUrl" :src="recipe.imageUrl" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="Recette" loading="lazy" />
                 <i v-else class="pi pi-image text-4xl text-on-surface-variant transition-transform duration-500 group-hover:scale-110"></i>
 
-                <!-- Category badge -->
-                <div class="absolute top-2 left-2 bg-surface-container-lowest/90 backdrop-blur-md px-2 py-0.5 rounded-full shadow-sm">
-                    <span class="text-[9px] font-bold tracking-widest text-primary uppercase">{{ recipe.category || 'Recette' }}</span>
+                <!-- Category badges -->
+                <div class="absolute top-2 left-2 flex flex-wrap gap-1">
+                    <span v-for="cat in (recipe.categories?.length ? recipe.categories : ['Recette'])" :key="cat" class="bg-surface-container-lowest/90 backdrop-blur-md px-2 py-0.5 rounded-full shadow-sm text-[9px] font-bold tracking-widest text-primary uppercase">{{ cat }}</span>
                 </div>
 
                 <!-- Picker: selected indicator on the image -->
