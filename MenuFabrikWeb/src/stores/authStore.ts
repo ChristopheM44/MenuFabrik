@@ -77,7 +77,7 @@ export const useAuthStore = defineStore('auth', () => {
             await batch.commit()
             await MigrationService.runIfNeeded(uid)
             isUserDbInitialized.value = true
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Error initializing user space:", err)
             error.value = "Erreur lors de l'initialisation de votre espace personnel."
         } finally {
@@ -91,8 +91,8 @@ export const useAuthStore = defineStore('auth', () => {
         try {
             await signInWithPopup(auth, googleProvider)
             router.push('/')
-        } catch (err: any) {
-            error.value = err.message
+        } catch (err: unknown) {
+            error.value = err instanceof Error ? err.message : 'Erreur inconnue'
         } finally {
             isLoading.value = false
         }
@@ -104,7 +104,7 @@ export const useAuthStore = defineStore('auth', () => {
         try {
             await signInWithEmailAndPassword(auth, email, pass)
             router.push('/')
-        } catch (err: any) {
+        } catch (err: unknown) {
             error.value = "Identifiants invalides."
         } finally {
             isLoading.value = false
@@ -117,8 +117,8 @@ export const useAuthStore = defineStore('auth', () => {
         try {
             await createUserWithEmailAndPassword(auth, email, pass)
             router.push('/')
-        } catch (err: any) {
-            error.value = err.message
+        } catch (err: unknown) {
+            error.value = err instanceof Error ? err.message : 'Erreur inconnue'
         } finally {
             isLoading.value = false
         }
@@ -130,8 +130,8 @@ export const useAuthStore = defineStore('auth', () => {
         try {
             await signOut(auth)
             router.push('/login')
-        } catch (err: any) {
-            error.value = err.message
+        } catch (err: unknown) {
+            error.value = err instanceof Error ? err.message : 'Erreur inconnue'
         } finally {
             isLoading.value = false
         }

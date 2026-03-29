@@ -3,9 +3,11 @@ import { ref, computed } from 'vue';
 import { useSideDishStore } from '../../stores/sideDishStore';
 import type { SideDish } from '../../models/SideDish';
 import { useAppConfirm } from '../../composables/useAppConfirm';
+import { useNotify } from '../../composables/useNotify';
 
 const sideDishStore = useSideDishStore();
 const { confirm } = useAppConfirm();
+const { notifyError } = useNotify();
 
 const sortedSideDishes = computed(() => {
     return [...sideDishStore.sideDishes].sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
@@ -22,6 +24,8 @@ const quickAddSideDish = async () => {
     try {
         await sideDishStore.addSideDish({ name: newSideDishName.value.trim() });
         newSideDishName.value = '';
+    } catch {
+        notifyError('Erreur', 'Impossible d\'ajouter l\'accompagnement.');
     } finally {
         isAddingSideDish.value = false;
     }
@@ -34,7 +38,11 @@ const startEdit = (dish: SideDish) => {
 
 const saveEdit = async (dish: SideDish) => {
     if (editingName.value.trim() && dish.id) {
-        await sideDishStore.updateSideDish(dish.id, { name: editingName.value.trim() });
+        try {
+            await sideDishStore.updateSideDish(dish.id, { name: editingName.value.trim() });
+        } catch {
+            notifyError('Erreur', 'Impossible de modifier l\'accompagnement.');
+        }
     }
     cancelEdit();
 };
@@ -51,7 +59,11 @@ const deleteSideDish = (id: string) => {
         acceptLabel: 'Oui, supprimer',
         rejectLabel: 'Non',
         onAccept: async () => {
-            await sideDishStore.deleteSideDish(id);
+            try {
+                await sideDishStore.deleteSideDish(id);
+            } catch {
+                notifyError('Erreur', 'Impossible de supprimer l\'accompagnement.');
+            }
         }
     });
 };

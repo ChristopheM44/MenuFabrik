@@ -1,4 +1,5 @@
 import { ref, onMounted } from 'vue';
+import { safeSetItem } from '../utils/localStorageUtils';
 
 export function useTheme() {
     const isDark = ref(false);
@@ -25,10 +26,10 @@ export function useTheme() {
         isDark.value = !isDark.value;
         if (isDark.value) {
             document.documentElement.classList.add('dark');
-            localStorage.setItem('menufabrik_theme', 'dark');
+            safeSetItem('menufabrik_theme', 'dark');
         } else {
             document.documentElement.classList.remove('dark');
-            localStorage.setItem('menufabrik_theme', 'light');
+            safeSetItem('menufabrik_theme', 'light');
         }
     };
 

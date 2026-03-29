@@ -6,10 +6,12 @@ import type { Participant } from '../../models/Participant';
 import ToggleSwitch from 'primevue/toggleswitch';
 import MultiSelect from 'primevue/multiselect';
 import { useAppConfirm } from '../../composables/useAppConfirm';
+import { useNotify } from '../../composables/useNotify';
 
 const participantStore = useParticipantStore();
 const allergenStore = useAllergenStore();
 const { confirm } = useAppConfirm();
+const { notifyError } = useNotify();
 
 const sortedParticipants = computed(() => {
     return [...participantStore.participants].sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
@@ -46,6 +48,8 @@ const saveParticipant = async () => {
             await participantStore.addParticipant(currentParticipant.value as Omit<Participant, 'id'>);
         }
         participantDialog.value = false;
+    } catch {
+        notifyError('Erreur', 'Impossible d\'enregistrer le participant.');
     } finally {
         participantIsSaving.value = false;
     }
@@ -57,7 +61,11 @@ const deleteParticipant = (id: string) => {
         acceptLabel: 'Oui, supprimer',
         rejectLabel: 'Non',
         onAccept: async () => {
-            await participantStore.deleteParticipant(id);
+            try {
+                await participantStore.deleteParticipant(id);
+            } catch {
+                notifyError('Erreur', 'Impossible de supprimer le participant.');
+            }
         }
     });
 };

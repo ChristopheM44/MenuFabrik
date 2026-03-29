@@ -31,8 +31,8 @@ export function useFirebaseCollection<T extends { id?: string }>(collectionName:
             const q = query(getCollectionRef())
             const querySnapshot = await getDocs(q)
             items.value = querySnapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as T))
-        } catch (err: any) {
-            error.value = "Erreur lors du chargement : " + (err.message || 'Erreur inconnue')
+        } catch (err: unknown) {
+            error.value = "Erreur lors du chargement : " + (err instanceof Error ? err.message : 'Erreur inconnue')
             console.error(err)
         } finally {
             isLoading.value = false
@@ -119,8 +119,8 @@ export function useFirebaseCollection<T extends { id?: string }>(collectionName:
         try {
             const docRef = await addDoc(getCollectionRef(), item as WithFieldValue<Omit<T, 'id'>>)
             return docRef.id
-        } catch (err: any) {
-            error.value = "Erreur de création : " + (err.message || 'Permission refusée')
+        } catch (err: unknown) {
+            error.value = "Erreur de création : " + (err instanceof Error ? err.message : 'Permission refusée')
             console.error(err)
             throw err
         }
@@ -132,8 +132,8 @@ export function useFirebaseCollection<T extends { id?: string }>(collectionName:
                 Object.entries(updates).filter(([, v]) => v !== undefined)
             ) as UpdateData<T>
             await updateDoc(getDocRef(id), cleanUpdates)
-        } catch (err: any) {
-            error.value = "Erreur de mise à jour : " + (err.message || 'Permission refusée')
+        } catch (err: unknown) {
+            error.value = "Erreur de mise à jour : " + (err instanceof Error ? err.message : 'Permission refusée')
             console.error(err)
             throw err
         }
@@ -142,8 +142,8 @@ export function useFirebaseCollection<T extends { id?: string }>(collectionName:
     const deleteItem = async (id: string) => {
         try {
             await deleteDoc(getDocRef(id))
-        } catch (err: any) {
-            error.value = "Erreur de suppression : " + (err.message || 'Permission refusée')
+        } catch (err: unknown) {
+            error.value = "Erreur de suppression : " + (err instanceof Error ? err.message : 'Permission refusée')
             console.error(err)
             throw err
         }

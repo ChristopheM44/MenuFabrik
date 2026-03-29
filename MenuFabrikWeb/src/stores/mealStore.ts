@@ -29,8 +29,8 @@ export const useMealStore = defineStore('meal', () => {
                     batch.set(mealRef, cleanMealData);
                 }
             });
-        } catch (err: any) {
-            firestoreCollection.error.value = "Erreur de sauvegarde: " + err.message
+        } catch (err: unknown) {
+            firestoreCollection.error.value = "Erreur de sauvegarde: " + (err instanceof Error ? err.message : 'Erreur inconnue')
             throw err
         }
     }

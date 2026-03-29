@@ -3,9 +3,11 @@ import { ref, computed } from 'vue';
 import { useAllergenStore } from '../../stores/allergenStore';
 import type { Allergen } from '../../models/Allergen';
 import { useAppConfirm } from '../../composables/useAppConfirm';
+import { useNotify } from '../../composables/useNotify';
 
 const allergenStore = useAllergenStore();
 const { confirm } = useAppConfirm();
+const { notifyError } = useNotify();
 
 const sortedAllergens = computed(() => {
     return [...allergenStore.allergens].sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
@@ -22,6 +24,8 @@ const quickAddAllergen = async () => {
     try {
         await allergenStore.addAllergen({ name: newAllergenName.value.trim() });
         newAllergenName.value = '';
+    } catch {
+        notifyError('Erreur', 'Impossible d\'ajouter l\'allergène.');
     } finally {
         isAddingAllergen.value = false;
     }
@@ -34,7 +38,11 @@ const startEdit = (allergen: Allergen) => {
 
 const saveEdit = async (allergen: Allergen) => {
     if (editingName.value.trim() && allergen.id) {
-        await allergenStore.updateAllergen(allergen.id, { name: editingName.value.trim() });
+        try {
+            await allergenStore.updateAllergen(allergen.id, { name: editingName.value.trim() });
+        } catch {
+            notifyError('Erreur', 'Impossible de modifier l\'allergène.');
+        }
     }
     cancelEdit();
 };
@@ -51,7 +59,11 @@ const deleteAllergen = (id: string) => {
         acceptLabel: 'Oui, supprimer',
         rejectLabel: 'Non',
         onAccept: async () => {
-            await allergenStore.deleteAllergen(id);
+            try {
+                await allergenStore.deleteAllergen(id);
+            } catch {
+                notifyError('Erreur', 'Impossible de supprimer l\'allergène.');
+            }
         }
     });
 };

@@ -42,8 +42,8 @@ export const usePantryStore = defineStore('pantry', () => {
 
             await batch.commit()
             return selectedItems.length;
-        } catch (err: any) {
-            firestoreCollection.error.value = "Erreur de transfert: " + err.message
+        } catch (err: unknown) {
+            firestoreCollection.error.value = "Erreur de transfert: " + (err instanceof Error ? err.message : 'Erreur inconnue')
             throw err
         }
     }

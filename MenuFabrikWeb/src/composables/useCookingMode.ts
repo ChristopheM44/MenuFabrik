@@ -3,6 +3,7 @@ import type { Recipe } from '../models/Recipe';
 import { parseSteps, matchIngredientsToStep, extractTimers } from '../utils/cookingParser';
 import { useWakeLock } from './useWakeLock';
 import { useCookingTimer } from './useCookingTimer';
+import { safeSetItem } from '../utils/localStorageUtils';
 
 export interface CookingSession {
   recipeId: string;
@@ -45,7 +46,7 @@ export function useCookingMode(recipe: Ref<Recipe | undefined>) {
       currentStepIndex: currentStepIndex.value,
       startedAt: savedSession.value?.startedAt || new Date().toISOString(),
     };
-    localStorage.setItem(storageKey.value, JSON.stringify(session));
+    safeSetItem(storageKey.value, JSON.stringify(session));
   };
 
   const clearSession = () => {
@@ -85,21 +86,18 @@ export function useCookingMode(recipe: Ref<Recipe | undefined>) {
   const goNext = () => {
     if (!isLastStep.value) {
       currentStepIndex.value++;
-      persistSession();
     }
   };
 
   const goPrevious = () => {
     if (!isFirstStep.value) {
       currentStepIndex.value--;
-      persistSession();
     }
   };
 
   const goToStep = (index: number) => {
     if (index >= 0 && index < totalSteps.value) {
       currentStepIndex.value = index;
-      persistSession();
     }
   };
 

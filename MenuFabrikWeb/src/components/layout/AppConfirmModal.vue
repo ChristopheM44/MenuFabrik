@@ -8,8 +8,9 @@ const handleAccept = async () => {
     if (state.onAccept) await state.onAccept();
 };
 
-const handleReject = () => {
+const handleReject = async () => {
     state.visible = false;
+    if (state.onReject) await state.onReject();
 };
 </script>
 

@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useRecipeStore } from '../stores/recipeStore';
 import { useCookingMode } from '../composables/useCookingMode';
+import { useAppConfirm } from '../composables/useAppConfirm';
 import type { Recipe } from '../models/Recipe';
-import Dialog from 'primevue/dialog';
-import Button from 'primevue/button';
 
 const route = useRoute();
 const router = useRouter();
@@ -34,6 +33,21 @@ const {
 } = useCookingMode(recipe);
 
 const { timers, addTimer, startTimer, pauseTimer, resetTimer, formatTime } = timerComposable;
+
+const { confirm } = useAppConfirm();
+
+watch(hasExistingSession, (val) => {
+    if (!val) return;
+    confirm({
+        title: 'Reprendre la cuisson ?',
+        message: `Tu étais à l'étape ${(savedSession.value?.currentStepIndex ?? 0) + 1}/${totalSteps.value}. Veux-tu reprendre où tu en étais ?`,
+        acceptLabel: 'Reprendre',
+        rejectLabel: 'Recommencer',
+        variant: 'warning',
+        onAccept: resumeSession,
+        onReject: startFresh,
+    });
+}, { immediate: true });
 
 const activeTimers = computed(() => timers.value.filter(t => t.isRunning || t.isFinished));
 
@@ -85,25 +99,6 @@ onMounted(async () => {
     <div v-if="isLoading" class="flex-1 flex items-center justify-center">
       <i class="pi pi-spin pi-spinner text-4xl text-white/50"></i>
     </div>
-
-    <!-- Resume dialog -->
-    <Dialog
-      v-if="hasExistingSession"
-      :visible="hasExistingSession"
-      modal
-      :closable="false"
-      :style="{ width: '90vw', maxWidth: '400px' }"
-      header="Reprendre la cuisson ?"
-    >
-      <p class="text-sm text-gray-600 mb-4">
-        Tu étais à l'étape {{ (savedSession?.currentStepIndex ?? 0) + 1 }}/{{ totalSteps }}.
-        Veux-tu reprendre où tu en étais ?
-      </p>
-      <div class="flex gap-3 justify-end">
-        <Button label="Recommencer" severity="secondary" @click="startFresh" />
-        <Button label="Reprendre" icon="pi pi-play" @click="resumeSession" />
-      </div>
-    </Dialog>
 
     <template v-if="!isLoading && recipe && !hasExistingSession">
       <!-- Header -->

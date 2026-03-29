@@ -6,7 +6,6 @@ import type { useRecipeStore } from '../stores/recipeStore';
 import type { useParticipantStore } from '../stores/participantStore';
 import type { useSideDishStore } from '../stores/sideDishStore';
 import { getLocalISODate, formatDateLabel } from '../utils/dateUtils';
-import { hydrateMeal } from '../utils/hydrateMeal';
 import { sortByNameFr } from '../utils/sortUtils';
 
 /**
@@ -28,9 +27,22 @@ export function useMealsPlanningData(
         return 2;
     };
 
-    // Jointure côté client : recette + participants + sides
+    // Jointure côté client : recette + participants + sides (Maps O(1) au lieu de find/filter O(n))
     const getHydratedMeals = computed(() => {
-        return mealStore.meals.map(meal => hydrateMeal(meal, recipeStore, participantStore, sideDishStore));
+        const recipeMap = new Map(recipeStore.recipes.map(r => [r.id, r]));
+        const participantMap = new Map(participantStore.participants.map(p => [p.id!, p]));
+        const sideDishMap = new Map(sideDishStore.sideDishes.map(sd => [sd.id!, sd]));
+
+        return mealStore.meals.map(meal => ({
+            ...meal,
+            recipe: meal.recipeId ? recipeMap.get(meal.recipeId) : undefined,
+            attendees: meal.attendeeIds
+                ? meal.attendeeIds.map(id => participantMap.get(id)).filter((p): p is NonNullable<typeof p> => p !== undefined)
+                : [],
+            selectedSideDishes: meal.selectedSideDishIds
+                ? meal.selectedSideDishIds.map(id => sideDishMap.get(id)).filter((sd): sd is NonNullable<typeof sd> => sd !== undefined)
+                : []
+        }));
     });
 
     // Groupement + tri par date

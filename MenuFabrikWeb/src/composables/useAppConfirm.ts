@@ -7,6 +7,7 @@ interface ConfirmOptions {
     rejectLabel?: string;
     variant?: 'danger' | 'warning';
     onAccept: () => void | Promise<void>;
+    onReject?: () => void | Promise<void>;
 }
 
 const state = reactive({
@@ -16,7 +17,8 @@ const state = reactive({
     acceptLabel: 'Confirmer',
     rejectLabel: 'Annuler',
     variant: 'danger' as 'danger' | 'warning',
-    onAccept: null as (() => void | Promise<void>) | null
+    onAccept: null as (() => void | Promise<void>) | null,
+    onReject: null as (() => void | Promise<void>) | null,
 });
 
 export function useAppConfirm() {
@@ -27,6 +29,7 @@ export function useAppConfirm() {
         state.rejectLabel = options.rejectLabel ?? 'Annuler';
         state.variant = options.variant ?? 'danger';
         state.onAccept = options.onAccept;
+        state.onReject = options.onReject ?? null;
         state.visible = true;
     };
 

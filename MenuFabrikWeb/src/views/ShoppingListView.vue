@@ -5,6 +5,7 @@ import { usePantryStore } from '../stores/pantryStore';
 
 import Toast from 'primevue/toast';
 import { useNotify } from '../composables/useNotify';
+import { safeSetItem } from '../utils/localStorageUtils';
 
 import ImportMealsToShoppingModal from '../components/planning/ImportMealsToShoppingModal.vue';
 import DriveSyncModal from '../components/planning/DriveSyncModal.vue';
@@ -70,7 +71,7 @@ const sendToDrive = () => {
         }))
     };
 
-    localStorage.setItem('menufabrik_drive_export', JSON.stringify(exportData));
+    safeSetItem('menufabrik_drive_export', JSON.stringify(exportData));
 
     notifySuccess('Export réussi', 'Ouvrez leclercdrive.fr et cliquez sur l\'extension MenuFabrik pour ajouter ces articles.', 8000);
 };

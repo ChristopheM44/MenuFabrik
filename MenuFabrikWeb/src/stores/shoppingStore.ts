@@ -18,8 +18,8 @@ export const useShoppingStore = defineStore('shopping', () => {
                 const itemRef = doc(collectionRef);
                 batch.set(itemRef, item);
             });
-        } catch (err: any) {
-            firestoreCollection.error.value = "Erreur de sauvegarde multiple: " + err.message
+        } catch (err: unknown) {
+            firestoreCollection.error.value = "Erreur de sauvegarde multiple: " + (err instanceof Error ? err.message : 'Erreur inconnue')
             throw err
         }
     }
@@ -35,8 +35,8 @@ export const useShoppingStore = defineStore('shopping', () => {
                     batch.delete(itemRef);
                 }
             });
-        } catch (err: any) {
-            firestoreCollection.error.value = "Erreur de suppression: " + err.message
+        } catch (err: unknown) {
+            firestoreCollection.error.value = "Erreur de suppression: " + (err instanceof Error ? err.message : 'Erreur inconnue')
             throw err
         }
     }
@@ -52,8 +52,8 @@ export const useShoppingStore = defineStore('shopping', () => {
                     batch.delete(itemRef);
                 }
             });
-        } catch (err: any) {
-            firestoreCollection.error.value = "Erreur de réinitialisation: " + err.message
+        } catch (err: unknown) {
+            firestoreCollection.error.value = "Erreur de réinitialisation: " + (err instanceof Error ? err.message : 'Erreur inconnue')
             throw err
         }
     }

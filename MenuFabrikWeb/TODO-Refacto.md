@@ -24,8 +24,8 @@
 - [x] **3.1** Rendre `useCookingTimer` reactif (passer `Ref<string>` au lieu de `string`)
 - [x] **4.1** Creer composable `useNotify()` centralise et migrer tous les toast.add disperses
 - [x] **4.3** Ajouter confirmation `useAppConfirm` avant delete dans `RecipesView.vue:93`
-- [ ] **2.1** Supprimer `firebase/functions` de `src/firebase/config.ts` (import + init + export)
-- [ ] **6.1** Optimiser `getHydratedMeals` avec des Map id->object au lieu de find/filter
+- [x] **2.1** Supprimer `firebase/functions` de `src/firebase/config.ts` (import + init + export)
+- [x] **6.1** Optimiser `getHydratedMeals` avec des Map id->object au lieu de find/filter
 - [ ] **1.1** Configurer restriction HTTP Referrer sur la cle Gemini dans Google AI Studio
 
 ---
@@ -33,16 +33,16 @@
 ## AMELIORATION
 
 ### Error handling & robustesse
-- [ ] **4.2** Remplacer tous les `catch (err: any)` par `catch (err: unknown)` + type guard
-- [ ] **3.3** Creer helper `safeSetItem` pour localStorage (quota exceeded)
-- [ ] **4.5** Ajouter try-catch + toast dans les Settings tabs (Allergens, SideDishes, Participants)
-- [ ] **3.6** useWakeLock : stocker le handler `release` et le retirer dans cleanup
-- [ ] **3.7** useWakeLock : ajouter try-catch sur `wakeLock.release()`
+- [x] **4.2** Remplacer tous les `catch (err: any)` par `catch (err: unknown)` + type guard
+- [x] **3.3** Creer helper `safeSetItem` pour localStorage (quota exceeded)
+- [x] **4.5** Ajouter try-catch + toast dans les Settings tabs (Allergens, SideDishes, Participants)
+- [x] **3.6** useWakeLock : stocker le handler `release` et le retirer dans cleanup
+- [x] **3.7** useWakeLock : ajouter try-catch sur `wakeLock.release()`
 
 ### Coherence des patterns
-- [ ] **3.2** useCookingMode : supprimer les appels `persistSession()` dans goNext/goPrevious/goToStep
+- [x] **3.2** useCookingMode : supprimer les appels `persistSession()` dans goNext/goPrevious/goToStep
 - [ ] **2.3** ShoppingListView : supprimer les `setupRealtimeListener()` redondants (L89-90)
-- [ ] **4.4** CookingModeView : migrer vers `useAppConfirm` au lieu du Dialog hardcode
+- [x] **4.4** CookingModeView : migrer vers `useAppConfirm` au lieu du Dialog hardcode
 - [ ] **4.6** PlanMealDialog : importer `getLocalISODate` depuis `dateUtils.ts`
 
 ### Nouveaux composables
@@ -77,7 +77,7 @@
 | Categorie | Total | Fait | Reste |
 |-----------|-------|------|-------|
 | Critique | 2 | 2 | 0 |
-| Important | 8 | 3 | 5 |
-| Amelioration | 18 | 1 | 17 |
+| Important | 8 | 5 | 3 |
+| Amelioration | 18 | 8 | 10 |
 | Nice-to-have | 5 | 0 | 5 |
-| **Total** | **33** | **6** | **27** |
+| **Total** | **33** | **15** | **18** |

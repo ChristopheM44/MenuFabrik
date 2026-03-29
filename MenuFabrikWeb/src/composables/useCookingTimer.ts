@@ -1,4 +1,5 @@
 import { ref, watch, onUnmounted, toValue, type MaybeRefOrGetter } from 'vue';
+import { safeSetItem } from '../utils/localStorageUtils';
 
 export interface CookingTimer {
   id: string;
@@ -35,7 +36,7 @@ export function useCookingTimer(storageKey: MaybeRefOrGetter<string>) {
   };
 
   const saveToStorage = () => {
-    localStorage.setItem(toValue(storageKey) + '_timers', JSON.stringify(timers.value));
+    safeSetItem(toValue(storageKey) + '_timers', JSON.stringify(timers.value));
   };
 
   const loadFromStorage = () => {
