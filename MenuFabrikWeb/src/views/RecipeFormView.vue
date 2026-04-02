@@ -153,11 +153,19 @@ const saveRecipe = async () => {
         if (isEditing.value && recipeForm.value.id) {
             // S'il y a une nouvelle image
             if (newImageFile.value) {
-                // Option 2 : Transformer la photo en Base64 très compressé 
+                // Option 2 : Transformer la photo en Base64 très compressé
                 const compressedBase64 = await ImageService.compressImageToBase64(newImageFile.value);
                 recipeForm.value.imageUrl = compressedBase64;
             }
-            await recipeStore.updateRecipe(recipeForm.value.id, recipeForm.value);
+            const cleanedIngredients = (recipeForm.value.ingredients || [])
+                .filter(i => i.name && i.name.trim() !== '')
+                .map(({ name, quantity, unit, department }) => ({
+                    name: name.trim(),
+                    ...(quantity !== undefined && quantity !== null && { quantity }),
+                    ...(unit ? { unit } : {}),
+                    ...(department ? { department } : {})
+                }));
+            await recipeStore.updateRecipe(recipeForm.value.id, { ...recipeForm.value, ingredients: cleanedIngredients });
         } else {
             // name, prepTime, mealType et categories sont déjà validés plus haut
             const newRecipe: Omit<Recipe, 'id'> = {
