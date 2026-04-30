@@ -40,12 +40,23 @@ npm install
 ```
 
 ### 3. Variables d'Environnement
-Créez un fichier `.env.local` à la racine (au même niveau que `vite.config.ts`) et ajoutez-y la clé API Gemini ainsi que vos potentielles configurations Firebase de développement :
+Créez un fichier `.env.local` à la racine (au même niveau que `vite.config.ts`) et ajoutez-y les variables Firebase utilisees par le front ainsi que la cle API Gemini :
 
 ```env
-# Clé d'API Google Gemini (Obligatoire pour l'Assistant IA)
+# Configuration Firebase Web App (obligatoire)
+VITE_FIREBASE_API_KEY=votre_firebase_web_api_key
+VITE_FIREBASE_AUTH_DOMAIN=votre-projet.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=votre-projet
+VITE_FIREBASE_STORAGE_BUCKET=votre-projet.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=1234567890
+VITE_FIREBASE_APP_ID=1:1234567890:web:abcdef123456
+
+# Clé d'API Google Gemini (obligatoire pour l'assistant IA)
 VITE_GEMINI_API_KEY=votre_clef_secrete_ici
 ```
+
+Ces valeurs Firebase se recuperent dans Firebase Console :
+`Project settings` > `General` > `Your apps` > configuration de l'app Web.
 
 ### 4. Lancer le serveur local
 ```bash
@@ -72,7 +83,7 @@ Vérifiez que vous êtes authentifié sur Firebase CLI :
 npx firebase login
 ```
 
-Lancez la commande de build combinée au déploiement (Assurez-vous que le projet Firebase visé est correct avec `npx firebase use`) :
+Lancez la commande de build combinee au deploiement (assurez-vous que le projet Firebase vise est correct avec `npx firebase use`) :
 ```bash
 npm run build && npx firebase deploy --only hosting
 ```

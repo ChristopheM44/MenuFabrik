@@ -13,6 +13,42 @@ export interface AIAnalysisResult {
     sideDishes?: string[];
 }
 
+type GeminiErrorPayload = {
+    error?: {
+        message?: string;
+        status?: string;
+    };
+};
+
+const parseGeminiErrorBody = (body: string): string => {
+    if (!body) {
+        return "";
+    }
+
+    try {
+        const payload = JSON.parse(body) as GeminiErrorPayload;
+        return payload.error?.message || payload.error?.status || body;
+    } catch {
+        return body;
+    }
+};
+
+const buildGeminiNetworkError = async (response: Response): Promise<Error> => {
+    const body = await response.text();
+    const details = parseGeminiErrorBody(body).trim();
+    const statusLabel = response.statusText || "réponse refusée";
+
+    if (response.status === 503) {
+        return new Error("Gemini est momentanement surcharge, merci de reessayer dans quelques instants.");
+    }
+
+    const message = details
+        ? `Erreur Gemini (${response.status} ${statusLabel}) : ${details}`
+        : `Erreur Gemini (${response.status} ${statusLabel})`;
+
+    return new Error(message);
+};
+
 export class GeminiService {
     /**
      * Analyse une recette depuis une URL ou du texte avec l'API Gemini 2.5 Flash
@@ -72,16 +108,22 @@ Réponds UNIQUEMENT avec un objet JSON strictement formaté (sans bloc markdown 
   "sideDishes": ["Salade verte", "Pain"]
 }`;
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: promptText }] }]
-            })
-        });
+        let response: Response;
+        try {
+            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: promptText }] }]
+                })
+            });
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "connexion impossible";
+            throw new Error(`Impossible de joindre Gemini : ${message}`);
+        }
 
         if (!response.ok) {
-            throw new Error(`Erreur réseau: ${response.statusText}`);
+            throw await buildGeminiNetworkError(response);
         }
 
         const resData = await response.json();
